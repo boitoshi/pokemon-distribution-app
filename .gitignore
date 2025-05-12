@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Devcontainer ファイルは除外しない！
+# .devcontainer
