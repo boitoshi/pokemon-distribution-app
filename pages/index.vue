@@ -14,13 +14,18 @@ const error = ref(null);
 onMounted(async () => {
   try {
     loading.value = true;
+    error.value = null; // エラー状態をリセット
+    console.log("データの取得を開始します...");
+
     const data = await fetchPokemonData();
-    if (data && data.length > 0) {
+
+    if (data && Array.isArray(data) && data.length > 0) {
+      // データが正常に取得できた場合
       pokemonData.value = data;
       console.log("データを取得しました:", data.length);
     } else {
-      console.warn("データが空または未定義です - ローカルデータを使用します");
-      // 明示的にローカルデータを使用
+      // データが空または無効な場合
+      console.warn("データが空または無効です - ローカルデータを使用します");
       pokemonData.value = initialPokemonData;
     }
   } catch (err) {

@@ -1,22 +1,12 @@
 import { Pokemon, initialPokemonData } from "./pokemon";
 
-// GitHubからポケモンデータを取得する関数
+// サーバーAPIからポケモンデータを取得する関数
 export async function fetchPokemonData(): Promise<Pokemon[]> {
   try {
     console.log("API: データの取得を開始します...");
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
-
-    const response = await fetch(
-      "https://raw.githubusercontent.com/boitoshi/pokemon-data/main/event-pokemon/gen8_dist_list.json",
-      {
-        signal: controller.signal,
-        headers: { "Cache-Control": "no-cache" },
-      }
-    );
-
-    clearTimeout(timeoutId);
+    // Nuxtのサーバーサイドエンドポイントを使用
+    const response = await fetch("/api/pokemon");
 
     if (!response.ok) {
       console.error(`HTTP エラー: ${response.status}`);
@@ -32,8 +22,11 @@ export async function fetchPokemonData(): Promise<Pokemon[]> {
 
     console.log(`API: ${data.length}件のデータを取得しました`);
 
-    // データの検証
-    validatePokemonData(data);
+    // データが空の場合は初期データを返す
+    if (data.length === 0) {
+      console.warn("API: 取得したデータが空のため初期データを使用します");
+      return initialPokemonData;
+    }
 
     return data;
   } catch (error) {
@@ -50,23 +43,36 @@ function validatePokemonData(data: any[]): void {
     return;
   }
 
-  // サンプルとして最初のデータの構造を確認
-  const sample = data[0];
-  const requiredFields = [
-    "managementId",
-    "pokemonName",
-    "eventName",
-    "generation",
-    "game",
-    "distributionMethod",
-  ];
+  // データの形式や必須フィールドをより厳密に確認
+  const validItems = data.filter((item) => {
+    // 必須フィールドが全て存在するかチェック
+    const requiredFields = [
+      "managementId",
+      "pokemonName",
+      "eventName",
+      "generation",
+      "game",
+      "distributionMethod",
+    ];
 
-  for (const field of requiredFields) {
-    if (sample[field] === undefined) {
-      console.warn(
-        `API: 取得したデータに必須フィールド '${field}' がありません`,
-        sample
-      );
+    const hasAllRequiredFields = requiredFields.every(
+      (field) => item[field] !== undefined && item[field] !== null
+    );
+
+    if (!hasAllRequiredFields) {
+      console.warn("API: 必須フィールドが欠けている項目があります", item);
     }
+
+    return hasAllRequiredFields;
+  });
+
+  console.log(`API: 検証済みデータ数: ${validItems.length}/${data.length}`);
+
+  // サンプルデータの構造を表示（デバッグ用）
+  if (validItems.length > 0) {
+    console.log(
+      "API: データサンプル:",
+      JSON.stringify(validItems[0]).substring(0, 200) + "..."
+    );
   }
 }
