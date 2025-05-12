@@ -88,7 +88,11 @@ useHead({
     </div>
 
     <template v-else>
-      <SearchBar :searchTerm="searchTerm" @update:searchTerm="updateSearch" />
+      <SearchBar
+        :searchTerm="searchTerm"
+        @update:searchTerm="updateSearch"
+        class="border-amber-300 focus:border-amber-500"
+      />
 
       <PokemonFilter
         :filters="filters"

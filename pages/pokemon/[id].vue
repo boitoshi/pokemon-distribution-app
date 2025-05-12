@@ -61,7 +61,7 @@ useHead({
       </NuxtLink>
     </div>
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div class="bg-blue-600 text-white p-6">
+      <div class="bg-amber-400 text-white p-6">
         <div class="flex justify-between items-center">
           <h1 class="text-2xl md:text-3xl font-bold">
             {{ pokemon.pokemonName }}
