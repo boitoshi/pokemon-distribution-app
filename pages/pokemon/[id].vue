@@ -1,43 +1,68 @@
 <!-- pages/pokemon/[id].vue -->
-<!-- <script setup>
-import { initialPokemonData } from "~/data/pokemon";
+<script setup>
+import { usePokemonData } from "~/composables/usePokemonData";
 
 const route = useRoute();
 const router = useRouter();
+const { pokemonList, loading, error } = usePokemonData();
 
 // IDからポケモンデータを取得
 const pokemon = computed(() => {
-  return initialPokemonData.find((p) => p.managementId === route.params.id);
+  return pokemonList.value.find((p) => p.managementId === route.params.id);
 });
 
-// ポケモンが見つからない場合
-if (!pokemon.value) {
-  // SSRの場合は404を返す
-  if (process.server) {
-    throw createError({
-      statusCode: 404,
-      message: "ポケモンが見つかりません",
-    });
-  } else {
-    // クライアントサイドではリダイレクト
-    router.push("/");
-  }
-}
-
 // ページメタデータ
-useHead({
-  title: `${pokemon.value?.pokemonName} | 配信ポケモン詳細`,
+useHead(() => ({
+  title: pokemon.value
+    ? `${pokemon.value.pokemonName} | 配信ポケモン詳細`
+    : "読み込み中...",
   meta: [
     {
       name: "description",
-      content: `${pokemon.value?.pokemonName}の配信・配布情報の詳細です。`,
+      content: pokemon.value
+        ? `${pokemon.value.pokemonName}の配信・配布情報の詳細です。`
+        : "配信ポケモンの詳細情報ページです。",
     },
   ],
+}));
+
+// クライアントサイドのみでの処理
+onMounted(() => {
+  // データ読み込み後にポケモンが見つからない場合はリダイレクト
+  watch([loading, pokemonList], ([isLoading, list]) => {
+    if (!isLoading && list.length > 0 && !pokemon.value) {
+      router.push("/");
+    }
+  });
 });
+
+// SSRの場合は404を返す（APIデータがない場合）
+if (process.server && !pokemon.value) {
+  throw createError({
+    statusCode: 404,
+    message: "ポケモンが見つかりません",
+  });
+}
 </script>
 
 <template>
-  <div v-if="pokemon">
+  <div v-if="loading" class="text-center p-10">
+    <p>ポケモン情報を読み込み中...</p>
+  </div>
+
+  <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6">
+    <h2 class="text-lg font-semibold text-red-700 mb-2">データ取得エラー</h2>
+    <p>{{ error }}</p>
+    <p class="mt-4">
+      詳細情報の取得に失敗しました。<NuxtLink
+        to="/"
+        class="text-blue-600 hover:underline"
+        >一覧に戻る</NuxtLink
+      >
+    </p>
+  </div>
+
+  <div v-else-if="pokemon">
     <div class="mb-4">
       <NuxtLink
         to="/"
@@ -57,7 +82,7 @@ useHead({
             d="M10 19l-7-7m0 0l7-7m-7 7h18"
           />
         </svg>
-        検索結果に戻る
+        検索ページに戻る
       </NuxtLink>
     </div>
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -104,7 +129,7 @@ useHead({
                 v-if="pokemon.gigantamax"
                 class="grid grid-cols-3 py-2 border-t"
               >
-                <dt class="font-medium">特殊形態</dt>
+                <dt class="font-medium">キョダイマックス</dt>
                 <dd class="col-span-2">{{ pokemon.gigantamax }}</dd>
               </div>
               <div
@@ -188,37 +213,60 @@ useHead({
           </div>
 
           <div v-if="pokemon.ribbon1 || pokemon.ribbon2 || pokemon.ribbon3">
-            <h3 class="text-lg font-semibold mb-3 border-b pb-2">リボン</h3>
+            <h3 class="text-lg font-semibold mb-3 border-b pb-2">
+              リボン/あかし
+            </h3>
             <dl>
               <div v-if="pokemon.ribbon1" class="grid grid-cols-3 py-2">
                 <dt class="font-medium">リボン1</dt>
-                <dd class="col-span-2">{{ pokemon.ribbon1 }}</dd>
+                <dd class="col-span-2 flex items-center">
+                  <span
+                    class="inline-block w-3 h-3 bg-amber-500 rounded-full mr-2"
+                  ></span>
+                  {{ pokemon.ribbon1 }}
+                </dd>
               </div>
               <div
                 v-if="pokemon.ribbon2"
                 class="grid grid-cols-3 py-2 border-t"
               >
                 <dt class="font-medium">リボン2</dt>
-                <dd class="col-span-2">{{ pokemon.ribbon2 }}</dd>
+                <dd class="col-span-2 flex items-center">
+                  <span
+                    class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"
+                  ></span>
+                  {{ pokemon.ribbon2 }}
+                </dd>
               </div>
               <div
                 v-if="pokemon.ribbon3"
                 class="grid grid-cols-3 py-2 border-t"
               >
                 <dt class="font-medium">リボン3</dt>
-                <dd class="col-span-2">{{ pokemon.ribbon3 }}</dd>
+                <dd class="col-span-2 flex items-center">
+                  <span
+                    class="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"
+                  ></span>
+                  {{ pokemon.ribbon3 }}
+                </dd>
+              </div>
+              <div
+                v-if="!pokemon.ribbon1 && !pokemon.ribbon2 && !pokemon.ribbon3"
+                class="py-2 text-gray-500 italic"
+              >
+                リボン/あかしはありません
               </div>
             </dl>
           </div>
         </div>
 
-        追加情報があれば以下に表示
+        <!-- 追加情報があれば以下に表示 -->
         <div v-if="pokemon.notes" class="mb-6">
           <h3 class="text-lg font-semibold mb-3 border-b pb-2">備考</h3>
           <p class="text-gray-700">{{ pokemon.notes }}</p>
         </div>
 
-        関連記事リンクなどがあれば
+        <!-- 関連記事リンクなどがあれば -->
         <div v-if="pokemon.wordpressLink" class="bg-gray-50 p-4 rounded-lg">
           <h3 class="text-lg font-semibold mb-2">関連記事</h3>
           <a
@@ -247,115 +295,11 @@ useHead({
       </div>
     </div>
   </div>
-  ロード中または404の表示
-  <div v-else class="text-center p-10"><p>ポケモン情報を読み込み中...</p></div>
-</template> 
--->
 
-<template>
-  <div v-if="pokemon">
-    <div class="mb-4">
-      <NuxtLink
-        to="/"
-        class="text-blue-600 hover:underline inline-flex items-center"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4 mr-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        検索ページに戻る
-      </NuxtLink>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div class="bg-amber-400 text-white p-6">
-        <div class="flex justify-between items-center">
-          <h1 class="text-2xl md:text-3xl font-bold">
-            {{ pokemon.pokemonName }}
-          </h1>
-          <span class="text-lg opacity-80">#{{ pokemon.dexNo }}</span>
-        </div>
-      </div>
-
-      <div class="p-6">
-        <PokemonDetailCard :pokemon="pokemon" />
-        
-        <!-- 関連記事リンクなどがあれば -->
-        <div v-if="pokemon.wordpressLink" class="bg-gray-50 p-4 rounded-lg mt-4">
-          <h3 class="text-lg font-semibold mb-2">関連記事</h3>
-          <a
-            :href="pokemon.wordpressLink"
-            target="_blank"
-            rel="noopener"
-            class="text-blue-600 hover:underline flex items-center"
-          >
-            <span>詳細解説記事を読む</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 ml-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </div>
+  <div v-else class="text-center p-10">
+    <p>指定されたポケモンが見つかりません</p>
+    <NuxtLink to="/" class="text-blue-600 hover:underline mt-4 inline-block"
+      >一覧に戻る</NuxtLink
+    >
   </div>
-  <!-- ロード中または404の表示 -->
-  <div v-else class="text-center p-10"><p>ポケモン情報を読み込み中...</p></div>
 </template>
-
-<script setup>
-import { initialPokemonData } from "~/data/pokemon";
-
-const route = useRoute();
-const router = useRouter();
-
-// IDからポケモンデータを取得
-const pokemon = computed(() => {
-  return initialPokemonData.find((p) => p.managementId === route.params.id);
-});
-
-// ポケモンが見つからない場合
-if (!pokemon.value) {
-  // SSRの場合は404を返す
-  if (process.server) {
-    throw createError({
-      statusCode: 404,
-      message: "ポケモンが見つかりません",
-    });
-  } else {
-    // クライアントサイドではリダイレクト
-    router.push("/");
-  }
-}
-
-// ページメタデータ
-useHead({
-  title: `${pokemon.value?.pokemonName} | 配信ポケモン詳細`,
-  meta: [
-    {
-      name: "description",
-      content: `${pokemon.value?.pokemonName}の配信・配布情報の詳細です。`,
-    },
-  ],
-});
-</script>

@@ -81,10 +81,33 @@ useHead({
 
     <div
       v-else-if="error"
-      class="p-4 bg-red-50 text-red-600 rounded-lg text-center"
+      class="p-6 bg-red-50 border border-red-200 rounded-lg my-4"
     >
-      <p>{{ error }}</p>
-      <p class="mt-2 text-sm">ローカルデータを表示しています</p>
+      <h2 class="text-lg font-semibold text-red-700 mb-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 inline-block mr-1"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        データ取得エラー
+      </h2>
+      <p class="text-gray-700">{{ error }}</p>
+      <p class="mt-3 text-sm text-gray-600">
+        ローカルデータを使用して表示しています。最新の情報ではない可能性があります。
+      </p>
+      <button
+        @click="retryFetch"
+        class="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+      >
+        再読み込みする
+      </button>
     </div>
 
     <template v-else>
