@@ -73,7 +73,7 @@ useHead({
       <div class="p-6">
         <div class="bg-blue-50 rounded-lg p-4 mb-6">
           <h2 class="text-xl font-semibold mb-2">{{ pokemon.eventName }}</h2>
-          <p>配信日: {{ pokemon.startDate }}</p>
+          <p>配信日: {{ pokemon.startDate }} ～ {{ pokemon.endDate }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -88,6 +88,32 @@ useHead({
                 <dt class="font-medium">ゲーム</dt>
                 <dd class="col-span-2">{{ pokemon.game }}</dd>
               </div>
+              <div v-if="pokemon.level" class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">レベル</dt>
+                <dd class="col-span-2">{{ pokemon.level }}</dd>
+              </div>
+              <div v-if="pokemon.gender" class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">性別</dt>
+                <dd class="col-span-2">{{ pokemon.gender }}</dd>
+              </div>
+              <div v-if="pokemon.shiny" class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">色違い</dt>
+                <dd class="col-span-2">{{ pokemon.shiny }}</dd>
+              </div>
+              <div
+                v-if="pokemon.gigantamax"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">特殊形態</dt>
+                <dd class="col-span-2">{{ pokemon.gigantamax }}</dd>
+              </div>
+              <div
+                v-if="pokemon.teraType"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">テラスタイプ</dt>
+                <dd class="col-span-2">{{ pokemon.teraType }}</dd>
+              </div>
             </dl>
           </div>
 
@@ -100,16 +126,96 @@ useHead({
               </div>
               <div class="grid grid-cols-3 py-2 border-t">
                 <dt class="font-medium">配信場所</dt>
-                <dd class="col-span-2">{{ pokemon.destributionLocation }}</dd>
+                <dd class="col-span-2">{{ pokemon.distributionLocation }}</dd>
+              </div>
+              <div
+                v-if="pokemon.metLocation"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">出会った場所</dt>
+                <dd class="col-span-2">{{ pokemon.metLocation }}</dd>
+              </div>
+              <div v-if="pokemon.ball" class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">ボール</dt>
+                <dd class="col-span-2">{{ pokemon.ball }}</dd>
+              </div>
+              <div v-if="pokemon.ot" class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">トレーナー名</dt>
+                <dd class="col-span-2">{{ pokemon.ot }}</dd>
+              </div>
+              <div
+                v-if="pokemon.trainerId"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">トレーナーID</dt>
+                <dd class="col-span-2">{{ pokemon.trainerId }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold mb-3 border-b pb-2">
+              とくせい・わざ
+            </h3>
+            <dl>
+              <div class="grid grid-cols-3 py-2">
+                <dt class="font-medium">せいかく</dt>
+                <dd class="col-span-2">{{ pokemon.nature }}</dd>
+              </div>
+              <div class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">とくせい</dt>
+                <dd class="col-span-2">{{ pokemon.ability }}</dd>
+              </div>
+              <div
+                v-if="pokemon.heldItem"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">持ち物</dt>
+                <dd class="col-span-2">{{ pokemon.heldItem }}</dd>
+              </div>
+              <div class="grid grid-cols-3 py-2 border-t">
+                <dt class="font-medium">わざ</dt>
+                <dd class="col-span-2">
+                  <ul class="list-disc pl-5">
+                    <li v-if="pokemon.move1">{{ pokemon.move1 }}</li>
+                    <li v-if="pokemon.move2">{{ pokemon.move2 }}</li>
+                    <li v-if="pokemon.move3">{{ pokemon.move3 }}</li>
+                    <li v-if="pokemon.move4">{{ pokemon.move4 }}</li>
+                  </ul>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div v-if="pokemon.ribbon1 || pokemon.ribbon2 || pokemon.ribbon3">
+            <h3 class="text-lg font-semibold mb-3 border-b pb-2">リボン</h3>
+            <dl>
+              <div v-if="pokemon.ribbon1" class="grid grid-cols-3 py-2">
+                <dt class="font-medium">リボン1</dt>
+                <dd class="col-span-2">{{ pokemon.ribbon1 }}</dd>
+              </div>
+              <div
+                v-if="pokemon.ribbon2"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">リボン2</dt>
+                <dd class="col-span-2">{{ pokemon.ribbon2 }}</dd>
+              </div>
+              <div
+                v-if="pokemon.ribbon3"
+                class="grid grid-cols-3 py-2 border-t"
+              >
+                <dt class="font-medium">リボン3</dt>
+                <dd class="col-span-2">{{ pokemon.ribbon3 }}</dd>
               </div>
             </dl>
           </div>
         </div>
 
         <!-- 追加情報があれば以下に表示 -->
-        <div v-if="pokemon.description" class="mb-6">
-          <h3 class="text-lg font-semibold mb-3 border-b pb-2">イベント詳細</h3>
-          <p class="text-gray-700">{{ pokemon.description }}</p>
+        <div v-if="pokemon.notes" class="mb-6">
+          <h3 class="text-lg font-semibold mb-3 border-b pb-2">備考</h3>
+          <p class="text-gray-700">{{ pokemon.notes }}</p>
         </div>
 
         <!-- 関連記事リンクなどがあれば -->
