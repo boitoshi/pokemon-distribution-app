@@ -218,7 +218,6 @@ if (process.server && !pokemon.value) {
             </h3>
             <dl>
               <div v-if="pokemon.ribbon1" class="grid grid-cols-3 py-2">
-                <dt class="font-medium">リボン1</dt>
                 <dd class="col-span-2 flex items-center">
                   <span
                     class="inline-block w-3 h-3 bg-amber-500 rounded-full mr-2"
@@ -230,7 +229,6 @@ if (process.server && !pokemon.value) {
                 v-if="pokemon.ribbon2"
                 class="grid grid-cols-3 py-2 border-t"
               >
-                <dt class="font-medium">リボン2</dt>
                 <dd class="col-span-2 flex items-center">
                   <span
                     class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"
@@ -242,7 +240,6 @@ if (process.server && !pokemon.value) {
                 v-if="pokemon.ribbon3"
                 class="grid grid-cols-3 py-2 border-t"
               >
-                <dt class="font-medium">リボン3</dt>
                 <dd class="col-span-2 flex items-center">
                   <span
                     class="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"
@@ -254,7 +251,7 @@ if (process.server && !pokemon.value) {
                 v-if="!pokemon.ribbon1 && !pokemon.ribbon2 && !pokemon.ribbon3"
                 class="py-2 text-gray-500 italic"
               >
-                リボン/あかしはありません
+                なし
               </div>
             </dl>
           </div>

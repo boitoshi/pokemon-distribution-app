@@ -28,7 +28,7 @@ const handleFilterChange = (filterName, e) => {
         <select
           :value="filters.generation"
           @change="(e) => handleFilterChange('generation', e)"
-          class="w-full p-2 border rounded"
+          class="w-11/12 p-2 border rounded"
         >
           <option value="">すべて</option>
           <option
@@ -49,7 +49,7 @@ const handleFilterChange = (filterName, e) => {
         <select
           :value="filters.game"
           @change="(e) => handleFilterChange('game', e)"
-          class="w-full p-2 border rounded"
+          class="w-11/12 p-2 border rounded"
         >
           <option value="">すべて</option>
           <option v-for="game in uniqueValues.games" :key="game" :value="game">
@@ -66,7 +66,7 @@ const handleFilterChange = (filterName, e) => {
         <select
           :value="filters.method"
           @change="(e) => handleFilterChange('method', e)"
-          class="w-full p-2 border rounded"
+          class="w-11/12 p-2 border rounded"
         >
           <option value="">すべて</option>
           <option
@@ -79,6 +79,43 @@ const handleFilterChange = (filterName, e) => {
         </select>
       </div>
 
+      <!-- ボールフィルター -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >ボール</label
+        >
+        <select
+          :value="filters.ball"
+          @change="(e) => handleFilterChange('ball', e)"
+          class="w-11/12 p-2 border rounded"
+        >
+          <option value="">すべて</option>
+          <option v-for="ball in uniqueValues.balls" :key="ball" :value="ball">
+            {{ ball }}
+          </option>
+        </select>
+      </div>
+
+      <!-- リボン/あかしフィルター -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >リボン/あかし</label
+        >
+        <select
+          :value="filters.ribbon"
+          @change="(e) => handleFilterChange('ribbon', e)"
+          class="w-11/12 p-2 border rounded"
+        >
+          <option value="">すべて</option>
+          <option
+            v-for="ribbon in uniqueValues.ribbons"
+            :key="ribbon"
+            :value="ribbon"
+          >
+            {{ ribbon }}
+          </option>
+        </select>
+      </div>
       <!-- 他のフィルター... -->
     </div>
   </div>
