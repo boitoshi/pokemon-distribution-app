@@ -5,8 +5,8 @@ export async function fetchPokemonData(): Promise<Pokemon[]> {
   try {
     console.log("API: データの取得を開始します...");
 
-    // Nuxtのサーバーサイドエンドポイントを使用
-    const response = await fetch("/api/pokemon");
+    // fetchを使ってデータを取得
+    const response = await fetch("/poke-search/pokemon.json");
 
     if (!response.ok) {
       console.error(`HTTP エラー: ${response.status}`);

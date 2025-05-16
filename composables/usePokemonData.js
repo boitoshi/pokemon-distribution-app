@@ -11,7 +11,7 @@ export function usePokemonData() {
     error.value = null;
 
     try {
-      const data = await $fetch("/api/pokemon");
+      const data = await $fetch("/poke-search/pokemon.json");
       if (Array.isArray(data) && data.length > 0) {
         pokemonList.value = data;
       }

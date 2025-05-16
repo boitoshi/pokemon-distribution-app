@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "prebuild": "node scripts/fetch-data.js",
+    "pregenerate": "node scripts/fetch-data.js"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.10.1",
