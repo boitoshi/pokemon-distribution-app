@@ -1,47 +1,60 @@
 # ポケモン配信情報検索サイト
 
-過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。
+過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。Astroで構築されています。
 
 ## 構成
 
-このリポジトリには2つのバージョンがあります：
-
 ```
 pokemon-distribution-app/
-├── index.html          ← メイン（シンプルHTML版）
-├── pokemon.json        ← ポケモンデータ
-├── README.md
-└── nuxt-reference/     ← Nuxt版（将来の参考用）
+├── src/
+│   ├── pages/
+│   │   └── index.astro         ← メインページ
+│   ├── components/
+│   │   ├── SearchBox.astro     ← 検索UI
+│   │   └── PokemonCard.astro   ← カード表示
+│   └── layouts/
+│       └── Layout.astro        ← 共通レイアウト
+├── public/
+│   └── pokemon.json            ← ポケモンデータ
+├── astro.config.mjs
+├── package.json
+└── nuxt-reference/             ← Nuxt版（参考用）
 ```
 
-### シンプルHTML版（メイン）
+## 開発
 
-- **`index.html`** - 単一HTMLファイルで完結
-- **`pokemon.json`** - ポケモン配布データ
+```bash
+# 依存関係のインストール
+npm install
 
-#### 特徴
+# 開発サーバー起動
+npm run dev
 
-- 1ファイルで完結、すぐに動作
-- フレームワーク不要、ビルド不要
-- GitHub Pages等で簡単にデプロイ可能
-- レスポンシブデザイン対応
+# ビルド
+npm run build
 
-#### デプロイ方法
+# ビルド結果のプレビュー
+npm run preview
+```
 
-1. `index.html` と `pokemon.json` を同じディレクトリに配置
-2. GitHub Pages や任意のWebサーバーで公開
+## デプロイ
 
-### Nuxt版（参考用）
+```bash
+npm run build
+```
 
-`nuxt-reference/` フォルダにNuxt.jsで構築したバージョンがあります。
-将来的に機能を拡張したい場合の参考として残しています。
+`dist/` フォルダが生成されます。これをGitHub Pagesや任意のWebサーバーにデプロイしてください。
 
-#### Nuxt版の特徴
+### GitHub Pages へのデプロイ
 
-- コンポーネント分割による保守性
-- TypeScriptによる型安全性
-- SSG（静的サイト生成）対応
-- 詳細ページあり
+`astro.config.mjs` でサイトURLとベースパスを設定済みです：
+
+```javascript
+export default defineConfig({
+  site: 'https://boitoshi.github.io',
+  base: '/pokemon-distribution-app',
+});
+```
 
 ## 機能
 
@@ -49,6 +62,10 @@ pokemon-distribution-app/
 - ポケモン名・イベント名で検索
 - 世代、ゲーム、配信方法でフィルター
 - 色違い、キョダイマックス、テラスタイプでフィルター
+
+## データの更新
+
+GoogleスプレッドシートからJSONをエクスポートして `public/pokemon.json` を置き換えてください。
 
 ## データ形式
 
@@ -85,9 +102,10 @@ pokemon-distribution-app/
 }
 ```
 
-## データの更新
+## 参考用：Nuxt版
 
-GoogleスプレッドシートからJSONをエクスポートして `pokemon.json` を置き換えてください。
+`nuxt-reference/` フォルダにNuxt.jsで構築したバージョンがあります。
+将来的に機能を拡張したい場合の参考として残しています。
 
 ## ライセンス
 

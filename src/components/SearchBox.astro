@@ -1,0 +1,37 @@
+---
+// SearchBox component - handles search and filter UI
+---
+
+<div class="search-box">
+    <div class="search-row">
+        <input type="text" id="searchName" placeholder="ポケモン名・イベント名で検索">
+        <select id="filterGeneration">
+            <option value="">すべての世代</option>
+            <option value="9">第9世代 (SV)</option>
+            <option value="8">第8世代 (剣盾)</option>
+            <option value="7">第7世代 (SM/USUM)</option>
+            <option value="6">第6世代 (XY/ORAS)</option>
+        </select>
+        <select id="filterGame">
+            <option value="">すべてのゲーム</option>
+        </select>
+        <select id="filterMethod">
+            <option value="">すべての配信方法</option>
+        </select>
+        <button id="searchButton">検索</button>
+    </div>
+    <div class="filters">
+        <label>
+            <input type="checkbox" id="filterShiny">
+            色違いのみ
+        </label>
+        <label>
+            <input type="checkbox" id="filterGigantamax">
+            キョダイマックス可
+        </label>
+        <label>
+            <input type="checkbox" id="filterTera">
+            テラスタイプあり
+        </label>
+    </div>
+</div>
