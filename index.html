@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配信ポケモン検索データベース</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #DC0A2D 0%, #3B4CCA 100%);
+            min-height: 100vh;
+            padding: 15px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #DC0A2D;
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        header p {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr 1.5fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input, select {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #DC0A2D;
+        }
+
+        button {
+            background: #DC0A2D;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #B8082A;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filters label {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .filters input[type="checkbox"] {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.95);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+        }
+
+        .pokemon-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #DC0A2D;
+        }
+
+        .pokemon-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .pokemon-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .pokemon-id {
+            background: #DC0A2D;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .shiny-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 90px;
+            font-size: 12px;
+        }
+
+        .info-value {
+            color: #333;
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .generation-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            color: white;
+        }
+
+        .gen-9 {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+        }
+
+        .gen-8 {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+        }
+
+        .gen-7 {
+            background: linear-gradient(135deg, #F093FB 0%, #F5576C 100%);
+        }
+
+        .gen-6 {
+            background: linear-gradient(135deg, #30CFD0 0%, #330867 100%);
+        }
+
+        .gigantamax-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .tera-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Pokemon type colors */
+        .type-ノーマル { background: #A8A878; }
+        .type-ほのお { background: #F08030; }
+        .type-みず { background: #6890F0; }
+        .type-でんき { background: #F8D030; color: #333; }
+        .type-くさ { background: #78C850; }
+        .type-こおり { background: #98D8D8; }
+        .type-かくとう { background: #C03028; }
+        .type-どく { background: #A040A0; }
+        .type-じめん { background: #E0C068; }
+        .type-ひこう { background: #A890F0; }
+        .type-エスパー { background: #F85888; }
+        .type-むし { background: #A8B820; }
+        .type-いわ { background: #B8A038; }
+        .type-ゴースト { background: #705898; }
+        .type-ドラゴン { background: #7038F8; }
+        .type-あく { background: #705848; }
+        .type-はがね { background: #B8B8D0; }
+        .type-フェアリー { background: #EE99AC; }
+        .type-ステラ { background: linear-gradient(135deg, #89CFF0 0%, #FFB6C1 50%, #FFFACD 100%); }
+
+        .moves {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .move-tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .ribbon-tag {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .item-tag {
+            background: #fce4ec;
+            color: #c2185b;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            color: #666;
+            font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .search-row {
+                grid-template-columns: 1fr;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>配信ポケモン検索データベース</h1>
+            <p>配信ポケモンを検索できます</p>
+        </header>
+
+        <div class="search-box">
+            <div class="search-row">
+                <input type="text" id="searchName" placeholder="ポケモン名・イベント名で検索">
+                <select id="filterGeneration">
+                    <option value="">すべての世代</option>
+                    <option value="9">第9世代 (SV)</option>
+                    <option value="8">第8世代 (剣盾)</option>
+                    <option value="7">第7世代 (SM/USUM)</option>
+                    <option value="6">第6世代 (XY/ORAS)</option>
+                </select>
+                <select id="filterGame">
+                    <option value="">すべてのゲーム</option>
+                </select>
+                <select id="filterMethod">
+                    <option value="">すべての配信方法</option>
+                </select>
+                <button onclick="searchPokemon()">検索</button>
+            </div>
+            <div class="filters">
+                <label>
+                    <input type="checkbox" id="filterShiny" onchange="searchPokemon()">
+                    色違いのみ
+                </label>
+                <label>
+                    <input type="checkbox" id="filterGigantamax" onchange="searchPokemon()">
+                    キョダイマックス可
+                </label>
+                <label>
+                    <input type="checkbox" id="filterTera" onchange="searchPokemon()">
+                    テラスタイプあり
+                </label>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <span id="resultCount"></span>
+            <span id="lastUpdated"></span>
+        </div>
+
+        <div class="loading" id="loading">読み込み中...</div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        let allData = [];
+        const JSON_URL = 'pokemon.json';
+
+        // Load data on page load
+        async function loadData() {
+            try {
+                const response = await fetch(JSON_URL);
+                const data = await response.json();
+                allData = data;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('stats').style.display = 'flex';
+
+                // Populate filter dropdowns
+                populateFilters();
+
+                // Display all results
+                displayResults(allData);
+            } catch (error) {
+                console.error('Data loading error:', error);
+                document.getElementById('loading').innerHTML =
+                    '<div style="background: white; padding: 30px; border-radius: 8px; color: #d32f2f;">データの読み込みに失敗しました。<br>URLを確認してください。</div>';
+            }
+        }
+
+        // Populate filter dropdowns from data
+        function populateFilters() {
+            const games = [...new Set(allData.map(p => p.game))].sort();
+            const methods = [...new Set(allData.map(p => p.distributionMethod))].sort();
+
+            const gameSelect = document.getElementById('filterGame');
+            games.forEach(game => {
+                const option = document.createElement('option');
+                option.value = game;
+                option.textContent = game;
+                gameSelect.appendChild(option);
+            });
+
+            const methodSelect = document.getElementById('filterMethod');
+            methods.forEach(method => {
+                const option = document.createElement('option');
+                option.value = method;
+                option.textContent = method;
+                methodSelect.appendChild(option);
+            });
+        }
+
+        // Search function
+        function searchPokemon() {
+            const searchName = document.getElementById('searchName').value.toLowerCase();
+            const filterGeneration = document.getElementById('filterGeneration').value;
+            const filterGame = document.getElementById('filterGame').value;
+            const filterMethod = document.getElementById('filterMethod').value;
+            const filterShiny = document.getElementById('filterShiny').checked;
+            const filterGigantamax = document.getElementById('filterGigantamax').checked;
+            const filterTera = document.getElementById('filterTera').checked;
+
+            let filtered = allData;
+
+            // Filter by Pokemon name or event name
+            if (searchName) {
+                filtered = filtered.filter(p =>
+                    p.pokemonName.toLowerCase().includes(searchName) ||
+                    p.eventName.toLowerCase().includes(searchName)
+                );
+            }
+
+            // Filter by generation
+            if (filterGeneration) {
+                filtered = filtered.filter(p => p.generation === parseInt(filterGeneration));
+            }
+
+            // Filter by game
+            if (filterGame) {
+                filtered = filtered.filter(p => p.game === filterGame);
+            }
+
+            // Filter by distribution method
+            if (filterMethod) {
+                filtered = filtered.filter(p => p.distributionMethod === filterMethod);
+            }
+
+            // Filter by shiny
+            if (filterShiny) {
+                filtered = filtered.filter(p => p.shiny && p.shiny !== '');
+            }
+
+            // Filter by Gigantamax
+            if (filterGigantamax) {
+                filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
+            }
+
+            // Filter by Tera type
+            if (filterTera) {
+                filtered = filtered.filter(p => p.teraType && p.teraType !== '');
+            }
+
+            displayResults(filtered);
+        }
+
+        // Format date for display
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        // Display results
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const resultCountDiv = document.getElementById('resultCount');
+
+            resultCountDiv.textContent = `${data.length}件のポケモンが見つかりました`;
+
+            if (data.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">該当するポケモンが見つかりませんでした</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = data.map(pokemon => {
+                // Special badges
+                let specialBadges = '';
+
+                // Shiny badge
+                if (pokemon.shiny && pokemon.shiny !== '') {
+                    specialBadges += '<span class="shiny-badge">色違い</span>';
+                }
+
+                // Gigantamax badge
+                if (pokemon.gigantamax && pokemon.gigantamax !== '') {
+                    specialBadges += '<span class="gigantamax-badge">キョダイ</span>';
+                }
+
+                // Distribution period
+                const startDate = formatDate(pokemon.startDate);
+                const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
+                const distributionPeriod = `${startDate} 〜 ${endDate}`;
+
+                // Moves
+                const moves = [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
+                const movesHtml = moves.length > 0
+                    ? `<div class="info-row">
+                         <div class="info-label">技:</div>
+                         <div class="info-value">
+                           <div class="moves">
+                             ${moves.map(move => `<span class="move-tag">${move}</span>`).join('')}
+                           </div>
+                         </div>
+                       </div>`
+                    : '';
+
+                // Ribbons
+                const ribbons = [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
+                const ribbonsHtml = ribbons.length > 0
+                    ? `<div class="info-row">
+                         <div class="info-label">リボン:</div>
+                         <div class="info-value">
+                           <div class="moves">
+                             ${ribbons.map(ribbon => `<span class="ribbon-tag">${ribbon}</span>`).join('')}
+                           </div>
+                         </div>
+                       </div>`
+                    : '';
+
+                // Tera type
+                const teraTypeHtml = pokemon.teraType && pokemon.teraType !== ''
+                    ? `<div class="info-row">
+                         <div class="info-label">テラスタイプ:</div>
+                         <div class="info-value">
+                           <span class="tera-type-badge type-${pokemon.teraType}">${pokemon.teraType}</span>
+                         </div>
+                       </div>`
+                    : '';
+
+                // Held item
+                const heldItemHtml = pokemon.heldItem && pokemon.heldItem !== ''
+                    ? `<div class="info-row">
+                         <div class="info-label">持ち物:</div>
+                         <div class="info-value">
+                           <span class="item-tag">${pokemon.heldItem}</span>
+                         </div>
+                       </div>`
+                    : '';
+
+                // Notes
+                const notesHtml = pokemon.notes && pokemon.notes !== ''
+                    ? `<div class="info-row">
+                         <div class="info-label">備考:</div>
+                         <div class="info-value" style="font-size: 11px; color: #666;">${pokemon.notes}</div>
+                       </div>`
+                    : '';
+
+                return `
+                    <div class="pokemon-card">
+                        <div class="pokemon-header">
+                            <div>
+                                <span class="pokemon-name">${pokemon.pokemonName}</span>
+                                ${specialBadges}
+                            </div>
+                            <span class="pokemon-id">#${String(pokemon.dexNo).padStart(4, '0')}</span>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">世代:</div>
+                            <div class="info-value">
+                                <span class="generation-badge gen-${pokemon.generation}">第${pokemon.generation}世代</span>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">イベント:</div>
+                            <div class="info-value">${pokemon.eventName}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">配布期間:</div>
+                            <div class="info-value">${distributionPeriod}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">配信方法:</div>
+                            <div class="info-value">${pokemon.distributionMethod}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">配信場所:</div>
+                            <div class="info-value">${pokemon.distributionLocation}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">ゲーム:</div>
+                            <div class="info-value">${pokemon.game}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">レベル:</div>
+                            <div class="info-value">Lv. ${pokemon.level || '?'}</div>
+                        </div>
+
+                        ${movesHtml}
+
+                        <div class="info-row">
+                            <div class="info-label">特性:</div>
+                            <div class="info-value">${pokemon.ability || '?'}</div>
+                        </div>
+
+                        ${pokemon.nature ? `
+                        <div class="info-row">
+                            <div class="info-label">性格:</div>
+                            <div class="info-value">${pokemon.nature}</div>
+                        </div>
+                        ` : ''}
+
+                        <div class="info-row">
+                            <div class="info-label">ボール:</div>
+                            <div class="info-value">${pokemon.ball || '?'}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">親名:</div>
+                            <div class="info-value">${pokemon.ot || '?'}</div>
+                        </div>
+
+                        ${teraTypeHtml}
+                        ${heldItemHtml}
+                        ${ribbonsHtml}
+                        ${notesHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Search on Enter key
+        document.getElementById('searchName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPokemon();
+            }
+        });
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>

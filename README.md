@@ -1,81 +1,93 @@
 # ポケモン配信情報検索サイト
 
-過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。Nuxt.js で構築されています。
+過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。
+
+## 構成
+
+このリポジトリには2つのバージョンがあります：
+
+```
+pokemon-distribution-app/
+├── index.html          ← メイン（シンプルHTML版）
+├── pokemon.json        ← ポケモンデータ
+├── README.md
+└── nuxt-reference/     ← Nuxt版（将来の参考用）
+```
+
+### シンプルHTML版（メイン）
+
+- **`index.html`** - 単一HTMLファイルで完結
+- **`pokemon.json`** - ポケモン配布データ
+
+#### 特徴
+
+- 1ファイルで完結、すぐに動作
+- フレームワーク不要、ビルド不要
+- GitHub Pages等で簡単にデプロイ可能
+- レスポンシブデザイン対応
+
+#### デプロイ方法
+
+1. `index.html` と `pokemon.json` を同じディレクトリに配置
+2. GitHub Pages や任意のWebサーバーで公開
+
+### Nuxt版（参考用）
+
+`nuxt-reference/` フォルダにNuxt.jsで構築したバージョンがあります。
+将来的に機能を拡張したい場合の参考として残しています。
+
+#### Nuxt版の特徴
+
+- コンポーネント分割による保守性
+- TypeScriptによる型安全性
+- SSG（静的サイト生成）対応
+- 詳細ページあり
 
 ## 機能
 
 - 配信ポケモンの一覧表示
-- 名前、世代、ゲームタイトル、配信方法などによる検索フィルター
-- 詳細情報の表示
-- GitHub リポジトリからの最新データ取得
+- ポケモン名・イベント名で検索
+- 世代、ゲーム、配信方法でフィルター
+- 色違い、キョダイマックス、テラスタイプでフィルター
 
-## データソース
+## データ形式
 
-このアプリケーションは以下のリポジトリからデータを取得しています：
+`pokemon.json` のデータ形式：
 
-- [boitoshi/pokemon-data](https://github.com/boitoshi/pokemon-data) - ポケモン配布・配信情報のデータセット
-
-## データ取得の仕組み
-
-このアプリケーションは以下の方法でデータを取得します:
-
-1. **ビルド時のデータ取得**: `npm run build`または`npm run generate`実行時に、`prebuild`/`pregenerate`フックが`scripts/fetch-data.js`を実行し、GitHub から最新のポケモンデータを`public/pokemon.json`として保存します。
-
-```bash
-# データ手動更新（必要な場合）
-node scripts/fetch-data.js
+```json
+{
+  "managementId": "08O01",
+  "pokemonName": "ニャース",
+  "shiny": "",
+  "dexNo": 52,
+  "generation": 8,
+  "game": "ソード, シールド",
+  "eventName": "早期購入特典",
+  "distributionMethod": "オンライン",
+  "distributionLocation": "オンライン",
+  "startDate": "2019-11-14",
+  "endDate": "2020-01-14",
+  "ot": "(プレイヤーのもの)",
+  "trainerId": "(プレイヤーのもの)",
+  "ball": "プレシャスボール",
+  "level": 5,
+  "ability": "ものひろい",
+  "nature": "ランダム",
+  "gigantamax": "キョダイマックス",
+  "teraType": "",
+  "heldItem": "",
+  "move1": "ねこだまし",
+  "move2": "なきごえ",
+  "move3": "きりさく",
+  "move4": "ネコにこばん",
+  "ribbon1": "クラシックリボン",
+  "notes": ""
+}
 ```
 
-2. **クライアントサイドのデータ取得**: アプリは`public/pokemon.json`を最初に読み込もうとし、失敗した場合はサーバー API を使用します。
+## データの更新
 
-## 本番環境用ビルド
-
-静的サイト生成（推奨）:
-
-```bash
-# npm
-npm run generate
-
-# pnpm
-pnpm generate
-
-# yarn
-yarn generate
-
-# bun
-bun run generate
-```
-
-これにより:
-
-1. GitHub から最新の JSON データが取得されます
-2. `public/pokemon.json`に保存されます
-3. 静的サイトが生成され、JSON データが含まれます
-
-## デプロイ
-
-生成されたサイトは`.output/public`ディレクトリにあり、任意のサーバーにデプロイできます:
-
-```bash
-# 例: GitHub Pagesへのデプロイ
-npm run generate
-# 生成されたファイルをGitHub Pagesにデプロイ
-```
-
-## プロジェクト構造
-
-- `pages/` - ページコンポーネント
-- `components/` - 再利用可能な Vue コンポーネント
-- `public/` - 静的ファイル（JSON データを含む）
-- `scripts/` - データ取得などのユーティリティスクリプト
-- `composables/` - 再利用可能なロジック
-- `data/` - データモデルと API 関連機能
-
-## 技術スタック
-
-- [Nuxt.js](https://nuxt.com/) - Vue ベースのフレームワーク
-- [Tailwind CSS](https://tailwindcss.com/) - スタイリング
-- [TypeScript](https://www.typescriptlang.org/) - 型安全
+GoogleスプレッドシートからJSONをエクスポートして `pokemon.json` を置き換えてください。
 
 ## ライセンス
 
