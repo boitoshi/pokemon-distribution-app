@@ -83,6 +83,7 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterShiny = document.getElementById('filterShiny').checked;
         const filterGigantamax = document.getElementById('filterGigantamax').checked;
         const filterTera = document.getElementById('filterTera').checked;
+        const filterAlpha = document.getElementById('filterAlpha').checked;
 
         let filtered = allData;
 
@@ -124,6 +125,11 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.teraType && p.teraType !== '');
         }
 
+        // Filter by Alpha (オヤブン)
+        if (filterAlpha) {
+            filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
+        }
+
         displayResults(filtered);
     }
 
@@ -132,6 +138,19 @@ const baseUrl = import.meta.env.BASE_URL;
         if (!dateStr) return '';
         const date = new Date(dateStr);
         return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+    }
+
+    // Game type detection helpers
+    function isSwSh(game) {
+        return game && (game.includes('ソード') || game.includes('シールド'));
+    }
+
+    function isSV(game) {
+        return game && (game.includes('スカーレット') || game.includes('バイオレット'));
+    }
+
+    function isLegendsGame(game) {
+        return game && (game.includes('アルセウス') || game.includes('Z-A'));
     }
 
     // Create a Pokemon card element
@@ -147,8 +166,13 @@ const baseUrl = import.meta.env.BASE_URL;
         if (pokemon.shiny && pokemon.shiny !== '') {
             badgesHtml += '<span class="shiny-badge">色違い</span>';
         }
-        if (pokemon.gigantamax && pokemon.gigantamax !== '') {
+        // キョダイマックス（ソード/シールドのみ）
+        if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
             badgesHtml += '<span class="gigantamax-badge">キョダイ</span>';
+        }
+        // オヤブン（アルセウス/Z-Aのみ）
+        if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
+            badgesHtml += '<span class="alpha-badge">オヤブン</span>';
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
 
@@ -192,8 +216,8 @@ const baseUrl = import.meta.env.BASE_URL;
             ).join('');
         }
 
-        // Tera type (optional)
-        if (pokemon.teraType && pokemon.teraType !== '') {
+        // Tera type (SV only)
+        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             const teraRow = cardEl.querySelector('.tera-row');
             teraRow.style.display = 'flex';
             const teraBadge = cardEl.querySelector('.tera-type-badge');
@@ -256,6 +280,7 @@ const baseUrl = import.meta.env.BASE_URL;
     document.getElementById('filterShiny').addEventListener('change', searchPokemon);
     document.getElementById('filterGigantamax').addEventListener('change', searchPokemon);
     document.getElementById('filterTera').addEventListener('change', searchPokemon);
+    document.getElementById('filterAlpha').addEventListener('change', searchPokemon);
 
     // Load data on page load
     loadData();
