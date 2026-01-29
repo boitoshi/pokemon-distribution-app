@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://boitoshi.github.io',
-  base: '/pokemon-distribution-app',
+  site: 'https://www.pokebros.net',
+  base: '/distribution',
 });

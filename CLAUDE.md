@@ -29,7 +29,8 @@ public/
 └── pokemon.json            # 配信ポケモンデータ
 
 docs/
-└── data-design.md          # データ設計書（カラム定義、エクスポート手順）
+├── data-design.md          # データ設計書（カラム定義、エクスポート手順）
+└── deploy.md               # デプロイ手順
 
 scripts/
 └── export-to-json.gs       # GASエクスポートスクリプト
@@ -105,11 +106,13 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 
 ## デプロイ
 
-GitHub Pagesにデプロイ:
+ConoHaサーバー（pokebros.net）にデプロイ:
 
-- サイトURL: https://boitoshi.github.io
-- ベースパス: /pokemon-distribution-app
+- サイトURL: https://www.pokebros.net/distribution/
+- ベースパス: /distribution
 - 設定: `astro.config.mjs`
+
+詳細は `docs/deploy.md` を参照。
 
 ## データ更新手順
 
