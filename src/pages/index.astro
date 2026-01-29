@@ -91,7 +91,6 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterMethod = document.getElementById('filterMethod').value;
         const filterShiny = document.getElementById('filterShiny').checked;
         const filterGigantamax = document.getElementById('filterGigantamax').checked;
-        const filterTera = document.getElementById('filterTera').checked;
         const filterAlpha = document.getElementById('filterAlpha').checked;
 
         let filtered = allData;
@@ -129,11 +128,6 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
         }
 
-        // Filter by Tera type
-        if (filterTera) {
-            filtered = filtered.filter(p => p.teraType && p.teraType !== '');
-        }
-
         // Filter by Alpha (オヤブン)
         if (filterAlpha) {
             filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
@@ -147,6 +141,22 @@ const baseUrl = import.meta.env.BASE_URL;
         if (!dateStr) return '';
         const date = new Date(dateStr);
         return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+    }
+
+    // Check if distribution is active
+    function isDistributionActive(endDate) {
+        if (!endDate) return true; // No end date means ongoing
+        const now = new Date();
+        const end = new Date(endDate);
+        return now <= end;
+    }
+
+    // Create distribution status badge
+    function createStatusBadge(endDate) {
+        const isActive = isDistributionActive(endDate);
+        const statusClass = isActive ? 'status-active' : 'status-ended';
+        const statusText = isActive ? '配信中' : '終了';
+        return `<span class="status-badge ${statusClass}">${statusText}</span>`;
     }
 
     // Game type detection helpers
@@ -184,22 +194,26 @@ const baseUrl = import.meta.env.BASE_URL;
         // Name
         cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
 
+        // Dex Number (No.025 format)
+        cardEl.querySelector('.dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
+
         let badgesHtml = '';
         if (pokemon.shiny && pokemon.shiny !== '') {
-            badgesHtml += '<span class="shiny-badge">色違い</span>';
+            badgesHtml += '<span class="icon-badge" title="色違い">✨</span>';
         }
         // キョダイマックス（ソード/シールドのみ）
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
-            badgesHtml += '<span class="gigantamax-badge">キョダイ</span>';
+            badgesHtml += '<span class="icon-badge" title="キョダイマックス">🔷</span>';
+        }
+        // テラスタイプ（スカーレット/バイオレットのみ）
+        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
+            badgesHtml += `<span class="tera-type-badge" title="テラスタイプ: ${pokemon.teraType}">${pokemon.teraType}</span>`;
         }
         // オヤブン（アルセウス/Z-Aのみ）
         if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
-            badgesHtml += '<span class="alpha-badge">オヤブン</span>';
+            badgesHtml += '<span class="icon-badge" title="オヤブン">👑</span>';
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
-
-        // Pokemon ID
-        cardEl.querySelector('.pokemon-id').textContent = `#${String(pokemon.dexNo).padStart(4, '0')}`;
 
         // Generation badge
         const genBadge = cardEl.querySelector('.generation-badge');
@@ -212,6 +226,9 @@ const baseUrl = import.meta.env.BASE_URL;
         const startDate = formatDate(pokemon.startDate);
         const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
         cardEl.querySelector('.distribution-period').textContent = `${startDate} 〜 ${endDate}`;
+
+        // Distribution status badge
+        cardEl.querySelector('.distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
 
         // Distribution method and location
         cardEl.querySelector('.distribution-method').textContent = pokemon.distributionMethod;
@@ -246,28 +263,27 @@ const baseUrl = import.meta.env.BASE_URL;
             this.style.display = 'none';
         });
 
-        // Name and shiny indicator
-        modalEl.querySelector('.modal-pokemon-name').textContent = pokemon.pokemonName;
-
-        // Shiny indicator next to name
-        const shinyIndicator = modalEl.querySelector('.modal-shiny-indicator');
+        // Name with shiny indicator
+        const pokemonNameEl = modalEl.querySelector('.modal-pokemon-name');
+        pokemonNameEl.textContent = pokemon.pokemonName;
         if (pokemon.shiny && pokemon.shiny !== '') {
-            shinyIndicator.textContent = '✨';
-            shinyIndicator.title = '色違い';
+            pokemonNameEl.innerHTML = pokemon.pokemonName + ' <span class="modal-shiny-indicator" title="色違い">✨</span>';
         }
 
-        // Badges (excluding shiny, which is now next to name)
+        // Dex Number (large display in modal)
+        modalEl.querySelector('.modal-dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
+
+        // Badges (icon style for mobile, text for PC)
         let badgesHtml = '';
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
-            badgesHtml += '<span class="gigantamax-badge">キョダイ</span>';
+            badgesHtml += '<span class="icon-badge mobile-only" title="キョダイマックス">🔷</span>';
+            badgesHtml += '<span class="text-badge pc-only">キョダイマックス可</span>';
         }
         if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
-            badgesHtml += '<span class="alpha-badge">オヤブン</span>';
+            badgesHtml += '<span class="icon-badge mobile-only" title="オヤブン">👑</span>';
+            badgesHtml += '<span class="text-badge pc-only">オヤブン</span>';
         }
         modalEl.querySelector('.modal-badges').innerHTML = badgesHtml;
-
-        // Pokemon ID
-        modalEl.querySelector('.modal-pokemon-id').textContent = `#${String(pokemon.dexNo).padStart(4, '0')}`;
 
         // Generation badge
         const genBadge = modalEl.querySelector('.modal-generation-badge');
@@ -280,6 +296,9 @@ const baseUrl = import.meta.env.BASE_URL;
         const startDate = formatDate(pokemon.startDate);
         const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
         modalEl.querySelector('.modal-distribution-period').textContent = `${startDate} 〜 ${endDate}`;
+
+        // Distribution status badge in modal
+        modalEl.querySelector('.modal-distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
 
         modalEl.querySelector('.modal-distribution-method').textContent = pokemon.distributionMethod;
         modalEl.querySelector('.modal-distribution-location').textContent = pokemon.distributionLocation;
@@ -303,13 +322,11 @@ const baseUrl = import.meta.env.BASE_URL;
             ballStatus.textContent = '?';
         }
 
-        // Tera type (SV only)
+        // Tera Type (only for Scarlet/Violet)
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
-            const teraRow = modalEl.querySelector('.modal-tera-row');
-            teraRow.style.display = 'flex';
-            const teraBadge = modalEl.querySelector('.modal-tera-type-badge');
-            teraBadge.textContent = pokemon.teraType;
-            teraBadge.classList.add(`type-${pokemon.teraType}`);
+            const teraTypeRow = modalEl.querySelector('.modal-tera-type-row');
+            teraTypeRow.style.display = 'flex';
+            modalEl.querySelector('.modal-tera-type').textContent = pokemon.teraType;
         }
 
         // Held item (optional)
@@ -386,17 +403,21 @@ const baseUrl = import.meta.env.BASE_URL;
         // Add to body
         document.body.appendChild(modal);
 
-        // Close modal on overlay click or close button
+        // Close modal on overlay click or close buttons
         const overlay = document.querySelector('.modal-overlay');
         const closeBtn = overlay.querySelector('.modal-close');
+        const bottomCloseBtn = overlay.querySelector('.modal-bottom-close');
 
-        closeBtn.addEventListener('click', () => {
+        const closeModal = () => {
             overlay.remove();
-        });
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        bottomCloseBtn.addEventListener('click', closeModal);
 
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
-                overlay.remove();
+                closeModal();
             }
         });
     }
@@ -438,7 +459,6 @@ const baseUrl = import.meta.env.BASE_URL;
     });
     document.getElementById('filterShiny').addEventListener('change', searchPokemon);
     document.getElementById('filterGigantamax').addEventListener('change', searchPokemon);
-    document.getElementById('filterTera').addEventListener('change', searchPokemon);
     document.getElementById('filterAlpha').addEventListener('change', searchPokemon);
 
     // Load data on page load

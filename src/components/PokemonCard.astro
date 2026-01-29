@@ -56,9 +56,9 @@ export interface Pokemon {
                     <div class="pokemon-header">
                         <div>
                             <span class="pokemon-name"></span>
+                            <span class="dex-number"></span>
                             <span class="badges"></span>
                         </div>
-                        <span class="pokemon-id"></span>
                     </div>
 
             <div class="info-row">
@@ -75,20 +75,23 @@ export interface Pokemon {
 
             <div class="info-row">
                 <div class="info-label">配布期間:</div>
-                <div class="info-value distribution-period"></div>
+                <div class="info-value">
+                    <span class="distribution-period"></span>
+                    <span class="distribution-status"></span>
+                </div>
             </div>
 
-            <div class="info-row">
+            <div class="info-row pc-only">
                 <div class="info-label">配信方法:</div>
                 <div class="info-value distribution-method"></div>
             </div>
 
-            <div class="info-row">
+            <div class="info-row pc-only">
                 <div class="info-label">配信場所:</div>
                 <div class="info-value distribution-location"></div>
             </div>
 
-            <div class="info-row ribbons-row" style="display: none;">
+            <div class="info-row ribbons-row pc-only" style="display: none;">
                 <div class="info-label">リボン:</div>
                 <div class="info-value">
                     <div class="ribbons"></div>
@@ -115,10 +118,9 @@ export interface Pokemon {
                     <div class="modal-header-content">
                         <h2>
                             <span class="modal-pokemon-name"></span>
-                            <span class="modal-shiny-indicator"></span>
                         </h2>
+                        <div class="modal-dex-number"></div>
                         <div class="modal-badges"></div>
-                        <div class="modal-pokemon-id"></div>
                     </div>
                 </div>
 
@@ -137,7 +139,10 @@ export interface Pokemon {
                         </div>
                         <div class="info-row">
                             <div class="info-label">配布期間:</div>
-                            <div class="info-value modal-distribution-period"></div>
+                            <div class="info-value">
+                                <span class="modal-distribution-period"></span>
+                                <span class="modal-distribution-status"></span>
+                            </div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">配信方法:</div>
@@ -171,11 +176,9 @@ export interface Pokemon {
                             <div class="info-label">ボール:</div>
                             <div class="info-value modal-ball-status"></div>
                         </div>
-                        <div class="info-row modal-tera-row" style="display: none;">
+                        <div class="info-row modal-tera-type-row" style="display: none;">
                             <div class="info-label">テラスタイプ:</div>
-                            <div class="info-value">
-                                <span class="modal-tera-type-badge"></span>
-                            </div>
+                            <div class="info-value modal-tera-type"></div>
                         </div>
                         <div class="info-row modal-item-row" style="display: none;">
                             <div class="info-label">持ち物:</div>
@@ -216,6 +219,8 @@ export interface Pokemon {
                 <div class="modal-footer modal-post-url-row" style="display: none;">
                     <a class="modal-post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
                 </div>
+
+                <button class="modal-bottom-close">閉じる</button>
             </div>
         </div>
     </div>
