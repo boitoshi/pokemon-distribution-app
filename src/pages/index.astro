@@ -15,13 +15,39 @@ const baseUrl = import.meta.env.BASE_URL;
     <SearchBox />
 
     <div class="stats" id="stats" style="display: none;">
-        <span id="resultCount"></span>
-        <span id="lastUpdated"></span>
+        <div class="stats-left">
+            <span id="resultCount"></span>
+        </div>
+        <div class="quick-filters" id="quickFilters">
+            <button class="quick-filter-btn" data-filter="shiny">
+                <span class="quick-icon">✨</span>
+                <span class="quick-text">色違い</span>
+            </button>
+            <button class="quick-filter-btn" data-filter="gigantamax">
+                <span class="quick-icon">🔷</span>
+                <span class="quick-text">キョダイ</span>
+            </button>
+            <button class="quick-filter-btn" data-filter="alpha">
+                <span class="quick-icon">👑</span>
+                <span class="quick-text">オヤブン</span>
+            </button>
+            <button class="quick-filter-btn" data-filter="moves">
+                <span class="quick-icon">🎯</span>
+                <span class="quick-text">技</span>
+            </button>
+            <button class="quick-filter-btn" data-filter="item">
+                <span class="quick-icon">🎁</span>
+                <span class="quick-text">持ち物</span>
+            </button>
+        </div>
     </div>
 
     <div class="loading" id="loading">読み込み中...</div>
 
     <div class="results" id="results"></div>
+
+    <!-- 一番上に戻るボタン -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="一番上に戻る">↑</button>
 
     <PokemonCard />
 </Layout>
@@ -39,6 +65,43 @@ const baseUrl = import.meta.env.BASE_URL;
         // return `${baseUrl}images/pokemon/${dexNo}.png`;
     }
 
+    // URLパラメータからフィルター初期状態を設定
+    function applyUrlParameters() {
+        const params = new URLSearchParams(window.location.search);
+
+        // チェックボックスフィルター
+        const filters = [
+            { param: 'shiny', id: 'filterShiny' },
+            { param: 'gigantamax', id: 'filterGigantamax' },
+            { param: 'alpha', id: 'filterAlpha' },
+            { param: 'moves', id: 'filterSpecialMoves' },
+            { param: 'item', id: 'filterHeldItem' }
+        ];
+
+        let hasFilters = false;
+
+        filters.forEach(({ param, id }) => {
+            if (params.get(param) === '1') {
+                hasFilters = true;
+                const el = document.getElementById(id);
+                if (el) el.checked = true;
+            }
+        });
+
+        // リボンパラメータ
+        const ribbon = params.get('ribbon');
+        if (ribbon) {
+            hasFilters = true;
+            const ribbonSelect = document.getElementById('filterRibbon');
+            if (ribbonSelect) ribbonSelect.value = ribbon;
+        }
+
+        // フィルターが設定されていたら自動検索
+        if (hasFilters) {
+            searchPokemon();
+        }
+    }
+
     // Load data on page load
     async function loadData() {
         try {
@@ -52,8 +115,14 @@ const baseUrl = import.meta.env.BASE_URL;
             // Populate filter dropdowns
             populateFilters();
 
-            // Display all results
-            displayResults(allData);
+            // URLパラメータを適用
+            applyUrlParameters();
+
+            // Display all results (URLパラメータでフィルターされていなければ全件表示)
+            const params = new URLSearchParams(window.location.search);
+            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item'].includes(key))) {
+                displayResults(allData);
+            }
         } catch (error) {
             console.error('Data loading error:', error);
             document.getElementById('loading').innerHTML =
@@ -81,7 +150,28 @@ const baseUrl = import.meta.env.BASE_URL;
             option.textContent = method;
             methodSelect.appendChild(option);
         });
+
+        // リボンのリストを抽出
+        const ribbonSet = new Set();
+        allData.forEach(p => {
+            const ribbons = p.ribbons && Array.isArray(p.ribbons)
+                ? p.ribbons.filter(r => r && r !== '')
+                : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
+            ribbons.forEach(r => ribbonSet.add(r));
+        });
+        const ribbons = [...ribbonSet].sort();
+
+        const ribbonSelect = document.getElementById('filterRibbon');
+        ribbons.forEach(ribbon => {
+            const option = document.createElement('option');
+            option.value = ribbon;
+            option.textContent = `🎀 ${ribbon}`; // リボンアイコン追加
+            ribbonSelect.appendChild(option);
+        });
     }
+
+    // 検索結果を保存（素早い絞り込み用）
+    let searchResults = [];
 
     // Search function
     function searchPokemon() {
@@ -89,9 +179,12 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterGeneration = document.getElementById('filterGeneration').value;
         const filterGame = document.getElementById('filterGame').value;
         const filterMethod = document.getElementById('filterMethod').value;
-        const filterShiny = document.getElementById('filterShiny').checked;
-        const filterGigantamax = document.getElementById('filterGigantamax').checked;
-        const filterAlpha = document.getElementById('filterAlpha').checked;
+        const filterShiny = document.getElementById('filterShiny')?.checked;
+        const filterGigantamax = document.getElementById('filterGigantamax')?.checked;
+        const filterAlpha = document.getElementById('filterAlpha')?.checked;
+        const filterSpecialMoves = document.getElementById('filterSpecialMoves')?.checked;
+        const filterHeldItem = document.getElementById('filterHeldItem')?.checked;
+        const filterRibbon = document.getElementById('filterRibbon')?.value;
 
         let filtered = allData;
 
@@ -133,7 +226,93 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
         }
 
+        // Filter by special moves (技が設定されている)
+        if (filterSpecialMoves) {
+            filtered = filtered.filter(p => {
+                const moves = p.moves && Array.isArray(p.moves)
+                    ? p.moves.filter(m => m && m !== '')
+                    : [p.move1, p.move2, p.move3, p.move4].filter(m => m && m !== '');
+                return moves.length > 0;
+            });
+        }
+
+        // Filter by specific ribbon (特定のリボン)
+        if (filterRibbon) {
+            filtered = filtered.filter(p => {
+                const ribbons = p.ribbons && Array.isArray(p.ribbons)
+                    ? p.ribbons.filter(r => r && r !== '')
+                    : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
+                return ribbons.includes(filterRibbon);
+            });
+        }
+
+        // Filter by held item (持ち物が設定されている)
+        if (filterHeldItem) {
+            filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
+        }
+
+        // 検索結果を保存
+        searchResults = filtered;
+
+        // 素早い絞り込みをリセット
+        resetQuickFilters();
+
         displayResults(filtered);
+    }
+
+    // 素早い絞り込み機能
+    function applyQuickFilter(filterType) {
+        let filtered = searchResults;
+
+        // アクティブな素早いフィルターを取得
+        const activeFilters = [...document.querySelectorAll('.quick-filter-btn.active')]
+            .map(btn => btn.dataset.filter);
+
+        // 各フィルターを適用
+        activeFilters.forEach(filter => {
+            switch(filter) {
+                case 'shiny':
+                    filtered = filtered.filter(p => p.shiny && p.shiny !== '');
+                    break;
+                case 'gigantamax':
+                    filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
+                    break;
+                case 'alpha':
+                    filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
+                    break;
+                case 'moves':
+                    filtered = filtered.filter(p => {
+                        const moves = p.moves && Array.isArray(p.moves)
+                            ? p.moves.filter(m => m && m !== '')
+                            : [p.move1, p.move2, p.move3, p.move4].filter(m => m && m !== '');
+                        return moves.length > 0;
+                    });
+                    break;
+                case 'item':
+                    filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
+                    break;
+            }
+        });
+
+        displayResults(filtered);
+    }
+
+    // 素早い絞り込みをリセット
+    function resetQuickFilters() {
+        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+    }
+
+    // モバイルで結果エリアにスクロール（検索ボタン押下時のみ）
+    function scrollToResults() {
+        if (window.innerWidth <= 768) {
+            const resultsEl = document.getElementById('results');
+            // 少し遅延させてDOM更新後にスクロール
+            setTimeout(() => {
+                resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
     }
 
     // Format date for display
@@ -451,16 +630,58 @@ const baseUrl = import.meta.env.BASE_URL;
     }
 
     // Event listeners
-    document.getElementById('searchButton').addEventListener('click', searchPokemon);
+    // 検索ボタン: 検索実行 + スクロール
+    document.getElementById('searchButton').addEventListener('click', () => {
+        searchPokemon();
+        scrollToResults();
+    });
+
+    // Enterキー: 検索実行 + スクロール
     document.getElementById('searchName').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchPokemon();
+            scrollToResults();
         }
     });
-    document.getElementById('filterShiny').addEventListener('change', searchPokemon);
-    document.getElementById('filterGigantamax').addEventListener('change', searchPokemon);
-    document.getElementById('filterAlpha').addEventListener('change', searchPokemon);
+
+    // 素早い絞り込みボタン
+    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            applyQuickFilter();
+        });
+    });
+
+    // クリアボタンからのイベントリスナー
+    window.addEventListener('clearSearch', () => {
+        // 検索結果をリセット
+        searchResults = allData;
+        // 初期表示（全データ）を表示
+        displayResults(allData);
+    });
 
     // Load data on page load
     loadData();
+
+    // 一番上に戻るボタンの処理（モバイルのみ）
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+
+    // スクロール時の表示/非表示制御
+    window.addEventListener('scroll', () => {
+        if (window.innerWidth <= 768) {
+            if (window.scrollY > 300) {
+                scrollToTopBtn.classList.add('show');
+            } else {
+                scrollToTopBtn.classList.remove('show');
+            }
+        }
+    });
+
+    // クリックでトップへスクロール
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 </script>

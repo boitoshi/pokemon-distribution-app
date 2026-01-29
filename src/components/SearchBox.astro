@@ -18,20 +18,82 @@
         <select id="filterMethod">
             <option value="">すべての配信方法</option>
         </select>
-        <button id="searchButton">検索</button>
     </div>
-    <div class="filters">
-        <label>
-            <input type="checkbox" id="filterShiny">
-            ✨ 色違い
-        </label>
-        <label>
-            <input type="checkbox" id="filterGigantamax">
-            🔷 キョダイ
-        </label>
-        <label>
-            <input type="checkbox" id="filterAlpha">
-            👑 オヤブン
-        </label>
+
+    <!-- 条件追加ボタン -->
+    <button id="toggleConditions" class="add-conditions-btn">＋ 条件を追加</button>
+
+    <!-- 検索条件（開閉式） -->
+    <div id="searchConditions" class="search-conditions" style="display: none;">
+        <div class="conditions-grid">
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterShiny">
+                <span>✨ 色違い</span>
+            </label>
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterGigantamax">
+                <span>🔷 キョダイマックス</span>
+            </label>
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterAlpha">
+                <span>👑 オヤブン</span>
+            </label>
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterSpecialMoves">
+                <span>🎯 特別な技あり</span>
+            </label>
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterHeldItem">
+                <span>🎁 持ち物あり</span>
+            </label>
+            <select id="filterRibbon" class="ribbon-select">
+                <option value="">リボンで絞る</option>
+            </select>
+        </div>
     </div>
+
+    <div class="search-buttons">
+        <button id="searchButton" class="search-button">検索</button>
+        <button id="clearConditions" class="clear-button">クリア</button>
+    </div>
+</div>
+
+<script>
+    // 条件追加ボタンの開閉
+    const toggleBtn = document.getElementById('toggleConditions');
+    const conditionsArea = document.getElementById('searchConditions');
+
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = conditionsArea.style.display === 'none';
+        conditionsArea.style.display = isHidden ? 'block' : 'none';
+        toggleBtn.textContent = isHidden ? '− 条件を閉じる' : '＋ 条件を追加';
+    });
+
+    // 条件クリアボタン
+    document.getElementById('clearConditions').addEventListener('click', () => {
+        // テキスト入力とセレクトをクリア
+        document.getElementById('searchName').value = '';
+        document.getElementById('filterGeneration').value = '';
+        document.getElementById('filterGame').value = '';
+        document.getElementById('filterMethod').value = '';
+
+        // チェックボックスをクリア
+        document.getElementById('filterShiny').checked = false;
+        document.getElementById('filterGigantamax').checked = false;
+        document.getElementById('filterAlpha').checked = false;
+        document.getElementById('filterSpecialMoves').checked = false;
+        document.getElementById('filterHeldItem').checked = false;
+
+        // リボンセレクトをクリア
+        document.getElementById('filterRibbon').value = '';
+
+        // 素早い絞り込みボタンをリセット
+        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 初期表示に戻すイベントを発火
+        window.dispatchEvent(new CustomEvent('clearSearch'));
+    });
+</script>
 </div>
