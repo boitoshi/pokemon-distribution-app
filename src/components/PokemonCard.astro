@@ -43,108 +43,163 @@ export interface Pokemon {
 <!-- Template for Pokemon Card (hidden, used by JavaScript) -->
 <template id="pokemon-card-template">
     <div class="pokemon-card">
-        <div class="pokemon-header">
-            <div>
-                <span class="pokemon-name"></span>
-                <span class="badges"></span>
+        <!-- コンパクト表示（常に表示） -->
+        <div class="compact-section">
+            <div class="pokemon-header">
+                <div>
+                    <span class="pokemon-name"></span>
+                    <span class="ball-icon"></span>
+                    <span class="badges"></span>
+                </div>
+                <span class="pokemon-id"></span>
             </div>
-            <span class="pokemon-id"></span>
-        </div>
 
-        <div class="info-row">
-            <div class="info-label">世代:</div>
-            <div class="info-value">
-                <span class="generation-badge"></span>
+            <div class="info-row">
+                <div class="info-label">世代:</div>
+                <div class="info-value">
+                    <span class="generation-badge"></span>
+                </div>
             </div>
-        </div>
 
-        <div class="info-row">
-            <div class="info-label">イベント:</div>
-            <div class="info-value event-name"></div>
-        </div>
+            <div class="info-row">
+                <div class="info-label">イベント:</div>
+                <div class="info-value event-name"></div>
+            </div>
 
-        <div class="info-row">
-            <div class="info-label">配布期間:</div>
-            <div class="info-value distribution-period"></div>
-        </div>
+            <div class="info-row">
+                <div class="info-label">配布期間:</div>
+                <div class="info-value distribution-period"></div>
+            </div>
 
-        <div class="info-row">
-            <div class="info-label">配信方法:</div>
-            <div class="info-value distribution-method"></div>
-        </div>
+            <div class="info-row">
+                <div class="info-label">配信方法:</div>
+                <div class="info-value distribution-method"></div>
+            </div>
 
-        <div class="info-row">
-            <div class="info-label">配信場所:</div>
-            <div class="info-value distribution-location"></div>
-        </div>
+            <div class="info-row">
+                <div class="info-label">配信場所:</div>
+                <div class="info-value distribution-location"></div>
+            </div>
 
-        <div class="info-row">
-            <div class="info-label">ゲーム:</div>
-            <div class="info-value game"></div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">レベル:</div>
-            <div class="info-value level"></div>
-        </div>
-
-        <div class="info-row moves-row" style="display: none;">
-            <div class="info-label">技:</div>
-            <div class="info-value">
-                <div class="moves"></div>
+            <div class="info-row ribbons-row" style="display: none;">
+                <div class="info-label">リボン:</div>
+                <div class="info-value">
+                    <div class="ribbons"></div>
+                </div>
             </div>
         </div>
+    </div>
+</template>
 
-        <div class="info-row">
-            <div class="info-label">特性:</div>
-            <div class="info-value ability"></div>
-        </div>
+<!-- Modal Template for Pokemon Details -->
+<template id="pokemon-modal-template">
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-body">
+                <div class="modal-header">
+                    <h2>
+                        <span class="modal-pokemon-name"></span>
+                        <span class="modal-ball-icon"></span>
+                    </h2>
+                    <div class="modal-badges"></div>
+                    <div class="modal-pokemon-id"></div>
+                </div>
 
-        <div class="info-row nature-row" style="display: none;">
-            <div class="info-label">性格:</div>
-            <div class="info-value nature"></div>
-        </div>
+                <div class="modal-grid">
+                    <div class="modal-section">
+                        <h3>基本情報</h3>
+                        <div class="info-row">
+                            <div class="info-label">世代:</div>
+                            <div class="info-value">
+                                <span class="modal-generation-badge"></span>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">イベント:</div>
+                            <div class="info-value modal-event-name"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">配布期間:</div>
+                            <div class="info-value modal-distribution-period"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">配信方法:</div>
+                            <div class="info-value modal-distribution-method"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">配信場所:</div>
+                            <div class="info-value modal-distribution-location"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">ゲーム:</div>
+                            <div class="info-value modal-game"></div>
+                        </div>
+                    </div>
 
-        <div class="info-row">
-            <div class="info-label">ボール:</div>
-            <div class="info-value ball"></div>
-        </div>
+                    <div class="modal-section">
+                        <h3>ステータス</h3>
+                        <div class="info-row">
+                            <div class="info-label">レベル:</div>
+                            <div class="info-value modal-level"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">特性:</div>
+                            <div class="info-value modal-ability"></div>
+                        </div>
+                        <div class="info-row modal-nature-row" style="display: none;">
+                            <div class="info-label">性格:</div>
+                            <div class="info-value modal-nature"></div>
+                        </div>
+                        <div class="info-row modal-tera-row" style="display: none;">
+                            <div class="info-label">テラスタイプ:</div>
+                            <div class="info-value">
+                                <span class="modal-tera-type-badge"></span>
+                            </div>
+                        </div>
+                        <div class="info-row modal-item-row" style="display: none;">
+                            <div class="info-label">持ち物:</div>
+                            <div class="info-value">
+                                <span class="modal-item-tag"></span>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="info-row">
-            <div class="info-label">親名:</div>
-            <div class="info-value ot"></div>
-        </div>
+                    <div class="modal-section modal-moves-section" style="display: none;">
+                        <h3>わざ</h3>
+                        <div class="modal-moves"></div>
+                    </div>
 
-        <div class="info-row tera-row" style="display: none;">
-            <div class="info-label">テラスタイプ:</div>
-            <div class="info-value">
-                <span class="tera-type-badge"></span>
-            </div>
-        </div>
+                    <div class="modal-section">
+                        <h3>トレーナー情報</h3>
+                        <div class="info-row">
+                            <div class="info-label">親名:</div>
+                            <div class="info-value modal-ot"></div>
+                        </div>
+                        <div class="info-row modal-trainer-id-row" style="display: none;">
+                            <div class="info-label">ID:</div>
+                            <div class="info-value modal-trainer-id"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">ボール:</div>
+                            <div class="info-value modal-ball"></div>
+                        </div>
+                    </div>
 
-        <div class="info-row item-row" style="display: none;">
-            <div class="info-label">持ち物:</div>
-            <div class="info-value">
-                <span class="item-tag"></span>
-            </div>
-        </div>
+                    <div class="modal-section modal-ribbons-section" style="display: none;">
+                        <h3>リボン</h3>
+                        <div class="modal-ribbons"></div>
+                    </div>
 
-        <div class="info-row ribbons-row" style="display: none;">
-            <div class="info-label">リボン:</div>
-            <div class="info-value">
-                <div class="moves ribbons"></div>
-            </div>
-        </div>
+                    <div class="modal-section modal-notes-section" style="display: none;">
+                        <h3>備考</h3>
+                        <div class="modal-notes"></div>
+                    </div>
+                </div>
 
-        <div class="info-row notes-row" style="display: none;">
-            <div class="info-label">備考:</div>
-            <div class="info-value notes" style="font-size: 11px; color: #666;"></div>
-        </div>
-
-        <div class="info-row post-url-row" style="display: none;">
-            <div class="info-label"></div>
-            <div class="info-value">
-                <a class="post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
+                <div class="modal-footer modal-post-url-row" style="display: none;">
+                    <a class="modal-post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
+                </div>
             </div>
         </div>
     </div>

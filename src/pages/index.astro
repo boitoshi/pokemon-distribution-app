@@ -28,7 +28,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <script define:vars={{ baseUrl }}>
     let allData = [];
-    const JSON_URL = `${baseUrl}pokemon.json`;
+    const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
 
     // Load data on page load
     async function loadData() {
@@ -159,8 +159,18 @@ const baseUrl = import.meta.env.BASE_URL;
         const card = template.content.cloneNode(true);
         const cardEl = card.querySelector('.pokemon-card');
 
-        // Name and badges
+        // Store pokemon data for modal
+        cardEl.dataset.pokemonData = JSON.stringify(pokemon);
+
+        // Name and ball icon
         cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
+
+        const ballIcon = cardEl.querySelector('.ball-icon');
+        if (pokemon.ball) {
+            ballIcon.textContent = '⚪';
+            ballIcon.setAttribute('data-ball', pokemon.ball);
+            ballIcon.title = pokemon.ball;
+        }
 
         let badgesHtml = '';
         if (pokemon.shiny && pokemon.shiny !== '') {
@@ -191,48 +201,9 @@ const baseUrl = import.meta.env.BASE_URL;
         const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
         cardEl.querySelector('.distribution-period').textContent = `${startDate} 〜 ${endDate}`;
 
+        // Distribution method and location
         cardEl.querySelector('.distribution-method').textContent = pokemon.distributionMethod;
         cardEl.querySelector('.distribution-location').textContent = pokemon.distributionLocation;
-        cardEl.querySelector('.game').textContent = pokemon.game;
-        cardEl.querySelector('.level').textContent = `Lv. ${pokemon.level || '?'}`;
-        cardEl.querySelector('.ability').textContent = pokemon.ability || '?';
-        cardEl.querySelector('.ball').textContent = pokemon.ball || '?';
-        cardEl.querySelector('.ot').textContent = pokemon.ot || '?';
-
-        // Nature (optional)
-        if (pokemon.nature) {
-            const natureRow = cardEl.querySelector('.nature-row');
-            natureRow.style.display = 'flex';
-            cardEl.querySelector('.nature').textContent = pokemon.nature;
-        }
-
-        // Moves (配列形式またはカラム形式に対応)
-        const moves = pokemon.moves && Array.isArray(pokemon.moves)
-            ? pokemon.moves.filter(m => m && m !== '')
-            : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
-        if (moves.length > 0) {
-            const movesRow = cardEl.querySelector('.moves-row');
-            movesRow.style.display = 'flex';
-            cardEl.querySelector('.moves').innerHTML = moves.map(move =>
-                `<span class="move-tag">${move}</span>`
-            ).join('');
-        }
-
-        // Tera type (SV only)
-        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
-            const teraRow = cardEl.querySelector('.tera-row');
-            teraRow.style.display = 'flex';
-            const teraBadge = cardEl.querySelector('.tera-type-badge');
-            teraBadge.textContent = pokemon.teraType;
-            teraBadge.classList.add(`type-${pokemon.teraType}`);
-        }
-
-        // Held item (optional)
-        if (pokemon.heldItem && pokemon.heldItem !== '') {
-            const itemRow = cardEl.querySelector('.item-row');
-            itemRow.style.display = 'flex';
-            cardEl.querySelector('.item-tag').textContent = pokemon.heldItem;
-        }
 
         // Ribbons (配列形式またはカラム形式に対応)
         const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
@@ -242,26 +213,152 @@ const baseUrl = import.meta.env.BASE_URL;
             const ribbonsRow = cardEl.querySelector('.ribbons-row');
             ribbonsRow.style.display = 'flex';
             cardEl.querySelector('.ribbons').innerHTML = ribbons.map(ribbon =>
-                `<span class="ribbon-tag">${ribbon}</span>`
+                `<span class="ribbon-icon">🎀 ${ribbon}</span>`
             ).join('');
         }
 
-        // Notes (optional)
-        if (pokemon.notes && pokemon.notes !== '') {
-            const notesRow = cardEl.querySelector('.notes-row');
-            notesRow.style.display = 'flex';
-            cardEl.querySelector('.notes').textContent = pokemon.notes;
+        return card;
+    }
+
+    // Show modal with Pokemon details
+    function showDetailModal(pokemon) {
+        const template = document.getElementById('pokemon-modal-template');
+        const modal = template.content.cloneNode(true);
+        const modalEl = modal.querySelector('.modal-overlay');
+
+        // Name and ball icon
+        modalEl.querySelector('.modal-pokemon-name').textContent = pokemon.pokemonName;
+
+        const ballIcon = modalEl.querySelector('.modal-ball-icon');
+        if (pokemon.ball) {
+            ballIcon.textContent = '⚪';
+            ballIcon.setAttribute('data-ball', pokemon.ball);
+            ballIcon.title = pokemon.ball;
         }
 
-        // Post URL (optional - あれば表示)
+        // Badges
+        let badgesHtml = '';
+        if (pokemon.shiny && pokemon.shiny !== '') {
+            badgesHtml += '<span class="shiny-badge">色違い</span>';
+        }
+        if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
+            badgesHtml += '<span class="gigantamax-badge">キョダイ</span>';
+        }
+        if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
+            badgesHtml += '<span class="alpha-badge">オヤブン</span>';
+        }
+        modalEl.querySelector('.modal-badges').innerHTML = badgesHtml;
+
+        // Pokemon ID
+        modalEl.querySelector('.modal-pokemon-id').textContent = `#${String(pokemon.dexNo).padStart(4, '0')}`;
+
+        // Generation badge
+        const genBadge = modalEl.querySelector('.modal-generation-badge');
+        genBadge.textContent = `第${pokemon.generation}世代`;
+        genBadge.classList.add(`gen-${pokemon.generation}`);
+
+        // Basic info
+        modalEl.querySelector('.modal-event-name').textContent = pokemon.eventName;
+
+        const startDate = formatDate(pokemon.startDate);
+        const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
+        modalEl.querySelector('.modal-distribution-period').textContent = `${startDate} 〜 ${endDate}`;
+
+        modalEl.querySelector('.modal-distribution-method').textContent = pokemon.distributionMethod;
+        modalEl.querySelector('.modal-distribution-location').textContent = pokemon.distributionLocation;
+        modalEl.querySelector('.modal-game').textContent = pokemon.game;
+
+        // Stats
+        modalEl.querySelector('.modal-level').textContent = pokemon.level || '?';
+        modalEl.querySelector('.modal-ability').textContent = pokemon.ability || '?';
+
+        if (pokemon.nature) {
+            const natureRow = modalEl.querySelector('.modal-nature-row');
+            natureRow.style.display = 'flex';
+            modalEl.querySelector('.modal-nature').textContent = pokemon.nature;
+        }
+
+        // Tera type (SV only)
+        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
+            const teraRow = modalEl.querySelector('.modal-tera-row');
+            teraRow.style.display = 'flex';
+            const teraBadge = modalEl.querySelector('.modal-tera-type-badge');
+            teraBadge.textContent = pokemon.teraType;
+            teraBadge.classList.add(`type-${pokemon.teraType}`);
+        }
+
+        // Held item (optional)
+        if (pokemon.heldItem && pokemon.heldItem !== '') {
+            const itemRow = modalEl.querySelector('.modal-item-row');
+            itemRow.style.display = 'flex';
+            modalEl.querySelector('.modal-item-tag').textContent = pokemon.heldItem;
+        }
+
+        // Moves
+        const moves = pokemon.moves && Array.isArray(pokemon.moves)
+            ? pokemon.moves.filter(m => m && m !== '')
+            : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
+        if (moves.length > 0) {
+            const movesSection = modalEl.querySelector('.modal-moves-section');
+            movesSection.style.display = 'block';
+            modalEl.querySelector('.modal-moves').innerHTML = moves.map(move =>
+                `<span class="move-tag">${move}</span>`
+            ).join('');
+        }
+
+        // Trainer info
+        modalEl.querySelector('.modal-ot').textContent = pokemon.ot || '?';
+        modalEl.querySelector('.modal-ball').textContent = pokemon.ball || '?';
+
+        if (pokemon.trainerId) {
+            const trainerIdRow = modalEl.querySelector('.modal-trainer-id-row');
+            trainerIdRow.style.display = 'flex';
+            modalEl.querySelector('.modal-trainer-id').textContent = pokemon.trainerId;
+        }
+
+        // Ribbons
+        const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
+            ? pokemon.ribbons.filter(r => r && r !== '')
+            : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
+        if (ribbons.length > 0) {
+            const ribbonsSection = modalEl.querySelector('.modal-ribbons-section');
+            ribbonsSection.style.display = 'block';
+            modalEl.querySelector('.modal-ribbons').innerHTML = ribbons.map(ribbon =>
+                `<span class="ribbon-icon">🎀 ${ribbon}</span>`
+            ).join('');
+        }
+
+        // Notes
+        if (pokemon.notes && pokemon.notes !== '') {
+            const notesSection = modalEl.querySelector('.modal-notes-section');
+            notesSection.style.display = 'block';
+            modalEl.querySelector('.modal-notes').textContent = pokemon.notes;
+        }
+
+        // Post URL
         if (pokemon.postUrl && pokemon.postUrl !== '') {
-            const postUrlRow = cardEl.querySelector('.post-url-row');
+            const postUrlRow = modalEl.querySelector('.modal-post-url-row');
             postUrlRow.style.display = 'flex';
-            const postUrlLink = cardEl.querySelector('.post-url-link');
+            const postUrlLink = modalEl.querySelector('.modal-post-url-link');
             postUrlLink.href = pokemon.postUrl;
         }
 
-        return card;
+        // Add to body
+        document.body.appendChild(modal);
+
+        // Close modal on overlay click or close button
+        const overlay = document.querySelector('.modal-overlay');
+        const closeBtn = overlay.querySelector('.modal-close');
+
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
     }
 
     // Display results
@@ -278,7 +375,17 @@ const baseUrl = import.meta.env.BASE_URL;
 
         resultsDiv.innerHTML = '';
         data.forEach(pokemon => {
-            resultsDiv.appendChild(createPokemonCard(pokemon));
+            const cardFragment = createPokemonCard(pokemon);
+            resultsDiv.appendChild(cardFragment);
+        });
+
+        // Add click event to show modal
+        const cards = resultsDiv.querySelectorAll('.pokemon-card');
+        cards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                const pokemonData = JSON.parse(this.dataset.pokemonData);
+                showDetailModal(pokemonData);
+            });
         });
     }
 
