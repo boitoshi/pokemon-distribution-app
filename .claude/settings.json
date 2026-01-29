@@ -1,0 +1,14 @@
+{
+  "project": {
+    "name": "pokemon-distribution-app",
+    "language": "ja",
+    "framework": "astro"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx astro *)",
+      "Bash(node -e *)"
+    ]
+  }
+}
