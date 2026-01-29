@@ -312,6 +312,22 @@ const { title, description = '配信ポケモンを検索できます' } = Astro
         font-size: 11px;
     }
 
+    .post-url-link {
+        display: inline-block;
+        background: linear-gradient(135deg, #DC0A2D 0%, #B8082A 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .post-url-link:hover {
+        opacity: 0.85;
+    }
+
     .loading {
         text-align: center;
         padding: 40px;

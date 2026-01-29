@@ -206,8 +206,10 @@ const baseUrl = import.meta.env.BASE_URL;
             cardEl.querySelector('.nature').textContent = pokemon.nature;
         }
 
-        // Moves (optional)
-        const moves = [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
+        // Moves (配列形式またはカラム形式に対応)
+        const moves = pokemon.moves && Array.isArray(pokemon.moves)
+            ? pokemon.moves.filter(m => m && m !== '')
+            : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
         if (moves.length > 0) {
             const movesRow = cardEl.querySelector('.moves-row');
             movesRow.style.display = 'flex';
@@ -232,8 +234,10 @@ const baseUrl = import.meta.env.BASE_URL;
             cardEl.querySelector('.item-tag').textContent = pokemon.heldItem;
         }
 
-        // Ribbons (optional)
-        const ribbons = [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
+        // Ribbons (配列形式またはカラム形式に対応)
+        const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
+            ? pokemon.ribbons.filter(r => r && r !== '')
+            : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
         if (ribbons.length > 0) {
             const ribbonsRow = cardEl.querySelector('.ribbons-row');
             ribbonsRow.style.display = 'flex';
@@ -247,6 +251,14 @@ const baseUrl = import.meta.env.BASE_URL;
             const notesRow = cardEl.querySelector('.notes-row');
             notesRow.style.display = 'flex';
             cardEl.querySelector('.notes').textContent = pokemon.notes;
+        }
+
+        // Post URL (optional - あれば表示)
+        if (pokemon.postUrl && pokemon.postUrl !== '') {
+            const postUrlRow = cardEl.querySelector('.post-url-row');
+            postUrlRow.style.display = 'flex';
+            const postUrlLink = cardEl.querySelector('.post-url-link');
+            postUrlLink.href = pokemon.postUrl;
         }
 
         return card;

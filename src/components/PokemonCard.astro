@@ -24,6 +24,10 @@ export interface Pokemon {
     teraType?: string;
     isAlpha?: string;
     heldItem?: string;
+    // 配列形式（推奨）
+    moves?: string[];
+    ribbons?: string[];
+    // カラム形式（後方互換）
     move1?: string;
     move2?: string;
     move3?: string;
@@ -32,6 +36,7 @@ export interface Pokemon {
     ribbon2?: string;
     ribbon3?: string;
     notes?: string;
+    postUrl?: string;
 }
 ---
 
@@ -134,6 +139,13 @@ export interface Pokemon {
         <div class="info-row notes-row" style="display: none;">
             <div class="info-label">備考:</div>
             <div class="info-value notes" style="font-size: 11px; color: #666;"></div>
+        </div>
+
+        <div class="info-row post-url-row" style="display: none;">
+            <div class="info-label"></div>
+            <div class="info-value">
+                <a class="post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
+            </div>
         </div>
     </div>
 </template>
