@@ -43,16 +43,23 @@ export interface Pokemon {
 <!-- Template for Pokemon Card (hidden, used by JavaScript) -->
 <template id="pokemon-card-template">
     <div class="pokemon-card">
-        <!-- コンパクト表示（常に表示） -->
-        <div class="compact-section">
-            <div class="pokemon-header">
-                <div>
-                    <span class="pokemon-name"></span>
-                    <span class="ball-icon"></span>
-                    <span class="badges"></span>
-                </div>
-                <span class="pokemon-id"></span>
+        <div class="card-layout">
+            <!-- 左側: ポケモン画像 -->
+            <div class="card-image-container">
+                <img class="pokemon-image" src="" alt="" loading="lazy">
             </div>
+
+            <!-- 右側: コンテンツ -->
+            <div class="card-content">
+                <!-- コンパクト表示（常に表示） -->
+                <div class="compact-section">
+                    <div class="pokemon-header">
+                        <div>
+                            <span class="pokemon-name"></span>
+                            <span class="badges"></span>
+                        </div>
+                        <span class="pokemon-id"></span>
+                    </div>
 
             <div class="info-row">
                 <div class="info-label">世代:</div>
@@ -87,6 +94,8 @@ export interface Pokemon {
                     <div class="ribbons"></div>
                 </div>
             </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -95,15 +104,22 @@ export interface Pokemon {
 <template id="pokemon-modal-template">
     <div class="modal-overlay">
         <div class="modal-content">
-            <button class="modal-close">&times;</button>
+            <button class="modal-close">
+                <span class="pokeball-close"></span>
+            </button>
             <div class="modal-body">
                 <div class="modal-header">
-                    <h2>
-                        <span class="modal-pokemon-name"></span>
-                        <span class="modal-ball-icon"></span>
-                    </h2>
-                    <div class="modal-badges"></div>
-                    <div class="modal-pokemon-id"></div>
+                    <div class="modal-header-image">
+                        <img class="modal-pokemon-image" src="" alt="" loading="lazy">
+                    </div>
+                    <div class="modal-header-content">
+                        <h2>
+                            <span class="modal-pokemon-name"></span>
+                            <span class="modal-shiny-indicator"></span>
+                        </h2>
+                        <div class="modal-badges"></div>
+                        <div class="modal-pokemon-id"></div>
+                    </div>
                 </div>
 
                 <div class="modal-grid">
@@ -151,6 +167,10 @@ export interface Pokemon {
                             <div class="info-label">性格:</div>
                             <div class="info-value modal-nature"></div>
                         </div>
+                        <div class="info-row">
+                            <div class="info-label">ボール:</div>
+                            <div class="info-value modal-ball-status"></div>
+                        </div>
                         <div class="info-row modal-tera-row" style="display: none;">
                             <div class="info-label">テラスタイプ:</div>
                             <div class="info-value">
@@ -165,12 +185,7 @@ export interface Pokemon {
                         </div>
                     </div>
 
-                    <div class="modal-section modal-moves-section" style="display: none;">
-                        <h3>わざ</h3>
-                        <div class="modal-moves"></div>
-                    </div>
-
-                    <div class="modal-section">
+                    <div class="modal-section modal-trainer-section">
                         <h3>トレーナー情報</h3>
                         <div class="info-row">
                             <div class="info-label">親名:</div>
@@ -180,10 +195,11 @@ export interface Pokemon {
                             <div class="info-label">ID:</div>
                             <div class="info-value modal-trainer-id"></div>
                         </div>
-                        <div class="info-row">
-                            <div class="info-label">ボール:</div>
-                            <div class="info-value modal-ball"></div>
-                        </div>
+                    </div>
+
+                    <div class="modal-section modal-moves-section" style="display: none;">
+                        <h3>わざ</h3>
+                        <div class="modal-moves"></div>
                     </div>
 
                     <div class="modal-section modal-ribbons-section" style="display: none;">

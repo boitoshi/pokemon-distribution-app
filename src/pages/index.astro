@@ -30,6 +30,15 @@ const baseUrl = import.meta.env.BASE_URL;
     let allData = [];
     const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
 
+    // ポケモン画像URL生成関数（将来的に自前画像に切り替え可能）
+    function getPokemonImageUrl(dexNo) {
+        // 検証用: PokeAPI公式アートワーク
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexNo}.png`;
+
+        // 本番用（自前画像を使う場合はこちらに切り替え）:
+        // return `${baseUrl}images/pokemon/${dexNo}.png`;
+    }
+
     // Load data on page load
     async function loadData() {
         try {
@@ -162,15 +171,18 @@ const baseUrl = import.meta.env.BASE_URL;
         // Store pokemon data for modal
         cardEl.dataset.pokemonData = JSON.stringify(pokemon);
 
-        // Name and ball icon
-        cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
+        // ポケモン画像の設定
+        const imgEl = cardEl.querySelector('.pokemon-image');
+        imgEl.src = getPokemonImageUrl(pokemon.dexNo);
+        imgEl.alt = pokemon.pokemonName;
 
-        const ballIcon = cardEl.querySelector('.ball-icon');
-        if (pokemon.ball) {
-            ballIcon.textContent = '⚪';
-            ballIcon.setAttribute('data-ball', pokemon.ball);
-            ballIcon.title = pokemon.ball;
-        }
+        // 画像読み込みエラー時の処理（画像を非表示にする）
+        imgEl.addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+
+        // Name
+        cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
 
         let badgesHtml = '';
         if (pokemon.shiny && pokemon.shiny !== '') {
@@ -226,21 +238,26 @@ const baseUrl = import.meta.env.BASE_URL;
         const modal = template.content.cloneNode(true);
         const modalEl = modal.querySelector('.modal-overlay');
 
-        // Name and ball icon
+        // Pokemon image
+        const imgEl = modalEl.querySelector('.modal-pokemon-image');
+        imgEl.src = getPokemonImageUrl(pokemon.dexNo);
+        imgEl.alt = pokemon.pokemonName;
+        imgEl.addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+
+        // Name and shiny indicator
         modalEl.querySelector('.modal-pokemon-name').textContent = pokemon.pokemonName;
 
-        const ballIcon = modalEl.querySelector('.modal-ball-icon');
-        if (pokemon.ball) {
-            ballIcon.textContent = '⚪';
-            ballIcon.setAttribute('data-ball', pokemon.ball);
-            ballIcon.title = pokemon.ball;
+        // Shiny indicator next to name
+        const shinyIndicator = modalEl.querySelector('.modal-shiny-indicator');
+        if (pokemon.shiny && pokemon.shiny !== '') {
+            shinyIndicator.textContent = '✨';
+            shinyIndicator.title = '色違い';
         }
 
-        // Badges
+        // Badges (excluding shiny, which is now next to name)
         let badgesHtml = '';
-        if (pokemon.shiny && pokemon.shiny !== '') {
-            badgesHtml += '<span class="shiny-badge">色違い</span>';
-        }
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
             badgesHtml += '<span class="gigantamax-badge">キョダイ</span>';
         }
@@ -278,6 +295,14 @@ const baseUrl = import.meta.env.BASE_URL;
             modalEl.querySelector('.modal-nature').textContent = pokemon.nature;
         }
 
+        // Ball info (with icon)
+        const ballStatus = modalEl.querySelector('.modal-ball-status');
+        if (pokemon.ball) {
+            ballStatus.innerHTML = `⚪ ${pokemon.ball}`;
+        } else {
+            ballStatus.textContent = '?';
+        }
+
         // Tera type (SV only)
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             const teraRow = modalEl.querySelector('.modal-tera-row');
@@ -294,7 +319,7 @@ const baseUrl = import.meta.env.BASE_URL;
             modalEl.querySelector('.modal-item-tag').textContent = pokemon.heldItem;
         }
 
-        // Moves
+        // Moves (displayed as vertical list)
         const moves = pokemon.moves && Array.isArray(pokemon.moves)
             ? pokemon.moves.filter(m => m && m !== '')
             : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
@@ -302,13 +327,28 @@ const baseUrl = import.meta.env.BASE_URL;
             const movesSection = modalEl.querySelector('.modal-moves-section');
             movesSection.style.display = 'block';
             modalEl.querySelector('.modal-moves').innerHTML = moves.map(move =>
-                `<span class="move-tag">${move}</span>`
+                `<div class="move-item">${move}</div>`
             ).join('');
         }
 
-        // Trainer info
-        modalEl.querySelector('.modal-ot').textContent = pokemon.ot || '?';
-        modalEl.querySelector('.modal-ball').textContent = pokemon.ball || '?';
+        // Trainer info - OT with multi-language support
+        const otEl = modalEl.querySelector('.modal-ot');
+        if (pokemon.ot) {
+            if (typeof pokemon.ot === 'object') {
+                // Multi-language OT object (e.g., {ja: "サトシ", en: "Ash"})
+                const otParts = [];
+                if (pokemon.ot.ja) otParts.push(`日: ${pokemon.ot.ja}`);
+                if (pokemon.ot.en) otParts.push(`英: ${pokemon.ot.en}`);
+                if (pokemon.ot.ko) otParts.push(`韓: ${pokemon.ot.ko}`);
+                if (pokemon.ot.zh) otParts.push(`中: ${pokemon.ot.zh}`);
+                otEl.textContent = otParts.join(' / ') || '?';
+            } else {
+                // String OT
+                otEl.textContent = pokemon.ot;
+            }
+        } else {
+            otEl.textContent = '?';
+        }
 
         if (pokemon.trainerId) {
             const trainerIdRow = modalEl.querySelector('.modal-trainer-id-row');

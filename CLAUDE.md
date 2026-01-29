@@ -55,6 +55,26 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 - **テラスタイプ**: スカーレット/バイオレットのみ表示
 - **オヤブン**: アルセウス/Z-Aのみ表示
 
+### OT（親名）の多言語対応
+
+```json
+// 単一言語（後方互換）
+"ot": "サトシ"
+
+// 複数言語（オブジェクト形式）
+"ot": {
+  "ja": "サトシ",
+  "en": "Ash",
+  "la": "Satoshi"  // ラテン語（第9世代Z-A以降）
+}
+```
+
+### ポケモン画像
+
+- 検証用: PokéAPI (`https://raw.githubusercontent.com/.../official-artwork/{dexNo}.png`)
+- 本番用: 自前画像（`public/images/pokemon/{dexNo}.png`）
+- `getPokemonImageUrl()` 関数で切り替え
+
 ## コーディング規約
 
 ### Astroコンポーネント
@@ -92,4 +112,9 @@ GitHub Pagesにデプロイ:
 ## 注意事項
 
 - `nuxt-reference/` は参考用。直接修正しない
-- `.github/workflows/nuxthub.yml` は旧Nuxt設定（Astro用に要更新）
+
+## 今後の課題
+
+- [ ] Googleスプレッドシートからの変換スクリプト（OT多言語対応）
+- [ ] 本番用ポケモン画像の準備と配置
+- [ ] ボール画像の準備と配置
