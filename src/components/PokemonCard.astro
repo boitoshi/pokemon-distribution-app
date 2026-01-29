@@ -1,0 +1,151 @@
+---
+// PokemonCard component - displays a single Pokemon distribution card
+// This is a template that will be cloned by JavaScript
+
+export interface Pokemon {
+    managementId: string;
+    pokemonName: string;
+    shiny?: string;
+    dexNo: number;
+    generation: number;
+    game: string;
+    eventName: string;
+    distributionMethod: string;
+    distributionLocation: string;
+    startDate: string;
+    endDate?: string;
+    ot?: string;
+    trainerId?: string | number;
+    ball?: string;
+    level?: number;
+    ability?: string;
+    nature?: string;
+    gigantamax?: string;
+    teraType?: string;
+    isAlpha?: string;
+    heldItem?: string;
+    // 配列形式（推奨）
+    moves?: string[];
+    ribbons?: string[];
+    // カラム形式（後方互換）
+    move1?: string;
+    move2?: string;
+    move3?: string;
+    move4?: string;
+    ribbon1?: string;
+    ribbon2?: string;
+    ribbon3?: string;
+    notes?: string;
+    postUrl?: string;
+}
+---
+
+<!-- Template for Pokemon Card (hidden, used by JavaScript) -->
+<template id="pokemon-card-template">
+    <div class="pokemon-card">
+        <div class="pokemon-header">
+            <div>
+                <span class="pokemon-name"></span>
+                <span class="badges"></span>
+            </div>
+            <span class="pokemon-id"></span>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">世代:</div>
+            <div class="info-value">
+                <span class="generation-badge"></span>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">イベント:</div>
+            <div class="info-value event-name"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">配布期間:</div>
+            <div class="info-value distribution-period"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">配信方法:</div>
+            <div class="info-value distribution-method"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">配信場所:</div>
+            <div class="info-value distribution-location"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">ゲーム:</div>
+            <div class="info-value game"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">レベル:</div>
+            <div class="info-value level"></div>
+        </div>
+
+        <div class="info-row moves-row" style="display: none;">
+            <div class="info-label">技:</div>
+            <div class="info-value">
+                <div class="moves"></div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">特性:</div>
+            <div class="info-value ability"></div>
+        </div>
+
+        <div class="info-row nature-row" style="display: none;">
+            <div class="info-label">性格:</div>
+            <div class="info-value nature"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">ボール:</div>
+            <div class="info-value ball"></div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">親名:</div>
+            <div class="info-value ot"></div>
+        </div>
+
+        <div class="info-row tera-row" style="display: none;">
+            <div class="info-label">テラスタイプ:</div>
+            <div class="info-value">
+                <span class="tera-type-badge"></span>
+            </div>
+        </div>
+
+        <div class="info-row item-row" style="display: none;">
+            <div class="info-label">持ち物:</div>
+            <div class="info-value">
+                <span class="item-tag"></span>
+            </div>
+        </div>
+
+        <div class="info-row ribbons-row" style="display: none;">
+            <div class="info-label">リボン:</div>
+            <div class="info-value">
+                <div class="moves ribbons"></div>
+            </div>
+        </div>
+
+        <div class="info-row notes-row" style="display: none;">
+            <div class="info-label">備考:</div>
+            <div class="info-value notes" style="font-size: 11px; color: #666;"></div>
+        </div>
+
+        <div class="info-row post-url-row" style="display: none;">
+            <div class="info-label"></div>
+            <div class="info-value">
+                <a class="post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
+            </div>
+        </div>
+    </div>
+</template>

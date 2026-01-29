@@ -1,13 +1,8 @@
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+# Astro build output
+dist/
 
 # Node dependencies
-node_modules
+node_modules/
 
 # Logs
 logs
@@ -23,5 +18,12 @@ logs
 .env.*
 !.env.example
 
-# Devcontainer ファイルは除外しない！
-# .devcontainer
+# Astro
+.astro/
+
+# Nuxt (for reference folder)
+.output
+.data
+.nuxt
+.nitro
+.cache

@@ -1,28 +1,13 @@
 {
-  "name": "nuxt-app",
-  "private": true,
+  "name": "pokemon-distribution-app",
   "type": "module",
+  "version": "1.0.0",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "prebuild": "node scripts/fetch-data.js",
-    "pregenerate": "node scripts/fetch-data.js"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
   "dependencies": {
-    "@pinia/nuxt": "^0.10.1",
-    "nuxt": "^3.16.0",
-    "pinia": "^3.0.1",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
-  },
-  "devDependencies": {
-    "@nuxtjs/tailwindcss": "^6.13.2",
-    "@tailwindcss/postcss": "^4.0.14",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^3.3.5"
+    "astro": "^4.0.0"
   }
 }
