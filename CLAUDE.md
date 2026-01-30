@@ -50,7 +50,7 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 
 - **必須**: managementId, pokemonName, dexNo, generation, game, eventName, distributionMethod, distributionLocation, startDate
 - **オプション**: shiny, endDate, ot, trainerId, ball, level, ability, nature, gigantamax, teraType, isAlpha, heldItem, moves[], ribbons[], notes, postUrl
-- **第1-7世代で重要**: region（配信地域。3DSリージョンロック対応）
+- **全世代共通**: region（配布地域。各国法人ごとのイベント区別に使用）
 
 詳細なカラム設計は `docs/data-design.md` を参照。
 
