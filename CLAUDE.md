@@ -28,6 +28,13 @@ src/
 public/
 └── pokemon.json            # 配信ポケモンデータ
 
+docs/
+├── data-design.md          # データ設計書（カラム定義、エクスポート手順）
+└── deploy.md               # デプロイ手順
+
+scripts/
+└── export-to-json.gs       # GASエクスポートスクリプト
+
 nuxt-reference/             # 参考用Nuxt版（修正不要）
 ```
 
@@ -43,6 +50,9 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 
 - **必須**: managementId, pokemonName, dexNo, generation, game, eventName, distributionMethod, distributionLocation, startDate
 - **オプション**: shiny, endDate, ot, trainerId, ball, level, ability, nature, gigantamax, teraType, isAlpha, heldItem, moves[], ribbons[], notes, postUrl
+- **第1-7世代で重要**: region（配信地域。3DSリージョンロック対応）
+
+詳細なカラム設計は `docs/data-design.md` を参照。
 
 ### moves/ribbons の互換性
 
@@ -96,18 +106,24 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 
 ## デプロイ
 
-GitHub Pagesにデプロイ:
+ConoHaサーバー（pokebros.net）にデプロイ:
 
-- サイトURL: https://boitoshi.github.io
-- ベースパス: /pokemon-distribution-app
+- サイトURL: https://www.pokebros.net/distribution/
+- ベースパス: /distribution
 - 設定: `astro.config.mjs`
+
+詳細は `docs/deploy.md` を参照。
 
 ## データ更新手順
 
-1. GoogleスプレッドシートでデータをJSON形式でエクスポート
-2. `public/pokemon.json` を置き換え
-3. `npm run build` でビルド確認
-4. mainブランチにプッシュ
+1. Googleスプレッドシートを開く
+2. メニュー「Pokemon Export」→「JSONエクスポート」を実行
+3. 出力された `pokemon.json` をダウンロード
+4. `public/pokemon.json` を置き換え
+5. `npm run build` でビルド確認
+6. mainブランチにプッシュ
+
+詳細は `docs/data-design.md` を参照。
 
 ## 注意事項
 
@@ -167,7 +183,8 @@ GitHub Pagesにデプロイ:
 ## 今後の課題
 
 ### データ関連
-- [ ] Googleスプレッドシートからの変換スクリプト（OT多言語対応）
+- [x] Googleスプレッドシートからの変換スクリプト（OT多言語対応） → `scripts/export-to-json.gs`
+- [x] データ設計書 → `docs/data-design.md`
 - [ ] 本番用ポケモン画像の準備と配置
 - [ ] ボール画像の準備と配置
 
