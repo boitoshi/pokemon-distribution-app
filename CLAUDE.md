@@ -190,7 +190,7 @@ ConoHaサーバー（pokebros.net）にデプロイ:
 - [x] regionフィールド全世代対応 → `docs/data-design.md`
 
 ### UI機能
-- [x] ページネーション（24件/ページ） → `src/pages/index.astro`
+- [x] 無限スクロール（24件ずつ追加読み込み、IntersectionObserver使用） → `src/pages/index.astro`
 - [x] ソート機能（日付順、図鑑No順、名前順） → `src/pages/index.astro`
 - [x] お気に入り機能（localStorage使用） → `src/pages/index.astro`
 - [x] CSVエクスポート機能 → `src/pages/index.astro`
@@ -213,7 +213,7 @@ ConoHaサーバー（pokebros.net）にデプロイ:
 
 ### パフォーマンス改善（優先度：低）
 - [ ] 画像の遅延読み込み（lazy loading）実装
-- [ ] 大量データ時の仮想スクロール検討（ページネーションで部分対応済み）
+- [ ] 大量データ時の仮想スクロール検討（無限スクロールで部分対応済み）
 
 ### コレクター向け追加機能（検討中）
 - [ ] **所持チェックリスト機能** - お気に入りとは別に、実際に所持している配信をチェック管理
