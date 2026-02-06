@@ -8,15 +8,50 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <Layout title="配信ポケモン検索データベース">
     <header>
-        <h1>配信ポケモン検索データベース</h1>
-        <p>配信ポケモンを検索できます</p>
+        <div class="header-content">
+            <div class="header-left">
+                <h1>配信ポケモン検索データベース</h1>
+                <p>配信ポケモンを検索できます</p>
+            </div>
+            <div class="header-right">
+                <button id="toggleDarkMode" class="dark-mode-btn" title="ダークモード切替">🌙</button>
+            </div>
+        </div>
     </header>
 
     <SearchBox />
 
+    <!-- 統計ダッシュボード -->
+    <div class="dashboard" id="dashboard" style="display: none;">
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="dashboard-number" id="totalCount">0</div>
+                <div class="dashboard-label">総配布数</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-number" id="shinyCount">0</div>
+                <div class="dashboard-label">色違い</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-number" id="activeCount">0</div>
+                <div class="dashboard-label">配信中</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-number" id="favoriteCount">0</div>
+                <div class="dashboard-label">お気に入り</div>
+            </div>
+        </div>
+        <button id="toggleDashboard" class="toggle-dashboard-btn">📊 統計を閉じる</button>
+    </div>
+    <button id="showDashboard" class="show-dashboard-btn" style="display: none;">📊 統計を表示</button>
+
     <div class="stats" id="stats" style="display: none;">
         <div class="stats-left">
             <span id="resultCount"></span>
+            <div class="stats-actions">
+                <button id="exportCsv" class="action-btn" title="CSVダウンロード">📥 CSV</button>
+                <button id="showFavorites" class="action-btn" title="お気に入りのみ表示">⭐ お気に入り</button>
+            </div>
         </div>
         <div class="quick-filters" id="quickFilters">
             <button class="quick-filter-btn" data-filter="shiny">
@@ -42,9 +77,15 @@ const baseUrl = import.meta.env.BASE_URL;
         </div>
     </div>
 
+    <!-- ページネーション（上部） -->
+    <div class="pagination" id="paginationTop" style="display: none;"></div>
+
     <div class="loading" id="loading">読み込み中...</div>
 
     <div class="results" id="results"></div>
+
+    <!-- ページネーション（下部） -->
+    <div class="pagination" id="paginationBottom" style="display: none;"></div>
 
     <!-- 一番上に戻るボタン -->
     <button id="scrollToTop" class="scroll-to-top" aria-label="一番上に戻る">↑</button>
@@ -54,28 +95,73 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <script define:vars={{ baseUrl }}>
     let allData = [];
+    let currentPage = 1;
+    const ITEMS_PER_PAGE = 24;
     const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
 
-    // ポケモン画像URL生成関数（将来的に自前画像に切り替え可能）
-    function getPokemonImageUrl(dexNo) {
-        // 検証用: PokeAPI公式アートワーク
-        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexNo}.png`;
+    // お気に入り管理
+    function getFavorites() {
+        const stored = localStorage.getItem('pokemon-favorites');
+        return stored ? JSON.parse(stored) : [];
+    }
 
-        // 本番用（自前画像を使う場合はこちらに切り替え）:
-        // return `${baseUrl}images/pokemon/${dexNo}.png`;
+    function saveFavorites(favorites) {
+        localStorage.setItem('pokemon-favorites', JSON.stringify(favorites));
+        updateFavoriteCount();
+    }
+
+    function toggleFavorite(managementId) {
+        const favorites = getFavorites();
+        const index = favorites.indexOf(managementId);
+        if (index === -1) {
+            favorites.push(managementId);
+        } else {
+            favorites.splice(index, 1);
+        }
+        saveFavorites(favorites);
+        return index === -1; // true if added
+    }
+
+    function isFavorite(managementId) {
+        return getFavorites().includes(managementId);
+    }
+
+    function updateFavoriteCount() {
+        const count = getFavorites().length;
+        document.getElementById('favoriteCount').textContent = count;
+    }
+
+    // ダークモード
+    function initDarkMode() {
+        const isDark = localStorage.getItem('dark-mode') === 'true';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            document.getElementById('toggleDarkMode').textContent = '☀️';
+        }
+    }
+
+    function toggleDarkMode() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('dark-mode', isDark);
+        document.getElementById('toggleDarkMode').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // ポケモン画像URL生成関数
+    function getPokemonImageUrl(dexNo) {
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexNo}.png`;
     }
 
     // URLパラメータからフィルター初期状態を設定
     function applyUrlParameters() {
         const params = new URLSearchParams(window.location.search);
 
-        // チェックボックスフィルター
         const filters = [
             { param: 'shiny', id: 'filterShiny' },
             { param: 'gigantamax', id: 'filterGigantamax' },
             { param: 'alpha', id: 'filterAlpha' },
             { param: 'moves', id: 'filterSpecialMoves' },
-            { param: 'item', id: 'filterHeldItem' }
+            { param: 'item', id: 'filterHeldItem' },
+            { param: 'active', id: 'filterActive' }
         ];
 
         let hasFilters = false;
@@ -88,6 +174,14 @@ const baseUrl = import.meta.env.BASE_URL;
             }
         });
 
+        // 地域パラメータ
+        const region = params.get('region');
+        if (region) {
+            hasFilters = true;
+            const regionSelect = document.getElementById('filterRegion');
+            if (regionSelect) regionSelect.value = region;
+        }
+
         // リボンパラメータ
         const ribbon = params.get('ribbon');
         if (ribbon) {
@@ -96,7 +190,12 @@ const baseUrl = import.meta.env.BASE_URL;
             if (ribbonSelect) ribbonSelect.value = ribbon;
         }
 
-        // フィルターが設定されていたら自動検索
+        // ページパラメータ
+        const page = params.get('page');
+        if (page) {
+            currentPage = parseInt(page) || 1;
+        }
+
         if (hasFilters) {
             searchPokemon();
         }
@@ -111,16 +210,14 @@ const baseUrl = import.meta.env.BASE_URL;
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('stats').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'block';
 
-            // Populate filter dropdowns
             populateFilters();
-
-            // URLパラメータを適用
+            updateDashboard();
             applyUrlParameters();
 
-            // Display all results (URLパラメータでフィルターされていなければ全件表示)
             const params = new URLSearchParams(window.location.search);
-            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item'].includes(key))) {
+            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active'].includes(key))) {
                 displayResults(allData);
             }
         } catch (error) {
@@ -128,6 +225,14 @@ const baseUrl = import.meta.env.BASE_URL;
             document.getElementById('loading').innerHTML =
                 '<div style="background: white; padding: 30px; border-radius: 8px; color: #d32f2f;">データの読み込みに失敗しました。<br>URLを確認してください。</div>';
         }
+    }
+
+    // ダッシュボード更新
+    function updateDashboard() {
+        document.getElementById('totalCount').textContent = allData.length;
+        document.getElementById('shinyCount').textContent = allData.filter(p => p.shiny && p.shiny !== '').length;
+        document.getElementById('activeCount').textContent = allData.filter(p => isDistributionActive(p.endDate)).length;
+        updateFavoriteCount();
     }
 
     // Populate filter dropdowns from data
@@ -165,13 +270,40 @@ const baseUrl = import.meta.env.BASE_URL;
         ribbons.forEach(ribbon => {
             const option = document.createElement('option');
             option.value = ribbon;
-            option.textContent = `🎀 ${ribbon}`; // リボンアイコン追加
+            option.textContent = `🎀 ${ribbon}`;
             ribbonSelect.appendChild(option);
         });
     }
 
-    // 検索結果を保存（素早い絞り込み用）
+    // 検索結果を保存
     let searchResults = [];
+    let showingFavorites = false;
+
+    // ソート関数
+    function sortData(data, sortOrder) {
+        const sorted = [...data];
+        switch (sortOrder) {
+            case 'date-desc':
+                sorted.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+                break;
+            case 'date-asc':
+                sorted.sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
+                break;
+            case 'dex-asc':
+                sorted.sort((a, b) => (a.dexNo || 0) - (b.dexNo || 0));
+                break;
+            case 'dex-desc':
+                sorted.sort((a, b) => (b.dexNo || 0) - (a.dexNo || 0));
+                break;
+            case 'name-asc':
+                sorted.sort((a, b) => (a.pokemonName || '').localeCompare(b.pokemonName || '', 'ja'));
+                break;
+            case 'name-desc':
+                sorted.sort((a, b) => (b.pokemonName || '').localeCompare(a.pokemonName || '', 'ja'));
+                break;
+        }
+        return sorted;
+    }
 
     // Search function
     function searchPokemon() {
@@ -179,12 +311,17 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterGeneration = document.getElementById('filterGeneration').value;
         const filterGame = document.getElementById('filterGame').value;
         const filterMethod = document.getElementById('filterMethod').value;
+        const filterRegion = document.getElementById('filterRegion').value;
         const filterShiny = document.getElementById('filterShiny')?.checked;
         const filterGigantamax = document.getElementById('filterGigantamax')?.checked;
         const filterAlpha = document.getElementById('filterAlpha')?.checked;
         const filterSpecialMoves = document.getElementById('filterSpecialMoves')?.checked;
         const filterHeldItem = document.getElementById('filterHeldItem')?.checked;
+        const filterActive = document.getElementById('filterActive')?.checked;
         const filterRibbon = document.getElementById('filterRibbon')?.value;
+        const filterDateFrom = document.getElementById('filterDateFrom')?.value;
+        const filterDateTo = document.getElementById('filterDateTo')?.value;
+        const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
 
         let filtered = allData;
 
@@ -211,6 +348,19 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.distributionMethod === filterMethod);
         }
 
+        // Filter by region
+        if (filterRegion) {
+            filtered = filtered.filter(p => p.region === filterRegion);
+        }
+
+        // Filter by date range
+        if (filterDateFrom) {
+            filtered = filtered.filter(p => p.startDate && p.startDate >= filterDateFrom);
+        }
+        if (filterDateTo) {
+            filtered = filtered.filter(p => p.startDate && p.startDate <= filterDateTo);
+        }
+
         // Filter by shiny
         if (filterShiny) {
             filtered = filtered.filter(p => p.shiny && p.shiny !== '');
@@ -221,12 +371,12 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
         }
 
-        // Filter by Alpha (オヤブン)
+        // Filter by Alpha
         if (filterAlpha) {
             filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
         }
 
-        // Filter by special moves (技が設定されている)
+        // Filter by special moves
         if (filterSpecialMoves) {
             filtered = filtered.filter(p => {
                 const moves = p.moves && Array.isArray(p.moves)
@@ -236,7 +386,7 @@ const baseUrl = import.meta.env.BASE_URL;
             });
         }
 
-        // Filter by specific ribbon (特定のリボン)
+        // Filter by specific ribbon
         if (filterRibbon) {
             filtered = filtered.filter(p => {
                 const ribbons = p.ribbons && Array.isArray(p.ribbons)
@@ -246,29 +396,36 @@ const baseUrl = import.meta.env.BASE_URL;
             });
         }
 
-        // Filter by held item (持ち物が設定されている)
+        // Filter by held item
         if (filterHeldItem) {
             filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
         }
 
-        // 検索結果を保存
+        // Filter by active distribution
+        if (filterActive) {
+            filtered = filtered.filter(p => isDistributionActive(p.endDate));
+        }
+
+        // Apply sort
+        filtered = sortData(filtered, sortOrder);
+
+        // Reset to first page
+        currentPage = 1;
+        showingFavorites = false;
+        document.getElementById('showFavorites').classList.remove('active');
+
         searchResults = filtered;
-
-        // 素早い絞り込みをリセット
         resetQuickFilters();
-
         displayResults(filtered);
     }
 
     // 素早い絞り込み機能
-    function applyQuickFilter(filterType) {
+    function applyQuickFilter() {
         let filtered = searchResults;
 
-        // アクティブな素早いフィルターを取得
         const activeFilters = [...document.querySelectorAll('.quick-filter-btn.active')]
             .map(btn => btn.dataset.filter);
 
-        // 各フィルターを適用
         activeFilters.forEach(filter => {
             switch(filter) {
                 case 'shiny':
@@ -294,6 +451,7 @@ const baseUrl = import.meta.env.BASE_URL;
             }
         });
 
+        currentPage = 1;
         displayResults(filtered);
     }
 
@@ -304,11 +462,10 @@ const baseUrl = import.meta.env.BASE_URL;
         });
     }
 
-    // モバイルで結果エリアにスクロール（検索ボタン押下時のみ）
+    // モバイルで結果エリアにスクロール
     function scrollToResults() {
         if (window.innerWidth <= 768) {
             const resultsEl = document.getElementById('results');
-            // 少し遅延させてDOM更新後にスクロール
             setTimeout(() => {
                 resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
@@ -324,7 +481,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
     // Check if distribution is active
     function isDistributionActive(endDate) {
-        if (!endDate) return true; // No end date means ongoing
+        if (!endDate) return true;
         const now = new Date();
         const end = new Date(endDate);
         return now <= end;
@@ -357,15 +514,13 @@ const baseUrl = import.meta.env.BASE_URL;
         const card = template.content.cloneNode(true);
         const cardEl = card.querySelector('.pokemon-card');
 
-        // Store pokemon data for modal
         cardEl.dataset.pokemonData = JSON.stringify(pokemon);
+        cardEl.dataset.managementId = pokemon.managementId;
 
         // ポケモン画像の設定
         const imgEl = cardEl.querySelector('.pokemon-image');
         imgEl.src = getPokemonImageUrl(pokemon.dexNo);
         imgEl.alt = pokemon.pokemonName;
-
-        // 画像読み込みエラー時の処理（画像を非表示にする）
         imgEl.addEventListener('error', function() {
             this.style.display = 'none';
         });
@@ -373,22 +528,19 @@ const baseUrl = import.meta.env.BASE_URL;
         // Name
         cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
 
-        // Dex Number (No.025 format)
+        // Dex Number
         cardEl.querySelector('.dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
 
         let badgesHtml = '';
         if (pokemon.shiny && pokemon.shiny !== '') {
             badgesHtml += '<span class="icon-badge" title="色違い">✨</span>';
         }
-        // キョダイマックス（ソード/シールドのみ）
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
             badgesHtml += '<span class="icon-badge" title="キョダイマックス">🔷</span>';
         }
-        // テラスタイプ（スカーレット/バイオレットのみ）
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             badgesHtml += `<span class="tera-type-badge" title="テラスタイプ: ${pokemon.teraType}">${pokemon.teraType}</span>`;
         }
-        // オヤブン（アルセウス/Z-Aのみ）
         if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
             badgesHtml += '<span class="icon-badge" title="オヤブン">👑</span>';
         }
@@ -406,14 +558,20 @@ const baseUrl = import.meta.env.BASE_URL;
         const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
         cardEl.querySelector('.distribution-period').textContent = `${startDate} 〜 ${endDate}`;
 
-        // Distribution status badge
         cardEl.querySelector('.distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
-
-        // Distribution method and location
         cardEl.querySelector('.distribution-method').textContent = pokemon.distributionMethod;
         cardEl.querySelector('.distribution-location').textContent = pokemon.distributionLocation;
 
-        // Ribbons (配列形式またはカラム形式に対応)
+        // Region badge
+        if (pokemon.region) {
+            const regionRow = cardEl.querySelector('.region-row');
+            if (regionRow) {
+                regionRow.style.display = 'flex';
+                cardEl.querySelector('.region-value').textContent = pokemon.region;
+            }
+        }
+
+        // Ribbons
         const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
             ? pokemon.ribbons.filter(r => r && r !== '')
             : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
@@ -423,6 +581,17 @@ const baseUrl = import.meta.env.BASE_URL;
             cardEl.querySelector('.ribbons').innerHTML = ribbons.map(ribbon =>
                 `<span class="ribbon-icon">🎀 ${ribbon}</span>`
             ).join('');
+        }
+
+        // Favorite button
+        const favBtn = cardEl.querySelector('.favorite-btn');
+        if (favBtn) {
+            favBtn.classList.toggle('active', isFavorite(pokemon.managementId));
+            favBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const added = toggleFavorite(pokemon.managementId);
+                favBtn.classList.toggle('active', added);
+            });
         }
 
         return card;
@@ -449,10 +618,10 @@ const baseUrl = import.meta.env.BASE_URL;
             pokemonNameEl.innerHTML = pokemon.pokemonName + ' <span class="modal-shiny-indicator" title="色違い">✨</span>';
         }
 
-        // Dex Number (large display in modal)
+        // Dex Number
         modalEl.querySelector('.modal-dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
 
-        // Badges (icon style for mobile, text for PC)
+        // Badges
         let badgesHtml = '';
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
             badgesHtml += '<span class="icon-badge mobile-only" title="キョダイマックス">🔷</span>';
@@ -476,12 +645,19 @@ const baseUrl = import.meta.env.BASE_URL;
         const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
         modalEl.querySelector('.modal-distribution-period').textContent = `${startDate} 〜 ${endDate}`;
 
-        // Distribution status badge in modal
         modalEl.querySelector('.modal-distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
-
         modalEl.querySelector('.modal-distribution-method').textContent = pokemon.distributionMethod;
         modalEl.querySelector('.modal-distribution-location').textContent = pokemon.distributionLocation;
         modalEl.querySelector('.modal-game').textContent = pokemon.game;
+
+        // Region
+        if (pokemon.region) {
+            const regionRow = modalEl.querySelector('.modal-region-row');
+            if (regionRow) {
+                regionRow.style.display = 'flex';
+                modalEl.querySelector('.modal-region').textContent = pokemon.region;
+            }
+        }
 
         // Stats
         modalEl.querySelector('.modal-level').textContent = pokemon.level || '?';
@@ -493,7 +669,7 @@ const baseUrl = import.meta.env.BASE_URL;
             modalEl.querySelector('.modal-nature').textContent = pokemon.nature;
         }
 
-        // Ball info (with icon)
+        // Ball info
         const ballStatus = modalEl.querySelector('.modal-ball-status');
         if (pokemon.ball) {
             ballStatus.innerHTML = `⚪ ${pokemon.ball}`;
@@ -501,21 +677,21 @@ const baseUrl = import.meta.env.BASE_URL;
             ballStatus.textContent = '?';
         }
 
-        // Tera Type (only for Scarlet/Violet)
+        // Tera Type
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             const teraTypeRow = modalEl.querySelector('.modal-tera-type-row');
             teraTypeRow.style.display = 'flex';
             modalEl.querySelector('.modal-tera-type').textContent = pokemon.teraType;
         }
 
-        // Held item (optional)
+        // Held item
         if (pokemon.heldItem && pokemon.heldItem !== '') {
             const itemRow = modalEl.querySelector('.modal-item-row');
             itemRow.style.display = 'flex';
             modalEl.querySelector('.modal-item-tag').textContent = pokemon.heldItem;
         }
 
-        // Moves (displayed as vertical list)
+        // Moves
         const moves = pokemon.moves && Array.isArray(pokemon.moves)
             ? pokemon.moves.filter(m => m && m !== '')
             : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
@@ -527,11 +703,10 @@ const baseUrl = import.meta.env.BASE_URL;
             ).join('');
         }
 
-        // Trainer info - OT with multi-language support
+        // Trainer info - OT
         const otEl = modalEl.querySelector('.modal-ot');
         if (pokemon.ot) {
             if (typeof pokemon.ot === 'object') {
-                // Multi-language OT object (e.g., {ja: "サトシ", en: "Ash"})
                 const otParts = [];
                 if (pokemon.ot.ja) otParts.push(`日: ${pokemon.ot.ja}`);
                 if (pokemon.ot.en) otParts.push(`英: ${pokemon.ot.en}`);
@@ -539,7 +714,6 @@ const baseUrl = import.meta.env.BASE_URL;
                 if (pokemon.ot.zh) otParts.push(`中: ${pokemon.ot.zh}`);
                 otEl.textContent = otParts.join(' / ') || '?';
             } else {
-                // String OT
                 otEl.textContent = pokemon.ot;
             }
         } else {
@@ -579,10 +753,48 @@ const baseUrl = import.meta.env.BASE_URL;
             postUrlLink.href = pokemon.postUrl;
         }
 
-        // Add to body
+        // Share buttons
+        const shareSection = modalEl.querySelector('.modal-share-section');
+        if (shareSection) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?id=${pokemon.managementId}`;
+            const shareText = `${pokemon.pokemonName} - ${pokemon.eventName}`;
+
+            const twitterBtn = shareSection.querySelector('.share-twitter');
+            if (twitterBtn) {
+                twitterBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+            }
+
+            const copyBtn = shareSection.querySelector('.share-copy');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        copyBtn.textContent = 'コピーしました！';
+                        setTimeout(() => {
+                            copyBtn.textContent = '🔗 URLコピー';
+                        }, 2000);
+                    });
+                });
+            }
+        }
+
+        // Favorite button in modal
+        const modalFavBtn = modalEl.querySelector('.modal-favorite-btn');
+        if (modalFavBtn) {
+            modalFavBtn.classList.toggle('active', isFavorite(pokemon.managementId));
+            modalFavBtn.addEventListener('click', () => {
+                const added = toggleFavorite(pokemon.managementId);
+                modalFavBtn.classList.toggle('active', added);
+                modalFavBtn.textContent = added ? '⭐ お気に入り解除' : '☆ お気に入り登録';
+                // Update card button too
+                const card = document.querySelector(`[data-management-id="${pokemon.managementId}"] .favorite-btn`);
+                if (card) card.classList.toggle('active', added);
+            });
+            modalFavBtn.textContent = isFavorite(pokemon.managementId) ? '⭐ お気に入り解除' : '☆ お気に入り登録';
+        }
+
         document.body.appendChild(modal);
 
-        // Close modal on overlay click or close buttons
         const overlay = document.querySelector('.modal-overlay');
         const closeBtn = overlay.querySelector('.modal-close');
         const bottomCloseBtn = overlay.querySelector('.modal-bottom-close');
@@ -599,22 +811,103 @@ const baseUrl = import.meta.env.BASE_URL;
                 closeModal();
             }
         });
+
+        // ESCキーで閉じる
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
     }
 
-    // Display results
+    // ページネーション生成
+    function createPagination(totalItems, currentPage) {
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+        if (totalPages <= 1) return '';
+
+        let html = '<div class="pagination-inner">';
+
+        // 前へ
+        if (currentPage > 1) {
+            html += `<button class="page-btn" data-page="${currentPage - 1}">« 前</button>`;
+        }
+
+        // ページ番号
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+        if (endPage - startPage < maxVisible - 1) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+            html += `<button class="page-btn" data-page="1">1</button>`;
+            if (startPage > 2) html += '<span class="page-dots">...</span>';
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += '<span class="page-dots">...</span>';
+            html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // 次へ
+        if (currentPage < totalPages) {
+            html += `<button class="page-btn" data-page="${currentPage + 1}">次 »</button>`;
+        }
+
+        html += '</div>';
+        html += `<div class="page-info">${currentPage} / ${totalPages} ページ (${totalItems}件)</div>`;
+
+        return html;
+    }
+
+    // Display results with pagination
     function displayResults(data) {
         const resultsDiv = document.getElementById('results');
         const resultCountDiv = document.getElementById('resultCount');
+        const paginationTop = document.getElementById('paginationTop');
+        const paginationBottom = document.getElementById('paginationBottom');
 
-        resultCountDiv.textContent = `${data.length}件のポケモンが見つかりました`;
+        const totalItems = data.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+        const pageData = data.slice(startIndex, endIndex);
 
-        if (data.length === 0) {
+        resultCountDiv.textContent = `${totalItems}件のポケモンが見つかりました`;
+
+        if (totalItems === 0) {
             resultsDiv.innerHTML = '<div class="no-results">該当するポケモンが見つかりませんでした</div>';
+            paginationTop.style.display = 'none';
+            paginationBottom.style.display = 'none';
             return;
         }
 
+        // Pagination
+        const paginationHtml = createPagination(totalItems, currentPage);
+        paginationTop.innerHTML = paginationHtml;
+        paginationBottom.innerHTML = paginationHtml;
+        paginationTop.style.display = totalPages > 1 ? 'block' : 'none';
+        paginationBottom.style.display = totalPages > 1 ? 'block' : 'none';
+
+        // Add pagination event listeners
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentPage = parseInt(btn.dataset.page);
+                displayResults(data);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
         resultsDiv.innerHTML = '';
-        data.forEach(pokemon => {
+        pageData.forEach(pokemon => {
             const cardFragment = createPokemonCard(pokemon);
             resultsDiv.appendChild(cardFragment);
         });
@@ -623,25 +916,75 @@ const baseUrl = import.meta.env.BASE_URL;
         const cards = resultsDiv.querySelectorAll('.pokemon-card');
         cards.forEach(card => {
             card.addEventListener('click', function(e) {
+                // お気に入りボタンのクリックは除外
+                if (e.target.closest('.favorite-btn')) return;
                 const pokemonData = JSON.parse(this.dataset.pokemonData);
                 showDetailModal(pokemonData);
             });
         });
     }
 
+    // CSVエクスポート
+    function exportToCsv(data) {
+        const headers = ['管理ID', 'ポケモン名', '図鑑No', '世代', 'ゲーム', '地域', 'イベント名', '配信方法', '配信場所', '開始日', '終了日', '色違い', 'レベル', '特性', '性格', 'ボール', '持ち物', '技', 'リボン', '親名', 'ID', '備考'];
+
+        const rows = data.map(p => {
+            const moves = p.moves && Array.isArray(p.moves) ? p.moves.join('/') : [p.move1, p.move2, p.move3, p.move4].filter(m => m).join('/');
+            const ribbons = p.ribbons && Array.isArray(p.ribbons) ? p.ribbons.join('/') : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r).join('/');
+            const ot = typeof p.ot === 'object' ? Object.values(p.ot).join('/') : p.ot;
+
+            return [
+                p.managementId || '',
+                p.pokemonName || '',
+                p.dexNo || '',
+                p.generation || '',
+                p.game || '',
+                p.region || '',
+                p.eventName || '',
+                p.distributionMethod || '',
+                p.distributionLocation || '',
+                p.startDate || '',
+                p.endDate || '',
+                p.shiny || '',
+                p.level || '',
+                p.ability || '',
+                p.nature || '',
+                p.ball || '',
+                p.heldItem || '',
+                moves,
+                ribbons,
+                ot || '',
+                p.trainerId || '',
+                p.notes || ''
+            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+        });
+
+        const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pokemon-distribution-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     // Event listeners
-    // 検索ボタン: 検索実行 + スクロール
     document.getElementById('searchButton').addEventListener('click', () => {
         searchPokemon();
         scrollToResults();
     });
 
-    // Enterキー: 検索実行 + スクロール
     document.getElementById('searchName').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchPokemon();
             scrollToResults();
         }
+    });
+
+    // ソート変更時に再検索
+    document.getElementById('sortOrder').addEventListener('change', () => {
+        searchPokemon();
     });
 
     // 素早い絞り込みボタン
@@ -652,21 +995,56 @@ const baseUrl = import.meta.env.BASE_URL;
         });
     });
 
+    // CSVエクスポート
+    document.getElementById('exportCsv').addEventListener('click', () => {
+        exportToCsv(searchResults.length > 0 ? searchResults : allData);
+    });
+
+    // お気に入り表示
+    document.getElementById('showFavorites').addEventListener('click', function() {
+        showingFavorites = !showingFavorites;
+        this.classList.toggle('active', showingFavorites);
+
+        if (showingFavorites) {
+            const favorites = getFavorites();
+            const favoriteData = allData.filter(p => favorites.includes(p.managementId));
+            currentPage = 1;
+            displayResults(favoriteData);
+        } else {
+            displayResults(searchResults.length > 0 ? searchResults : allData);
+        }
+    });
+
+    // ダッシュボード表示切替
+    document.getElementById('toggleDashboard').addEventListener('click', () => {
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('showDashboard').style.display = 'block';
+    });
+
+    document.getElementById('showDashboard').addEventListener('click', () => {
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('showDashboard').style.display = 'none';
+    });
+
+    // ダークモード切替
+    document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
+
     // クリアボタンからのイベントリスナー
     window.addEventListener('clearSearch', () => {
-        // 検索結果をリセット
         searchResults = allData;
-        // 初期表示（全データ）を表示
+        showingFavorites = false;
+        currentPage = 1;
+        document.getElementById('showFavorites').classList.remove('active');
         displayResults(allData);
     });
 
-    // Load data on page load
+    // 初期化
+    initDarkMode();
     loadData();
 
-    // 一番上に戻るボタンの処理（モバイルのみ）
+    // 一番上に戻るボタンの処理
     const scrollToTopBtn = document.getElementById('scrollToTop');
 
-    // スクロール時の表示/非表示制御
     window.addEventListener('scroll', () => {
         if (window.innerWidth <= 768) {
             if (window.scrollY > 300) {
@@ -677,7 +1055,6 @@ const baseUrl = import.meta.env.BASE_URL;
         }
     });
 
-    // クリックでトップへスクロール
     scrollToTopBtn.addEventListener('click', () => {
         window.scrollTo({
             top: 0,

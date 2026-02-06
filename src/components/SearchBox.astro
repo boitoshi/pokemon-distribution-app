@@ -11,6 +11,9 @@
             <option value="8">第8世代 (剣盾)</option>
             <option value="7">第7世代 (SM/USUM)</option>
             <option value="6">第6世代 (XY/ORAS)</option>
+            <option value="5">第5世代 (BW/BW2)</option>
+            <option value="4">第4世代 (DPPt/HGSS)</option>
+            <option value="3">第3世代 (RSE/FRLG)</option>
         </select>
         <select id="filterGame">
             <option value="">すべてのゲーム</option>
@@ -18,6 +21,31 @@
         <select id="filterMethod">
             <option value="">すべての配信方法</option>
         </select>
+    </div>
+
+    <div class="search-row">
+        <select id="filterRegion">
+            <option value="">すべての地域</option>
+            <option value="日本">🇯🇵 日本</option>
+            <option value="北米">🇺🇸 北米</option>
+            <option value="欧州">🇪🇺 欧州</option>
+            <option value="韓国">🇰🇷 韓国</option>
+            <option value="台湾">🇹🇼 台湾</option>
+            <option value="全世界">🌍 全世界</option>
+        </select>
+        <select id="sortOrder">
+            <option value="date-desc">配信日（新しい順）</option>
+            <option value="date-asc">配信日（古い順）</option>
+            <option value="dex-asc">図鑑No（小さい順）</option>
+            <option value="dex-desc">図鑑No（大きい順）</option>
+            <option value="name-asc">ポケモン名（あ→ん）</option>
+            <option value="name-desc">ポケモン名（ん→あ）</option>
+        </select>
+        <div class="date-range">
+            <input type="date" id="filterDateFrom" placeholder="開始日">
+            <span class="date-separator">〜</span>
+            <input type="date" id="filterDateTo" placeholder="終了日">
+        </div>
     </div>
 
     <!-- 条件追加ボタン -->
@@ -45,6 +73,10 @@
             <label class="condition-checkbox">
                 <input type="checkbox" id="filterHeldItem">
                 <span>🎁 持ち物あり</span>
+            </label>
+            <label class="condition-checkbox">
+                <input type="checkbox" id="filterActive">
+                <span>🟢 配信中のみ</span>
             </label>
             <select id="filterRibbon" class="ribbon-select">
                 <option value="">リボンで絞る</option>
@@ -76,6 +108,10 @@
         document.getElementById('filterGeneration').value = '';
         document.getElementById('filterGame').value = '';
         document.getElementById('filterMethod').value = '';
+        document.getElementById('filterRegion').value = '';
+        document.getElementById('sortOrder').value = 'date-desc';
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
 
         // チェックボックスをクリア
         document.getElementById('filterShiny').checked = false;
@@ -83,6 +119,7 @@
         document.getElementById('filterAlpha').checked = false;
         document.getElementById('filterSpecialMoves').checked = false;
         document.getElementById('filterHeldItem').checked = false;
+        document.getElementById('filterActive').checked = false;
 
         // リボンセレクトをクリア
         document.getElementById('filterRibbon').value = '';
