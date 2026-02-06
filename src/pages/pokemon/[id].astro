@@ -4,56 +4,81 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 export async function getStaticPaths() {
-    // JSONファイルからデータを読み込み
     const jsonPath = join(process.cwd(), 'public', 'pokemon.json');
     const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
 
     return data.map((pokemon: any) => ({
         params: { id: pokemon.managementId },
-        props: { pokemon },
+        props: { pokemon, allData: data },
     }));
 }
 
-interface Props {
-    pokemon: {
-        managementId: string;
-        pokemonName: string;
-        shiny?: string;
-        dexNo: number;
-        generation: number;
-        game: string;
-        region?: string;
-        eventName: string;
-        distributionMethod: string;
-        distributionLocation: string;
-        startDate: string;
-        endDate?: string;
-        ot?: string | { ja?: string; en?: string; ko?: string; zh?: string; la?: string };
-        trainerId?: string | number;
-        ball?: string;
-        level?: number;
-        ability?: string;
-        nature?: string;
-        gigantamax?: string;
-        teraType?: string;
-        isAlpha?: string;
-        heldItem?: string;
-        moves?: string[];
-        ribbons?: string[];
-        move1?: string;
-        move2?: string;
-        move3?: string;
-        move4?: string;
-        ribbon1?: string;
-        ribbon2?: string;
-        ribbon3?: string;
-        notes?: string;
-        postUrl?: string;
-    };
+interface PokemonData {
+    managementId: string;
+    pokemonName: string;
+    shiny?: string;
+    dexNo: number;
+    generation: number;
+    game: string;
+    region?: string;
+    eventName: string;
+    distributionMethod: string;
+    distributionLocation: string;
+    startDate: string;
+    endDate?: string;
+    ot?: string | { ja?: string; en?: string; ko?: string; zh?: string; la?: string };
+    trainerId?: string | number;
+    ball?: string;
+    level?: number;
+    ability?: string;
+    nature?: string;
+    gigantamax?: string;
+    teraType?: string;
+    isAlpha?: string;
+    heldItem?: string;
+    moves?: string[];
+    ribbons?: string[];
+    move1?: string;
+    move2?: string;
+    move3?: string;
+    move4?: string;
+    ribbon1?: string;
+    ribbon2?: string;
+    ribbon3?: string;
+    notes?: string;
+    postUrl?: string;
 }
 
-const { pokemon } = Astro.props;
+interface Props {
+    pokemon: PokemonData;
+    allData: PokemonData[];
+}
+
+const { pokemon, allData } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
+
+// baseUrlの末尾にスラッシュを追加
+const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+
+// 関連ポケモンを取得（同じポケモンの他の配信）
+const samePokemonDistributions = allData
+    .filter(p => p.dexNo === pokemon.dexNo && p.managementId !== pokemon.managementId)
+    .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+    .slice(0, 5);
+
+// 同じイベントの他のポケモン
+const sameEventPokemon = allData
+    .filter(p => p.eventName === pokemon.eventName && p.managementId !== pokemon.managementId)
+    .sort((a, b) => (a.dexNo || 0) - (b.dexNo || 0))
+    .slice(0, 5);
+
+// 同じ地域の配信（地域がある場合のみ）
+const sameRegionDistributions = pokemon.region
+    ? allData
+        .filter(p => p.region === pokemon.region && p.managementId !== pokemon.managementId)
+        .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''))
+        .slice(0, 5)
+    : [];
 
 // ポケモン画像URL
 function getPokemonImageUrl(dexNo: number) {
@@ -313,6 +338,90 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
             )}
         </div>
 
+        <!-- 関連ポケモン -->
+        {(samePokemonDistributions.length > 0 || sameEventPokemon.length > 0 || sameRegionDistributions.length > 0) && (
+            <div class="related-section">
+                <h3>関連する配信ポケモン</h3>
+
+                {samePokemonDistributions.length > 0 && (
+                    <div class="related-group">
+                        <h4>🔄 {pokemon.pokemonName}の他の配信</h4>
+                        <div class="related-list">
+                            {samePokemonDistributions.map((p: PokemonData) => (
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                    <img
+                                        class="related-image"
+                                        src={getPokemonImageUrl(p.dexNo)}
+                                        alt={p.pokemonName}
+                                        loading="lazy"
+                                    />
+                                    <div class="related-info">
+                                        <div class="related-name">
+                                            {p.pokemonName}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                        </div>
+                                        <div class="related-event">{p.eventName}</div>
+                                        <div class="related-date">{formatDate(p.startDate)}</div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {sameEventPokemon.length > 0 && (
+                    <div class="related-group">
+                        <h4>🎪 「{pokemon.eventName}」の他のポケモン</h4>
+                        <div class="related-list">
+                            {sameEventPokemon.map((p: PokemonData) => (
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                    <img
+                                        class="related-image"
+                                        src={getPokemonImageUrl(p.dexNo)}
+                                        alt={p.pokemonName}
+                                        loading="lazy"
+                                    />
+                                    <div class="related-info">
+                                        <div class="related-name">
+                                            {p.pokemonName}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                        </div>
+                                        <div class="related-dex">No.{String(p.dexNo).padStart(3, '0')}</div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {sameRegionDistributions.length > 0 && (
+                    <div class="related-group">
+                        <h4>🌏 {pokemon.region}の他の配信</h4>
+                        <div class="related-list">
+                            {sameRegionDistributions.map((p: PokemonData) => (
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                    <img
+                                        class="related-image"
+                                        src={getPokemonImageUrl(p.dexNo)}
+                                        alt={p.pokemonName}
+                                        loading="lazy"
+                                    />
+                                    <div class="related-info">
+                                        <div class="related-name">
+                                            {p.pokemonName}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                        </div>
+                                        <div class="related-event">{p.eventName}</div>
+                                        <div class="related-date">{formatDate(p.startDate)}</div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        )}
+
         <div class="back-link">
             <a href={baseUrl} class="back-button">← 検索に戻る</a>
         </div>
@@ -475,6 +584,101 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
         background: #1565c0;
     }
 
+    /* 関連ポケモンセクション */
+    .related-section {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .related-section h3 {
+        font-size: 18px;
+        color: #1a237e;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+
+    .related-group {
+        margin-bottom: 20px;
+    }
+
+    .related-group h4 {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+
+    .related-list {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .related-card {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        min-width: 200px;
+        border: 2px solid transparent;
+    }
+
+    .related-card:hover {
+        background: #e3f2fd;
+        border-color: #1976d2;
+        transform: translateY(-2px);
+    }
+
+    .related-image {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        background: white;
+        border-radius: 6px;
+    }
+
+    .related-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .related-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #222;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .shiny-mark {
+        font-size: 12px;
+        margin-left: 4px;
+    }
+
+    .related-event,
+    .related-dex {
+        font-size: 11px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .related-date {
+        font-size: 10px;
+        color: #999;
+    }
+
     @media (max-width: 768px) {
         .detail-header {
             flex-direction: column;
@@ -502,6 +706,15 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
 
         .pokemon-detail {
             padding: 15px;
+        }
+
+        .related-card {
+            min-width: 180px;
+        }
+
+        .related-image {
+            width: 40px;
+            height: 40px;
         }
     }
 </style>
