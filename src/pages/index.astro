@@ -212,8 +212,17 @@ const baseUrl = import.meta.env.BASE_URL;
     }
 
     // ポケモン画像URL生成関数
-    function getPokemonImageUrl(dexNo) {
-        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexNo}.png`;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const imageBaseUrl = isLocal
+        ? '/distribution/images/pokemon'
+        : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets/pokemon/pokedex';
+
+    function getPokemonImageUrl(pokemon) {
+        const dexNo = String(pokemon.dexNo).padStart(4, '0');
+        const name = pokemon.gigantamax
+            ? `キョダイマックス${pokemon.pokemonName}`
+            : pokemon.pokemonName;
+        return `${imageBaseUrl}/${dexNo}_${name}.png`;
     }
 
     // URLパラメータからフィルター初期状態を設定
@@ -618,7 +627,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
         // ポケモン画像の設定
         const imgEl = cardEl.querySelector('.pokemon-image');
-        imgEl.src = getPokemonImageUrl(pokemon.dexNo);
+        imgEl.src = getPokemonImageUrl(pokemon);
         imgEl.alt = pokemon.pokemonName;
         imgEl.addEventListener('error', function() {
             this.style.display = 'none';
@@ -736,7 +745,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
         // Pokemon image
         const imgEl = modalEl.querySelector('.modal-pokemon-image');
-        imgEl.src = getPokemonImageUrl(pokemon.dexNo);
+        imgEl.src = getPokemonImageUrl(pokemon);
         imgEl.alt = pokemon.pokemonName;
         imgEl.addEventListener('error', function() {
             this.style.display = 'none';
@@ -1041,6 +1050,7 @@ const baseUrl = import.meta.env.BASE_URL;
                 if (cardEl) {
                     cardEl.addEventListener('click', function(e) {
                         if (e.target.closest('.favorite-btn')) return;
+                        if (e.target.closest('.compare-checkbox')) return;
                         const pokemonData = JSON.parse(this.dataset.pokemonData);
                         showDetailModal(pokemonData);
                     });
@@ -1110,6 +1120,7 @@ const baseUrl = import.meta.env.BASE_URL;
             if (cardEl) {
                 cardEl.addEventListener('click', function(e) {
                     if (e.target.closest('.favorite-btn')) return;
+                    if (e.target.closest('.compare-checkbox')) return;
                     const pokemonData = JSON.parse(this.dataset.pokemonData);
                     showDetailModal(pokemonData);
                 });
@@ -1251,7 +1262,7 @@ const baseUrl = import.meta.env.BASE_URL;
             modalHtml += `
                 <div class="compare-column">
                     <div class="compare-header">
-                        <img src="${getPokemonImageUrl(pokemon.dexNo)}" alt="${escapeHtml(pokemon.pokemonName)}" class="compare-image">
+                        <img src="${getPokemonImageUrl(pokemon)}" alt="${escapeHtml(pokemon.pokemonName)}" class="compare-image">
                         <h3>${escapeHtml(pokemon.pokemonName)} ${pokemon.shiny ? '✨' : ''}</h3>
                         <div class="compare-dex">No.${String(pokemon.dexNo).padStart(3, '0')}</div>
                     </div>

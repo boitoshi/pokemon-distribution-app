@@ -21,6 +21,9 @@ logs
 # Astro
 .astro/
 
+# Pokemon images (hosted on server, not in git)
+public/images/pokemon/
+
 # Nuxt (for reference folder)
 .output
 .data

@@ -81,8 +81,17 @@ const sameRegionDistributions = pokemon.region
     : [];
 
 // ポケモン画像URL
-function getPokemonImageUrl(dexNo: number) {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexNo}.png`;
+const isDev = import.meta.env.DEV;
+const imageBaseUrl = isDev
+    ? '/distribution/images/pokemon'
+    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets/pokemon/pokedex';
+
+function getPokemonImageUrl(pokemon: PokemonData) {
+    const dexNo = String(pokemon.dexNo).padStart(4, '0');
+    const name = pokemon.gigantamax
+        ? `キョダイマックス${pokemon.pokemonName}`
+        : pokemon.pokemonName;
+    return `${imageBaseUrl}/${dexNo}_${name}.png`;
 }
 
 // 日付フォーマット
@@ -145,7 +154,7 @@ const statusText = isActive ? '配信中' : '終了';
 // OGP用
 const pageTitle = `${pokemon.pokemonName} - ${pokemon.eventName} | 配信ポケモン検索`;
 const pageDescription = `${pokemon.pokemonName}の配信情報。${pokemon.eventName}（${formatDate(pokemon.startDate)}〜${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}）。配信方法: ${pokemon.distributionMethod}`;
-const ogImage = getPokemonImageUrl(pokemon.dexNo);
+const ogImage = getPokemonImageUrl(pokemon);
 const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.managementId}`;
 ---
 
@@ -174,7 +183,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
             <div class="detail-image-container">
                 <img
                     class="detail-pokemon-image"
-                    src={getPokemonImageUrl(pokemon.dexNo)}
+                    src={getPokemonImageUrl(pokemon)}
                     alt={pokemon.pokemonName}
                     loading="lazy"
                 >
@@ -351,7 +360,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                                 <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
                                     <img
                                         class="related-image"
-                                        src={getPokemonImageUrl(p.dexNo)}
+                                        src={getPokemonImageUrl(p)}
                                         alt={p.pokemonName}
                                         loading="lazy"
                                     />
@@ -377,7 +386,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                                 <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
                                     <img
                                         class="related-image"
-                                        src={getPokemonImageUrl(p.dexNo)}
+                                        src={getPokemonImageUrl(p)}
                                         alt={p.pokemonName}
                                         loading="lazy"
                                     />
@@ -402,7 +411,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                                 <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
                                     <img
                                         class="related-image"
-                                        src={getPokemonImageUrl(p.dexNo)}
+                                        src={getPokemonImageUrl(p)}
                                         alt={p.pokemonName}
                                         loading="lazy"
                                     />
