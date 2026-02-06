@@ -49,8 +49,9 @@ const baseUrl = import.meta.env.BASE_URL;
         <div class="stats-left">
             <span id="resultCount"></span>
             <div class="stats-actions">
-                <button id="exportCsv" class="action-btn" title="CSVダウンロード">📥 CSV</button>
                 <button id="showFavorites" class="action-btn" title="お気に入りのみ表示">⭐ お気に入り</button>
+                <button id="toggleCompareMode" class="action-btn" title="比較モード">🔄 比較</button>
+                <button id="compareSelected" class="compare-btn" style="display: none;">選択した配信を比較 (<span id="compareCount">0</span>個)</button>
             </div>
         </div>
         <div class="quick-filters" id="quickFilters">
@@ -99,10 +100,23 @@ const baseUrl = import.meta.env.BASE_URL;
     const ITEMS_PER_PAGE = 24;
     const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
 
+    // セキュリティ: HTMLエスケープ関数
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     // お気に入り管理
     function getFavorites() {
-        const stored = localStorage.getItem('pokemon-favorites');
-        return stored ? JSON.parse(stored) : [];
+        try {
+            const stored = localStorage.getItem('pokemon-favorites');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.error('Failed to parse favorites:', e);
+            return [];
+        }
     }
 
     function saveFavorites(favorites) {
@@ -129,6 +143,51 @@ const baseUrl = import.meta.env.BASE_URL;
     function updateFavoriteCount() {
         const count = getFavorites().length;
         document.getElementById('favoriteCount').textContent = count;
+    }
+
+    // メモ管理（保管場所・カスタムメモ）
+    function getNotes() {
+        try {
+            const stored = localStorage.getItem('pokemon-notes');
+            return stored ? JSON.parse(stored) : {};
+        } catch (e) {
+            console.error('Failed to parse notes:', e);
+            return {};
+        }
+    }
+
+    function saveNote(managementId, noteData) {
+        const notes = getNotes();
+        notes[managementId] = noteData;
+        localStorage.setItem('pokemon-notes', JSON.stringify(notes));
+    }
+
+    function getNote(managementId) {
+        const notes = getNotes();
+        return notes[managementId] || { location: '', customNote: '' };
+    }
+
+    function deleteNote(managementId) {
+        const notes = getNotes();
+        delete notes[managementId];
+        localStorage.setItem('pokemon-notes', JSON.stringify(notes));
+    }
+
+    // 保管場所プリセット
+    const LOCATION_PRESETS = [
+        { value: 'home', label: '📱 HOME保管中', icon: '📱' },
+        { value: 'violet', label: '🟣 バイオレット', icon: '🟣' },
+        { value: 'scarlet', label: '🔴 スカーレット', icon: '🔴' },
+        { value: 'sword', label: '⚔️ ソード', icon: '⚔️' },
+        { value: 'shield', label: '🛡️ シールド', icon: '🛡️' },
+        { value: 'bdsp', label: '💎 ダイパリメイク', icon: '💎' },
+        { value: 'legends', label: '🏔️ アルセウス', icon: '🏔️' },
+        { value: 'custom', label: '✏️ カスタム', icon: '✏️' }
+    ];
+
+    function getLocationIcon(locationValue) {
+        const preset = LOCATION_PRESETS.find(p => p.value === locationValue);
+        return preset ? preset.icon : '📝';
     }
 
     // ダークモード
@@ -205,7 +264,16 @@ const baseUrl = import.meta.env.BASE_URL;
     async function loadData() {
         try {
             const response = await fetch(JSON_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
+
+            // データ検証
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid data format: expected array');
+            }
+
             allData = data;
 
             document.getElementById('loading').style.display = 'none';
@@ -279,6 +347,10 @@ const baseUrl = import.meta.env.BASE_URL;
     let searchResults = [];
     let showingFavorites = false;
 
+    // 比較機能
+    let compareMode = false;
+    let selectedForCompare = [];
+
     // ソート関数
     function sortData(data, sortOrder) {
         const sorted = [...data];
@@ -321,6 +393,8 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterRibbon = document.getElementById('filterRibbon')?.value;
         const filterDateFrom = document.getElementById('filterDateFrom')?.value;
         const filterDateTo = document.getElementById('filterDateTo')?.value;
+        const filterOT = document.getElementById('filterOT')?.value.toLowerCase();
+        const filterTrainerId = document.getElementById('filterTrainerId')?.value;
         const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
 
         let filtered = allData;
@@ -404,6 +478,31 @@ const baseUrl = import.meta.env.BASE_URL;
         // Filter by active distribution
         if (filterActive) {
             filtered = filtered.filter(p => isDistributionActive(p.endDate));
+        }
+
+        // Filter by OT (親名) - supports multi-language OT
+        if (filterOT) {
+            filtered = filtered.filter(p => {
+                if (!p.ot) return false;
+                if (typeof p.ot === 'string') {
+                    return p.ot.toLowerCase().includes(filterOT);
+                }
+                // Multi-language OT object
+                if (typeof p.ot === 'object') {
+                    return Object.values(p.ot).some(otValue =>
+                        otValue && otValue.toLowerCase().includes(filterOT)
+                    );
+                }
+                return false;
+            });
+        }
+
+        // Filter by Trainer ID
+        if (filterTrainerId) {
+            filtered = filtered.filter(p => {
+                if (!p.trainerId) return false;
+                return String(p.trainerId).includes(filterTrainerId);
+            });
         }
 
         // Apply sort
@@ -594,6 +693,38 @@ const baseUrl = import.meta.env.BASE_URL;
             });
         }
 
+        // Location badge (保管場所バッジ)
+        const locationBadge = cardEl.querySelector('.location-badge');
+        const noteData = getNote(pokemon.managementId);
+        if (noteData.location) {
+            const icon = getLocationIcon(noteData.location);
+            locationBadge.textContent = icon;
+            locationBadge.style.display = 'flex';
+            locationBadge.title = noteData.customNote || '保管場所設定済み';
+        }
+
+        // Compare checkbox (比較用チェックボックス)
+        const compareCheckbox = cardEl.querySelector('.compare-checkbox');
+        if (compareCheckbox) {
+            compareCheckbox.style.display = compareMode ? 'flex' : 'none';
+            compareCheckbox.checked = selectedForCompare.includes(pokemon.managementId);
+
+            compareCheckbox.addEventListener('change', (e) => {
+                e.stopPropagation();
+                if (e.target.checked) {
+                    if (selectedForCompare.length >= 5) {
+                        e.target.checked = false;
+                        alert('比較できるのは最大5個までです');
+                        return;
+                    }
+                    selectedForCompare.push(pokemon.managementId);
+                } else {
+                    selectedForCompare = selectedForCompare.filter(id => id !== pokemon.managementId);
+                }
+                updateCompareButton();
+            });
+        }
+
         return card;
     }
 
@@ -615,7 +746,7 @@ const baseUrl = import.meta.env.BASE_URL;
         const pokemonNameEl = modalEl.querySelector('.modal-pokemon-name');
         pokemonNameEl.textContent = pokemon.pokemonName;
         if (pokemon.shiny && pokemon.shiny !== '') {
-            pokemonNameEl.innerHTML = pokemon.pokemonName + ' <span class="modal-shiny-indicator" title="色違い">✨</span>';
+            pokemonNameEl.innerHTML = escapeHtml(pokemon.pokemonName) + ' <span class="modal-shiny-indicator" title="色違い">✨</span>';
         }
 
         // Dex Number
@@ -672,7 +803,7 @@ const baseUrl = import.meta.env.BASE_URL;
         // Ball info
         const ballStatus = modalEl.querySelector('.modal-ball-status');
         if (pokemon.ball) {
-            ballStatus.innerHTML = `⚪ ${pokemon.ball}`;
+            ballStatus.textContent = `⚪ ${pokemon.ball}`;
         } else {
             ballStatus.textContent = '?';
         }
@@ -791,6 +922,72 @@ const baseUrl = import.meta.env.BASE_URL;
                 if (card) card.classList.toggle('active', added);
             });
             modalFavBtn.textContent = isFavorite(pokemon.managementId) ? '⭐ お気に入り解除' : '☆ お気に入り登録';
+        }
+
+        // Memo functionality (保管場所・メモ機能)
+        const memoLocationSelect = modalEl.querySelector('#memoLocationSelect');
+        const memoCustomNote = modalEl.querySelector('#memoCustomNote');
+        const memoSaveBtn = modalEl.querySelector('#memoSaveBtn');
+        const memoDeleteBtn = modalEl.querySelector('#memoDeleteBtn');
+
+        // Load existing memo
+        const existingNote = getNote(pokemon.managementId);
+        if (memoLocationSelect) memoLocationSelect.value = existingNote.location || '';
+        if (memoCustomNote) memoCustomNote.value = existingNote.customNote || '';
+
+        // Save memo
+        if (memoSaveBtn) {
+            memoSaveBtn.addEventListener('click', () => {
+                const noteData = {
+                    location: memoLocationSelect.value,
+                    customNote: memoCustomNote.value
+                };
+                saveNote(pokemon.managementId, noteData);
+
+                // Update card location badge
+                const card = document.querySelector(`[data-management-id="${pokemon.managementId}"]`);
+                if (card) {
+                    const locationBadge = card.querySelector('.location-badge');
+                    if (noteData.location) {
+                        const icon = getLocationIcon(noteData.location);
+                        locationBadge.textContent = icon;
+                        locationBadge.style.display = 'flex';
+                        locationBadge.title = noteData.customNote || '保管場所設定済み';
+                    } else {
+                        locationBadge.style.display = 'none';
+                    }
+                }
+
+                // Visual feedback
+                memoSaveBtn.textContent = '✅ 保存しました！';
+                setTimeout(() => {
+                    memoSaveBtn.textContent = '💾 保存';
+                }, 2000);
+            });
+        }
+
+        // Delete memo
+        if (memoDeleteBtn) {
+            memoDeleteBtn.addEventListener('click', () => {
+                if (confirm('メモを削除しますか？')) {
+                    deleteNote(pokemon.managementId);
+                    if (memoLocationSelect) memoLocationSelect.value = '';
+                    if (memoCustomNote) memoCustomNote.value = '';
+
+                    // Update card location badge
+                    const card = document.querySelector(`[data-management-id="${pokemon.managementId}"]`);
+                    if (card) {
+                        const locationBadge = card.querySelector('.location-badge');
+                        locationBadge.style.display = 'none';
+                    }
+
+                    // Visual feedback
+                    memoDeleteBtn.textContent = '🗑️ 削除しました';
+                    setTimeout(() => {
+                        memoDeleteBtn.textContent = '🗑️ メモ削除';
+                    }, 2000);
+                }
+            });
         }
 
         document.body.appendChild(modal);
@@ -924,51 +1121,6 @@ const baseUrl = import.meta.env.BASE_URL;
         });
     }
 
-    // CSVエクスポート
-    function exportToCsv(data) {
-        const headers = ['管理ID', 'ポケモン名', '図鑑No', '世代', 'ゲーム', '地域', 'イベント名', '配信方法', '配信場所', '開始日', '終了日', '色違い', 'レベル', '特性', '性格', 'ボール', '持ち物', '技', 'リボン', '親名', 'ID', '備考'];
-
-        const rows = data.map(p => {
-            const moves = p.moves && Array.isArray(p.moves) ? p.moves.join('/') : [p.move1, p.move2, p.move3, p.move4].filter(m => m).join('/');
-            const ribbons = p.ribbons && Array.isArray(p.ribbons) ? p.ribbons.join('/') : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r).join('/');
-            const ot = typeof p.ot === 'object' ? Object.values(p.ot).join('/') : p.ot;
-
-            return [
-                p.managementId || '',
-                p.pokemonName || '',
-                p.dexNo || '',
-                p.generation || '',
-                p.game || '',
-                p.region || '',
-                p.eventName || '',
-                p.distributionMethod || '',
-                p.distributionLocation || '',
-                p.startDate || '',
-                p.endDate || '',
-                p.shiny || '',
-                p.level || '',
-                p.ability || '',
-                p.nature || '',
-                p.ball || '',
-                p.heldItem || '',
-                moves,
-                ribbons,
-                ot || '',
-                p.trainerId || '',
-                p.notes || ''
-            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
-        });
-
-        const csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pokemon-distribution-${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
     // Event listeners
     document.getElementById('searchButton').addEventListener('click', () => {
         searchPokemon();
@@ -993,11 +1145,6 @@ const baseUrl = import.meta.env.BASE_URL;
             this.classList.toggle('active');
             applyQuickFilter();
         });
-    });
-
-    // CSVエクスポート
-    document.getElementById('exportCsv').addEventListener('click', () => {
-        exportToCsv(searchResults.length > 0 ? searchResults : allData);
     });
 
     // お気に入り表示
@@ -1028,6 +1175,116 @@ const baseUrl = import.meta.env.BASE_URL;
 
     // ダークモード切替
     document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
+
+    // 比較モード切替
+    function updateCompareButton() {
+        const compareBtn = document.getElementById('compareSelected');
+        const countSpan = document.getElementById('compareCount');
+        countSpan.textContent = selectedForCompare.length;
+
+        if (selectedForCompare.length >= 2 && selectedForCompare.length <= 5) {
+            compareBtn.style.display = 'block';
+        } else {
+            compareBtn.style.display = 'none';
+        }
+    }
+
+    document.getElementById('toggleCompareMode').addEventListener('click', function() {
+        compareMode = !compareMode;
+        this.classList.toggle('active', compareMode);
+
+        // Update all cards to show/hide checkboxes
+        document.querySelectorAll('.compare-checkbox').forEach(checkbox => {
+            checkbox.style.display = compareMode ? 'flex' : 'none';
+        });
+
+        if (!compareMode) {
+            selectedForCompare = [];
+            updateCompareButton();
+        }
+    });
+
+    document.getElementById('compareSelected').addEventListener('click', () => {
+        if (selectedForCompare.length >= 2 && selectedForCompare.length <= 5) {
+            const pokemonToCompare = allData.filter(p => selectedForCompare.includes(p.managementId));
+            showCompareModal(pokemonToCompare);
+        }
+    });
+
+    // 比較モーダル表示
+    function showCompareModal(pokemonList) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+
+        let modalHtml = `
+            <div class="modal-content compare-modal-content">
+                <button class="modal-close compare-modal-close">
+                    <span class="pokeball-close"></span>
+                </button>
+                <div class="modal-body">
+                    <h2 style="margin-bottom: 20px; text-align: center;">🔄 配信ポケモン比較</h2>
+                    <div class="compare-grid">
+        `;
+
+        pokemonList.forEach(pokemon => {
+            const moves = pokemon.moves && Array.isArray(pokemon.moves)
+                ? pokemon.moves.filter(m => m && m !== '')
+                : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
+
+            const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
+                ? pokemon.ribbons.filter(r => r && r !== '')
+                : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
+
+            const otDisplay = typeof pokemon.ot === 'object'
+                ? Object.entries(pokemon.ot).map(([lang, name]) => `${escapeHtml(lang)}: ${escapeHtml(name)}`).join(' / ')
+                : escapeHtml(pokemon.ot) || '?';
+
+            modalHtml += `
+                <div class="compare-column">
+                    <div class="compare-header">
+                        <img src="${getPokemonImageUrl(pokemon.dexNo)}" alt="${escapeHtml(pokemon.pokemonName)}" class="compare-image">
+                        <h3>${escapeHtml(pokemon.pokemonName)} ${pokemon.shiny ? '✨' : ''}</h3>
+                        <div class="compare-dex">No.${String(pokemon.dexNo).padStart(3, '0')}</div>
+                    </div>
+                    <div class="compare-details">
+                        <div class="compare-row"><strong>世代:</strong> 第${pokemon.generation}世代</div>
+                        <div class="compare-row"><strong>イベント:</strong> ${escapeHtml(pokemon.eventName)}</div>
+                        <div class="compare-row"><strong>配信期間:</strong> ${formatDate(pokemon.startDate)} 〜 ${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}</div>
+                        <div class="compare-row"><strong>配信方法:</strong> ${escapeHtml(pokemon.distributionMethod)}</div>
+                        ${pokemon.region ? `<div class="compare-row"><strong>地域:</strong> ${escapeHtml(pokemon.region)}</div>` : ''}
+                        <div class="compare-row"><strong>ゲーム:</strong> ${escapeHtml(pokemon.game)}</div>
+                        <div class="compare-row"><strong>レベル:</strong> ${escapeHtml(String(pokemon.level)) || '?'}</div>
+                        <div class="compare-row"><strong>親名:</strong> ${otDisplay}</div>
+                        ${pokemon.trainerId ? `<div class="compare-row"><strong>ID:</strong> ${escapeHtml(String(pokemon.trainerId))}</div>` : ''}
+                        ${pokemon.nature ? `<div class="compare-row"><strong>性格:</strong> ${escapeHtml(pokemon.nature)}</div>` : ''}
+                        <div class="compare-row"><strong>特性:</strong> ${escapeHtml(pokemon.ability) || '?'}</div>
+                        ${pokemon.ball ? `<div class="compare-row"><strong>ボール:</strong> ${escapeHtml(pokemon.ball)}</div>` : ''}
+                        ${pokemon.teraType ? `<div class="compare-row"><strong>テラスタイプ:</strong> ${escapeHtml(pokemon.teraType)}</div>` : ''}
+                        ${pokemon.heldItem ? `<div class="compare-row"><strong>持ち物:</strong> ${escapeHtml(pokemon.heldItem)}</div>` : ''}
+                        ${moves.length > 0 ? `<div class="compare-row"><strong>技:</strong><br>${moves.map(m => escapeHtml(m)).join('<br>')}</div>` : ''}
+                        ${ribbons.length > 0 ? `<div class="compare-row"><strong>リボン:</strong><br>${ribbons.map(r => escapeHtml(r)).join('<br>')}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        modalHtml += `
+                    </div>
+                    <button class="modal-bottom-close compare-bottom-close">閉じる</button>
+                </div>
+            </div>
+        `;
+
+        modal.innerHTML = modalHtml;
+        document.body.appendChild(modal);
+
+        const closeModal = () => modal.remove();
+        modal.querySelector('.compare-modal-close').addEventListener('click', closeModal);
+        modal.querySelector('.compare-bottom-close').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
 
     // クリアボタンからのイベントリスナー
     window.addEventListener('clearSearch', () => {

@@ -42,11 +42,13 @@ export interface Pokemon {
 <!-- Template for Pokemon Card (hidden, used by JavaScript) -->
 <template id="pokemon-card-template">
     <div class="pokemon-card">
+        <input type="checkbox" class="compare-checkbox" style="display: none;">
         <div class="card-layout">
             <!-- 左側: ポケモン画像 -->
             <div class="card-image-container">
                 <img class="pokemon-image" src="" alt="" loading="lazy">
                 <button class="favorite-btn" title="お気に入り">☆</button>
+                <div class="location-badge" style="display: none;"></div>
             </div>
 
             <!-- 右側: コンテンツ -->
@@ -222,6 +224,38 @@ export interface Pokemon {
                     <div class="modal-section modal-notes-section" style="display: none;">
                         <h3>備考</h3>
                         <div class="modal-notes"></div>
+                    </div>
+
+                    <div class="modal-section modal-memo-section">
+                        <h3>📝 保管場所・メモ</h3>
+                        <div class="memo-content">
+                            <div class="info-row">
+                                <div class="info-label">保管場所:</div>
+                                <div class="info-value">
+                                    <select class="memo-location-select" id="memoLocationSelect">
+                                        <option value="">未設定</option>
+                                        <option value="home">📱 HOME保管中</option>
+                                        <option value="violet">🟣 バイオレット</option>
+                                        <option value="scarlet">🔴 スカーレット</option>
+                                        <option value="sword">⚔️ ソード</option>
+                                        <option value="shield">🛡️ シールド</option>
+                                        <option value="bdsp">💎 ダイパリメイク</option>
+                                        <option value="legends">🏔️ アルセウス</option>
+                                        <option value="custom">✏️ カスタム</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">メモ:</div>
+                                <div class="info-value">
+                                    <textarea class="memo-custom-note" id="memoCustomNote" placeholder="例：ボックス1-5、交換用ストック3体、友人に預け中など" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="memo-buttons">
+                                <button class="memo-save-btn" id="memoSaveBtn">💾 保存</button>
+                                <button class="memo-delete-btn" id="memoDeleteBtn">🗑️ メモ削除</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-section modal-share-section">

@@ -82,6 +82,15 @@
                 <option value="">リボンで絞る</option>
             </select>
         </div>
+
+        <!-- 逆引き検索エリア -->
+        <div class="reverse-search-section">
+            <h4 class="reverse-search-title">🔍 逆引き検索（中古ROM判定用）</h4>
+            <div class="reverse-search-grid">
+                <input type="text" id="filterOT" placeholder="親名（OT）で検索 例：サトシ、Ash">
+                <input type="text" id="filterTrainerId" placeholder="トレーナーIDで検索 例：191115">
+            </div>
+        </div>
     </div>
 
     <div class="search-buttons">
@@ -123,6 +132,10 @@
 
         // リボンセレクトをクリア
         document.getElementById('filterRibbon').value = '';
+
+        // 逆引き検索フィールドをクリア
+        document.getElementById('filterOT').value = '';
+        document.getElementById('filterTrainerId').value = '';
 
         // 素早い絞り込みボタンをリセット
         document.querySelectorAll('.quick-filter-btn').forEach(btn => {
