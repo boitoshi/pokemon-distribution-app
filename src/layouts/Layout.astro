@@ -1367,54 +1367,27 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     /* ページネーション */
-    .pagination {
-        background: rgba(255,255,255,0.98);
-        padding: 12px 15px;
-        border-radius: 6px;
-        margin-bottom: 15px;
-        text-align: center;
-    }
-
-    .pagination-inner {
+    .infinite-scroll-loader {
         display: flex;
-        justify-content: center;
         align-items: center;
-        gap: 5px;
-        flex-wrap: wrap;
-        margin-bottom: 8px;
-    }
-
-    .page-btn {
-        padding: 8px 12px;
-        background: #ffffff;
-        border: 2px solid #d0d0d0;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: #333;
-    }
-
-    .page-btn:hover {
-        background: #f5f5f5;
-        border-color: #1976d2;
-    }
-
-    .page-btn.active {
-        background: #1976d2;
-        border-color: #1976d2;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
         color: #ffffff;
+        font-size: 14px;
     }
 
-    .page-dots {
-        padding: 0 5px;
-        color: #666;
+    .loader-spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
     }
 
-    .page-info {
-        font-size: 12px;
-        color: #666;
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     /* 世代バッジ拡張 */
@@ -1449,9 +1422,13 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     body.dark-mode .search-box,
     body.dark-mode .dashboard,
     body.dark-mode .stats,
-    body.dark-mode .pagination {
-        background: #1e1e1e;
-        color: #ffffff;
+    body.dark-mode .infinite-scroll-loader {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .loader-spinner {
+        border-color: rgba(224, 224, 224, 0.3);
+        border-top-color: #e0e0e0;
     }
 
     body.dark-mode input,
@@ -1527,23 +1504,20 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     body.dark-mode .quick-filter-btn,
-    body.dark-mode .action-btn,
-    body.dark-mode .page-btn {
+    body.dark-mode .action-btn {
         background: #2d2d2d;
         border-color: #444;
         color: #e0e0e0;
     }
 
     body.dark-mode .quick-filter-btn:hover,
-    body.dark-mode .action-btn:hover,
-    body.dark-mode .page-btn:hover {
+    body.dark-mode .action-btn:hover {
         background: #3d3d3d;
         border-color: #90caf9;
     }
 
     body.dark-mode .quick-filter-btn.active,
-    body.dark-mode .action-btn.active,
-    body.dark-mode .page-btn.active {
+    body.dark-mode .action-btn.active {
         background: #1976d2;
         border-color: #1976d2;
         color: #ffffff;

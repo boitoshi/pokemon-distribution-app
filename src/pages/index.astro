@@ -78,15 +78,16 @@ const baseUrl = import.meta.env.BASE_URL;
         </div>
     </div>
 
-    <!-- ページネーション（上部） -->
-    <div class="pagination" id="paginationTop" style="display: none;"></div>
-
     <div class="loading" id="loading">読み込み中...</div>
 
     <div class="results" id="results"></div>
 
-    <!-- ページネーション（下部） -->
-    <div class="pagination" id="paginationBottom" style="display: none;"></div>
+    <!-- 無限スクロール用ローディング -->
+    <div class="infinite-scroll-loader" id="infiniteScrollLoader" style="display: none;">
+        <div class="loader-spinner"></div>
+        <span>読み込み中...</span>
+    </div>
+    <div id="scrollSentinel" style="height: 1px;"></div>
 
     <!-- 一番上に戻るボタン -->
     <button id="scrollToTop" class="scroll-to-top" aria-label="一番上に戻る">↑</button>
@@ -96,9 +97,14 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <script define:vars={{ baseUrl }}>
     let allData = [];
-    let currentPage = 1;
+    let displayedCount = 0;
     const ITEMS_PER_PAGE = 24;
     const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
+
+    // 無限スクロール用の状態管理
+    let currentDisplayData = [];
+    let isLoadingMore = false;
+    let infiniteScrollObserver = null;
 
     // セキュリティ: HTMLエスケープ関数
     function escapeHtml(text) {
@@ -247,12 +253,6 @@ const baseUrl = import.meta.env.BASE_URL;
             hasFilters = true;
             const ribbonSelect = document.getElementById('filterRibbon');
             if (ribbonSelect) ribbonSelect.value = ribbon;
-        }
-
-        // ページパラメータ
-        const page = params.get('page');
-        if (page) {
-            currentPage = parseInt(page) || 1;
         }
 
         if (hasFilters) {
@@ -508,8 +508,8 @@ const baseUrl = import.meta.env.BASE_URL;
         // Apply sort
         filtered = sortData(filtered, sortOrder);
 
-        // Reset to first page
-        currentPage = 1;
+        // Reset display count
+        displayedCount = 0;
         showingFavorites = false;
         document.getElementById('showFavorites').classList.remove('active');
 
@@ -550,7 +550,7 @@ const baseUrl = import.meta.env.BASE_URL;
             }
         });
 
-        currentPage = 1;
+        displayedCount = 0;
         displayResults(filtered);
     }
 
@@ -1019,106 +1019,115 @@ const baseUrl = import.meta.env.BASE_URL;
         document.addEventListener('keydown', escHandler);
     }
 
-    // ページネーション生成
-    function createPagination(totalItems, currentPage) {
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-        if (totalPages <= 1) return '';
+    // 無限スクロール: 追加読み込み
+    function loadMoreItems() {
+        if (isLoadingMore) return;
+        if (displayedCount >= currentDisplayData.length) return;
 
-        let html = '<div class="pagination-inner">';
+        isLoadingMore = true;
+        const loader = document.getElementById('infiniteScrollLoader');
+        loader.style.display = 'flex';
 
-        // 前へ
-        if (currentPage > 1) {
-            html += `<button class="page-btn" data-page="${currentPage - 1}">« 前</button>`;
-        }
+        // 少し遅延を入れてローディング表示をスムーズに
+        requestAnimationFrame(() => {
+            const resultsDiv = document.getElementById('results');
+            const endIndex = Math.min(displayedCount + ITEMS_PER_PAGE, currentDisplayData.length);
+            const batchData = currentDisplayData.slice(displayedCount, endIndex);
 
-        // ページ番号
-        const maxVisible = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            batchData.forEach(pokemon => {
+                const cardFragment = createPokemonCard(pokemon);
+                // カードにクリックイベントを付与
+                const cardEl = cardFragment.querySelector('.pokemon-card');
+                if (cardEl) {
+                    cardEl.addEventListener('click', function(e) {
+                        if (e.target.closest('.favorite-btn')) return;
+                        const pokemonData = JSON.parse(this.dataset.pokemonData);
+                        showDetailModal(pokemonData);
+                    });
+                }
+                resultsDiv.appendChild(cardFragment);
+            });
 
-        if (endPage - startPage < maxVisible - 1) {
-            startPage = Math.max(1, endPage - maxVisible + 1);
-        }
+            displayedCount = endIndex;
+            isLoadingMore = false;
 
-        if (startPage > 1) {
-            html += `<button class="page-btn" data-page="1">1</button>`;
-            if (startPage > 2) html += '<span class="page-dots">...</span>';
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) html += '<span class="page-dots">...</span>';
-            html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
-        }
-
-        // 次へ
-        if (currentPage < totalPages) {
-            html += `<button class="page-btn" data-page="${currentPage + 1}">次 »</button>`;
-        }
-
-        html += '</div>';
-        html += `<div class="page-info">${currentPage} / ${totalPages} ページ (${totalItems}件)</div>`;
-
-        return html;
+            // 全件表示完了ならローダーを非表示
+            if (displayedCount >= currentDisplayData.length) {
+                loader.style.display = 'none';
+            } else {
+                loader.style.display = 'none';
+            }
+        });
     }
 
-    // Display results with pagination
+    // IntersectionObserver のセットアップ
+    function setupInfiniteScroll() {
+        // 既存のオブザーバーを破棄
+        if (infiniteScrollObserver) {
+            infiniteScrollObserver.disconnect();
+        }
+
+        const sentinel = document.getElementById('scrollSentinel');
+        infiniteScrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && displayedCount < currentDisplayData.length) {
+                    loadMoreItems();
+                }
+            });
+        }, {
+            rootMargin: '200px'
+        });
+
+        infiniteScrollObserver.observe(sentinel);
+    }
+
+    // Display results with infinite scroll
     function displayResults(data) {
         const resultsDiv = document.getElementById('results');
         const resultCountDiv = document.getElementById('resultCount');
-        const paginationTop = document.getElementById('paginationTop');
-        const paginationBottom = document.getElementById('paginationBottom');
+        const loader = document.getElementById('infiniteScrollLoader');
+
+        currentDisplayData = data;
+        displayedCount = 0;
 
         const totalItems = data.length;
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
-        const pageData = data.slice(startIndex, endIndex);
-
         resultCountDiv.textContent = `${totalItems}件のポケモンが見つかりました`;
 
         if (totalItems === 0) {
             resultsDiv.innerHTML = '<div class="no-results">該当するポケモンが見つかりませんでした</div>';
-            paginationTop.style.display = 'none';
-            paginationBottom.style.display = 'none';
+            loader.style.display = 'none';
             return;
         }
 
-        // Pagination
-        const paginationHtml = createPagination(totalItems, currentPage);
-        paginationTop.innerHTML = paginationHtml;
-        paginationBottom.innerHTML = paginationHtml;
-        paginationTop.style.display = totalPages > 1 ? 'block' : 'none';
-        paginationBottom.style.display = totalPages > 1 ? 'block' : 'none';
-
-        // Add pagination event listeners
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentPage = parseInt(btn.dataset.page);
-                displayResults(data);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        });
-
+        // 初回バッチを表示
         resultsDiv.innerHTML = '';
-        pageData.forEach(pokemon => {
+        const endIndex = Math.min(ITEMS_PER_PAGE, totalItems);
+        const initialData = data.slice(0, endIndex);
+
+        initialData.forEach(pokemon => {
             const cardFragment = createPokemonCard(pokemon);
+            const cardEl = cardFragment.querySelector('.pokemon-card');
+            if (cardEl) {
+                cardEl.addEventListener('click', function(e) {
+                    if (e.target.closest('.favorite-btn')) return;
+                    const pokemonData = JSON.parse(this.dataset.pokemonData);
+                    showDetailModal(pokemonData);
+                });
+            }
             resultsDiv.appendChild(cardFragment);
         });
 
-        // Add click event to show modal
-        const cards = resultsDiv.querySelectorAll('.pokemon-card');
-        cards.forEach(card => {
-            card.addEventListener('click', function(e) {
-                // お気に入りボタンのクリックは除外
-                if (e.target.closest('.favorite-btn')) return;
-                const pokemonData = JSON.parse(this.dataset.pokemonData);
-                showDetailModal(pokemonData);
-            });
-        });
+        displayedCount = endIndex;
+
+        // まだデータが残っている場合、無限スクロールを設定
+        if (displayedCount < totalItems) {
+            setupInfiniteScroll();
+        } else {
+            loader.style.display = 'none';
+            if (infiniteScrollObserver) {
+                infiniteScrollObserver.disconnect();
+            }
+        }
     }
 
     // Event listeners
@@ -1155,7 +1164,7 @@ const baseUrl = import.meta.env.BASE_URL;
         if (showingFavorites) {
             const favorites = getFavorites();
             const favoriteData = allData.filter(p => favorites.includes(p.managementId));
-            currentPage = 1;
+            displayedCount = 0;
             displayResults(favoriteData);
         } else {
             displayResults(searchResults.length > 0 ? searchResults : allData);
@@ -1290,7 +1299,7 @@ const baseUrl = import.meta.env.BASE_URL;
     window.addEventListener('clearSearch', () => {
         searchResults = allData;
         showingFavorites = false;
-        currentPage = 1;
+        displayedCount = 0;
         document.getElementById('showFavorites').classList.remove('active');
         displayResults(allData);
     });
