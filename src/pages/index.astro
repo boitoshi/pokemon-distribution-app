@@ -295,7 +295,9 @@ const baseUrl = import.meta.env.BASE_URL;
 
             const params = new URLSearchParams(window.location.search);
             if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active'].includes(key))) {
-                displayResults(allData);
+                const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
+                searchResults = sortData(allData, sortOrder);
+                displayResults(searchResults);
             }
         } catch (error) {
             console.error('Data loading error:', error);
@@ -408,12 +410,19 @@ const baseUrl = import.meta.env.BASE_URL;
 
         let filtered = allData;
 
-        // Filter by Pokemon name or event name
+        // Filter by Pokemon name, event name, OT, distribution info, notes
         if (searchName) {
-            filtered = filtered.filter(p =>
-                p.pokemonName.toLowerCase().includes(searchName) ||
-                p.eventName.toLowerCase().includes(searchName)
-            );
+            filtered = filtered.filter(p => {
+                const otStr = typeof p.ot === 'object'
+                    ? Object.values(p.ot).join(' ').toLowerCase()
+                    : (p.ot || '').toLowerCase();
+                return p.pokemonName.toLowerCase().includes(searchName) ||
+                    p.eventName.toLowerCase().includes(searchName) ||
+                    otStr.includes(searchName) ||
+                    (p.distributionMethod || '').toLowerCase().includes(searchName) ||
+                    (p.distributionLocation || '').toLowerCase().includes(searchName) ||
+                    (p.notes || '').toLowerCase().includes(searchName);
+            });
         }
 
         // Filter by generation
