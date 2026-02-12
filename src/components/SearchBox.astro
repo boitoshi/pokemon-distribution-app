@@ -78,9 +78,10 @@
                 <input type="checkbox" id="filterActive">
                 <span>🟢 配信中のみ</span>
             </label>
-            <select id="filterRibbon" class="ribbon-select">
-                <option value="">リボンで絞る</option>
-            </select>
+            <div class="ribbon-input-wrapper">
+                <input type="text" id="filterRibbon" list="ribbonList" class="ribbon-input" placeholder="🎀 リボンで絞る">
+                <datalist id="ribbonList"></datalist>
+            </div>
         </div>
 
         <!-- 逆引き検索エリア -->

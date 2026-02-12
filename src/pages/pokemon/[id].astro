@@ -26,7 +26,7 @@ interface PokemonData {
     distributionLocation: string;
     startDate: string;
     endDate?: string;
-    ot?: string | { ja?: string; en?: string; ko?: string; zh?: string; la?: string };
+    ot?: string | { JPN?: string; ENG?: string; SPA?: string; FRE?: string; GER?: string; ITA?: string; KOR?: string; CHS?: string; CHT?: string; SPA_EU?: string; SPA_LA?: string };
     trainerId?: string | number;
     ball?: string;
     level?: number;
@@ -36,6 +36,8 @@ interface PokemonData {
     teraType?: string;
     isAlpha?: string;
     heldItem?: string;
+    ivs?: string | { hp?: number; atk?: number; def?: number; spa?: number; spd?: number; spe?: number };
+    evs?: string;
     moves?: string[];
     ribbons?: string[];
     move1?: string;
@@ -45,6 +47,8 @@ interface PokemonData {
     ribbon1?: string;
     ribbon2?: string;
     ribbon3?: string;
+    specialMoves?: string;
+    password?: string;
     notes?: string;
     postUrl?: string;
 }
@@ -80,11 +84,15 @@ const sameRegionDistributions = pokemon.region
         .slice(0, 5)
     : [];
 
-// ポケモン画像URL
+// 画像URL
 const isDev = import.meta.env.DEV;
-const imageBaseUrl = isDev
-    ? '/distribution/images/pokemon'
-    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets/pokemon/pokedex';
+const assetBase = isDev
+    ? '/distribution/images'
+    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
+const ballImageBaseUrl = `${assetBase}/balls`;
+const ribbonImageBaseUrl = `${assetBase}/ribbons`;
+const markImageBaseUrl = `${assetBase}/marks`;
 
 function getPokemonImageUrl(pokemon: PokemonData) {
     const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -92,6 +100,20 @@ function getPokemonImageUrl(pokemon: PokemonData) {
         ? `キョダイマックス${pokemon.pokemonName}`
         : pokemon.pokemonName;
     return `${imageBaseUrl}/${dexNo}_${name}.png`;
+}
+
+function isMarkName(name: string) {
+    return name.endsWith('あかし');
+}
+
+function getRibbonImageUrl(name: string) {
+    return isMarkName(name)
+        ? `${markImageBaseUrl}/${name}.png`
+        : `${ribbonImageBaseUrl}/${name}.png`;
+}
+
+function getBallImageUrl(name: string) {
+    return `${ballImageBaseUrl}/${name}.png`;
 }
 
 // 日付フォーマット
@@ -109,6 +131,19 @@ function isDistributionActive(endDate?: string) {
     return now <= end;
 }
 
+// ゲーム略称マッピング
+const gameShortNames: Record<string, string> = {
+    "ソード, シールド": "剣盾",
+    "ブリリアントダイヤモンド, シャイニングパール": "BDSP",
+    "Pokémon LEGENDS アルセウス": "LA",
+    "スカーレット, バイオレット": "SV",
+    "Pokémon LEGENDS Z-A": "ZA"
+};
+function getGameDisplayName(game: string) {
+    const short = gameShortNames[game];
+    return short ? `${short}（${game}）` : game;
+}
+
 // ゲームタイプ判定
 function isSwSh(game: string) {
     return game && (game.includes('ソード') || game.includes('シールド'));
@@ -123,18 +158,37 @@ function isLegendsGame(game: string) {
 }
 
 // OT表示用
-function formatOT(ot?: string | { ja?: string; en?: string; ko?: string; zh?: string; la?: string }) {
+function formatOT(ot?: string | { JPN?: string; ENG?: string; SPA?: string; FRE?: string; GER?: string; ITA?: string; KOR?: string; CHS?: string; CHT?: string; SPA_EU?: string; SPA_LA?: string }) {
     if (!ot) return '?';
     if (typeof ot === 'object') {
         const parts = [];
-        if (ot.ja) parts.push(`日: ${ot.ja}`);
-        if (ot.en) parts.push(`英: ${ot.en}`);
-        if (ot.ko) parts.push(`韓: ${ot.ko}`);
-        if (ot.zh) parts.push(`中: ${ot.zh}`);
-        if (ot.la) parts.push(`ラテン: ${ot.la}`);
+        if (ot.JPN) parts.push(`日: ${ot.JPN}`);
+        if (ot.ENG) parts.push(`英: ${ot.ENG}`);
+        if (ot.SPA) parts.push(`西: ${ot.SPA}`);
+        if (ot.SPA_EU) parts.push(`欧西: ${ot.SPA_EU}`);
+        if (ot.SPA_LA) parts.push(`米西: ${ot.SPA_LA}`);
+        if (ot.FRE) parts.push(`仏: ${ot.FRE}`);
+        if (ot.GER) parts.push(`独: ${ot.GER}`);
+        if (ot.ITA) parts.push(`伊: ${ot.ITA}`);
+        if (ot.KOR) parts.push(`韓: ${ot.KOR}`);
+        if (ot.CHS) parts.push(`簡中: ${ot.CHS}`);
+        if (ot.CHT) parts.push(`繁中: ${ot.CHT}`);
         return parts.join(' / ') || '?';
     }
     return ot;
+}
+
+// 個体値表示用
+function formatIVs(ivs?: string | { hp?: number; atk?: number; def?: number; spa?: number; spd?: number; spe?: number }) {
+    if (!ivs) return null;
+    if (typeof ivs === 'string') {
+        return /^\d+V$/.test(ivs) ? `${ivs}固定` : ivs;
+    }
+    const labels: [keyof typeof ivs, string][] = [['hp', 'H'], ['atk', 'A'], ['def', 'B'], ['spa', 'C'], ['spd', 'D'], ['spe', 'S']];
+    return labels
+        .filter(([key]) => ivs[key] !== undefined)
+        .map(([key, label]) => `${label}:${ivs[key]}`)
+        .join(' / ');
 }
 
 // 技の配列を取得
@@ -232,13 +286,21 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                     <div class="info-label">配信方法:</div>
                     <div class="info-value">{pokemon.distributionMethod}</div>
                 </div>
+                {pokemon.password && (
+                    <div class="info-row">
+                        <div class="info-label">あいことば:</div>
+                        <div class="info-value">
+                            <span class="modal-password">{pokemon.password}</span>
+                        </div>
+                    </div>
+                )}
                 <div class="info-row">
                     <div class="info-label">配信場所:</div>
                     <div class="info-value">{pokemon.distributionLocation}</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">ゲーム:</div>
-                    <div class="info-value">{pokemon.game}</div>
+                    <div class="info-value">{getGameDisplayName(pokemon.game)}</div>
                 </div>
                 {pokemon.region && (
                     <div class="info-row">
@@ -266,7 +328,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                 )}
                 <div class="info-row">
                     <div class="info-label">ボール:</div>
-                    <div class="info-value">{pokemon.ball ? `⚪ ${pokemon.ball}` : '?'}</div>
+                    <div class="info-value">{pokemon.ball ? <Fragment><img src={getBallImageUrl(pokemon.ball)} alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" /><span style="display:none">⚪</span> {pokemon.ball}</Fragment> : '?'}</div>
                 </div>
                 {pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game) && (
                     <div class="info-row">
@@ -278,6 +340,18 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                     <div class="info-row">
                         <div class="info-label">持ち物:</div>
                         <div class="info-value"><span class="item-tag">{pokemon.heldItem}</span></div>
+                    </div>
+                )}
+                {pokemon.ivs && (
+                    <div class="info-row">
+                        <div class="info-label">個体値:</div>
+                        <div class="info-value">{formatIVs(pokemon.ivs)}</div>
+                    </div>
+                )}
+                {pokemon.evs && (
+                    <div class="info-row">
+                        <div class="info-label">努力値:</div>
+                        <div class="info-value">{pokemon.evs}</div>
                     </div>
                 )}
             </div>
@@ -312,7 +386,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                     <h3>リボン</h3>
                     <div class="ribbons-list">
                         {ribbons.map((ribbon: string) => (
-                            <span class="ribbon-icon">🎀 {ribbon}</span>
+                            <span class="ribbon-icon"><img src={getRibbonImageUrl(ribbon)} alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" /><span style="display:none">{isMarkName(ribbon) ? '🏅' : '🎀'}</span> {ribbon}</span>
                         ))}
                     </div>
                 </div>

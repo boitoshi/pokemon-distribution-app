@@ -15,7 +15,7 @@ export interface Pokemon {
     distributionLocation: string;
     startDate: string;
     endDate?: string;
-    ot?: string | { ja?: string; en?: string; ko?: string; zh?: string; la?: string };
+    ot?: string | { JPN?: string; ENG?: string; SPA?: string; FRE?: string; GER?: string; ITA?: string; KOR?: string; CHS?: string; CHT?: string; SPA_EU?: string; SPA_LA?: string };
     trainerId?: string | number;
     ball?: string;
     level?: number;
@@ -25,6 +25,8 @@ export interface Pokemon {
     teraType?: string;
     isAlpha?: string;
     heldItem?: string;
+    ivs?: string | { hp?: number; atk?: number; def?: number; spa?: number; spd?: number; spe?: number };
+    evs?: string;
     moves?: string[];
     ribbons?: string[];
     move1?: string;
@@ -34,6 +36,8 @@ export interface Pokemon {
     ribbon1?: string;
     ribbon2?: string;
     ribbon3?: string;
+    specialMoves?: string;
+    password?: string;
     notes?: string;
     postUrl?: string;
 }
@@ -155,6 +159,13 @@ export interface Pokemon {
                             <div class="info-label">配信方法:</div>
                             <div class="info-value modal-distribution-method"></div>
                         </div>
+                        <div class="info-row modal-password-row" style="display: none;">
+                            <div class="info-label">あいことば:</div>
+                            <div class="info-value">
+                                <span class="modal-password"></span>
+                                <button class="password-copy-btn" title="コピー">📋</button>
+                            </div>
+                        </div>
                         <div class="info-row">
                             <div class="info-label">配信場所:</div>
                             <div class="info-value modal-distribution-location"></div>
@@ -196,6 +207,14 @@ export interface Pokemon {
                             <div class="info-value">
                                 <span class="modal-item-tag"></span>
                             </div>
+                        </div>
+                        <div class="info-row modal-ivs-row" style="display: none;">
+                            <div class="info-label">個体値:</div>
+                            <div class="info-value modal-ivs"></div>
+                        </div>
+                        <div class="info-row modal-evs-row" style="display: none;">
+                            <div class="info-label">努力値:</div>
+                            <div class="info-value modal-evs"></div>
                         </div>
                     </div>
 

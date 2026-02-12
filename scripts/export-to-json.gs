@@ -233,8 +233,16 @@ function transformSpecialFields(obj) {
     obj.ribbons = ribbonsFromFields;
   }
 
-  // ot: 多言語対応（ot_ja, ot_en, ot_la → オブジェクト）
-  const otFields = { ja: obj.ot_ja, en: obj.ot_en, la: obj.ot_la };
+  // ot: 多言語対応（ot_XXX カラム → オブジェクト）
+  // XY〜: JPN, ENG, SPA, FRE, GER, ITA, KOR
+  // SM〜: + CHS, CHT
+  // Z-A〜: SPA → SPA_EU, SPA_LA
+  const otFields = {
+    JPN: obj.ot_JPN, ENG: obj.ot_ENG, SPA: obj.ot_SPA,
+    FRE: obj.ot_FRE, GER: obj.ot_GER, ITA: obj.ot_ITA, KOR: obj.ot_KOR,
+    CHS: obj.ot_CHS, CHT: obj.ot_CHT,
+    SPA_EU: obj.ot_SPA_EU, SPA_LA: obj.ot_SPA_LA
+  };
   const hasMultiLangOt = Object.values(otFields).some(v => v);
 
   if (hasMultiLangOt) {
@@ -245,9 +253,26 @@ function transformSpecialFields(obj) {
       }
     }
     obj.ot = otObj;
-    delete obj.ot_ja;
-    delete obj.ot_en;
-    delete obj.ot_la;
+    for (const key of Object.keys(otFields)) {
+      delete obj['ot_' + key];
+    }
+  }
+
+  // ivs: 個体値（ivs列が文字列ならそのまま、ivs_hp〜ivs_spe があればオブジェクトに変換）
+  const ivsFields = { hp: obj.ivs_hp, atk: obj.ivs_atk, def: obj.ivs_def, spa: obj.ivs_spa, spd: obj.ivs_spd, spe: obj.ivs_spe };
+  const hasIvsFields = Object.values(ivsFields).some(v => v !== undefined && v !== '');
+
+  if (hasIvsFields) {
+    const ivsObj = {};
+    for (const [stat, value] of Object.entries(ivsFields)) {
+      if (value !== undefined && value !== '') {
+        ivsObj[stat] = Number(value);
+      }
+    }
+    obj.ivs = ivsObj;
+    for (const key of Object.keys(ivsFields)) {
+      delete obj['ivs_' + key];
+    }
   }
 }
 

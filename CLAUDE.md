@@ -49,7 +49,7 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 `pokemon.json` の各エントリには以下のフィールドが含まれる:
 
 - **必須**: managementId, pokemonName, dexNo, generation, game, eventName, distributionMethod, distributionLocation, startDate
-- **オプション**: shiny, endDate, ot, trainerId, ball, level, ability, nature, gigantamax, teraType, isAlpha, heldItem, moves[], ribbons[], notes, postUrl
+- **オプション**: shiny, endDate, ot, trainerId, ball, level, ability, nature, gigantamax, teraType, isAlpha, heldItem, ivs, evs, moves[], specialMoves, ribbons[], password, notes, postUrl
 - **全世代共通**: region（配布地域。各国法人ごとのイベント区別に使用）
 
 詳細なカラム設計は `docs/data-design.md` を参照。
@@ -59,6 +59,15 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 - 配列形式（推奨）: `moves: ["わざ1", "わざ2"]`
 - カラム形式（後方互換）: `move1`, `move2`, `move3`, `move4`
 
+### ゲーム名略称
+
+JSONの `game` は正式名、UI表示は略称マッピングで変換:
+- ソード, シールド → **剣盾**
+- ブリリアントダイヤモンド, シャイニングパール → **BDSP**
+- Pokémon LEGENDS アルセウス → **LA**
+- スカーレット, バイオレット → **SV**
+- Pokémon LEGENDS Z-A → **ZA**
+
 ### ゲーム固有の表示ロジック
 
 - **キョダイマックス**: ソード/シールドのみ表示
@@ -67,23 +76,42 @@ nuxt-reference/             # 参考用Nuxt版（修正不要）
 
 ### OT（親名）の多言語対応
 
+世代ごとの対応言語:
+- **XY〜**: JPN, ENG, SPA, FRE, GER, ITA, KOR
+- **SM〜**: + CHS, CHT
+- **Z-A〜**: SPA → SPA_EU, SPA_LA に分離
+
 ```json
 // 単一言語（後方互換）
 "ot": "サトシ"
 
 // 複数言語（オブジェクト形式）
 "ot": {
-  "ja": "サトシ",
-  "en": "Ash",
-  "la": "Satoshi"  // ラテン語（第9世代Z-A以降）
+  "JPN": "サトシ",
+  "ENG": "Ash",
+  "FRE": "Sacha",
+  "GER": "Ash",
+  "ITA": "Ash",
+  "SPA": "Ash",
+  "KOR": "지우"
 }
 ```
 
-### ポケモン画像
+### 画像アセット
 
-- 検証用: PokéAPI (`https://raw.githubusercontent.com/.../official-artwork/{dexNo}.png`)
-- 本番用: 自前画像（`public/images/pokemon/{dexNo}.png`）
-- `getPokemonImageUrl()` 関数で切り替え
+本番: `https://www.pokebros.net/wp-content/uploads/pokemon-assets/` 配下
+ローカル: `/distribution/images/` 配下
+
+| 種類 | ディレクトリ | ファイル名 |
+|------|------------|-----------|
+| ポケモン | `pokemon/pokedex/` | `{4桁dexNo}_{ポケモン名}.png` |
+| ボール | `balls/` | `{ボール名}.png` |
+| リボン | `ribbons/` | `{リボン名}.png` |
+| あかし | `marks/` | `{あかし名}.png` |
+
+- `getPokemonImageUrl()`, `getBallImageUrl()`, `getRibbonImageUrl()` で切り替え
+- 画像がない場合は絵文字（⚪/🎀/🏅）にフォールバック
+- あかしはリボンと同じ `ribbons` 配列に格納。名前が「あかし」で終わるもので自動判定
 
 ## コーディング規約
 

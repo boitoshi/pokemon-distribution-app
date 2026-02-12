@@ -211,11 +211,15 @@ const baseUrl = import.meta.env.BASE_URL;
         document.getElementById('toggleDarkMode').textContent = isDark ? '☀️' : '🌙';
     }
 
-    // ポケモン画像URL生成関数
+    // 画像URL生成関数
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const imageBaseUrl = isLocal
-        ? '/distribution/images/pokemon'
-        : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets/pokemon/pokedex';
+    const assetBase = isLocal
+        ? '/distribution/images'
+        : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+    const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
+    const ballImageBaseUrl = `${assetBase}/balls`;
+    const ribbonImageBaseUrl = `${assetBase}/ribbons`;
+    const markImageBaseUrl = `${assetBase}/marks`;
 
     function getPokemonImageUrl(pokemon) {
         const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -223,6 +227,20 @@ const baseUrl = import.meta.env.BASE_URL;
             ? `キョダイマックス${pokemon.pokemonName}`
             : pokemon.pokemonName;
         return `${imageBaseUrl}/${dexNo}_${name}.png`;
+    }
+
+    function isMarkName(name) {
+        return name.endsWith('あかし');
+    }
+
+    function getRibbonImageUrl(name) {
+        return isMarkName(name)
+            ? `${markImageBaseUrl}/${name}.png`
+            : `${ribbonImageBaseUrl}/${name}.png`;
+    }
+
+    function getBallImageUrl(name) {
+        return `${ballImageBaseUrl}/${name}.png`;
     }
 
     // URLパラメータからフィルター初期状態を設定
@@ -323,7 +341,8 @@ const baseUrl = import.meta.env.BASE_URL;
         games.forEach(game => {
             const option = document.createElement('option');
             option.value = game;
-            option.textContent = game;
+            const short = getGameShortName(game);
+            option.textContent = short !== game ? `${short}（${game}）` : game;
             gameSelect.appendChild(option);
         });
 
@@ -345,12 +364,11 @@ const baseUrl = import.meta.env.BASE_URL;
         });
         const ribbons = [...ribbonSet].sort();
 
-        const ribbonSelect = document.getElementById('filterRibbon');
+        const ribbonList = document.getElementById('ribbonList');
         ribbons.forEach(ribbon => {
             const option = document.createElement('option');
             option.value = ribbon;
-            option.textContent = `🎀 ${ribbon}`;
-            ribbonSelect.appendChild(option);
+            ribbonList.appendChild(option);
         });
     }
 
@@ -362,29 +380,37 @@ const baseUrl = import.meta.env.BASE_URL;
     let compareMode = false;
     let selectedForCompare = [];
 
-    // ソート関数
+    // ソート関数（同値の場合はmanagementIdで安定ソート）
     function sortData(data, sortOrder) {
         const sorted = [...data];
-        switch (sortOrder) {
-            case 'date-desc':
-                sorted.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
-                break;
-            case 'date-asc':
-                sorted.sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
-                break;
-            case 'dex-asc':
-                sorted.sort((a, b) => (a.dexNo || 0) - (b.dexNo || 0));
-                break;
-            case 'dex-desc':
-                sorted.sort((a, b) => (b.dexNo || 0) - (a.dexNo || 0));
-                break;
-            case 'name-asc':
-                sorted.sort((a, b) => (a.pokemonName || '').localeCompare(b.pokemonName || '', 'ja'));
-                break;
-            case 'name-desc':
-                sorted.sort((a, b) => (b.pokemonName || '').localeCompare(a.pokemonName || '', 'ja'));
-                break;
-        }
+        sorted.sort((a, b) => {
+            let result = 0;
+            switch (sortOrder) {
+                case 'date-desc':
+                    result = (b.startDate || '').localeCompare(a.startDate || '');
+                    break;
+                case 'date-asc':
+                    result = (a.startDate || '').localeCompare(b.startDate || '');
+                    break;
+                case 'dex-asc':
+                    result = (a.dexNo || 0) - (b.dexNo || 0);
+                    break;
+                case 'dex-desc':
+                    result = (b.dexNo || 0) - (a.dexNo || 0);
+                    break;
+                case 'name-asc':
+                    result = (a.pokemonName || '').localeCompare(b.pokemonName || '', 'ja');
+                    break;
+                case 'name-desc':
+                    result = (b.pokemonName || '').localeCompare(a.pokemonName || '', 'ja');
+                    break;
+            }
+            // 同値の場合はmanagementIdで安定化
+            if (result === 0) {
+                result = (a.managementId || '').localeCompare(b.managementId || '');
+            }
+            return result;
+        });
         return sorted;
     }
 
@@ -468,23 +494,19 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
         }
 
-        // Filter by special moves
+        // Filter by special moves flag
         if (filterSpecialMoves) {
-            filtered = filtered.filter(p => {
-                const moves = p.moves && Array.isArray(p.moves)
-                    ? p.moves.filter(m => m && m !== '')
-                    : [p.move1, p.move2, p.move3, p.move4].filter(m => m && m !== '');
-                return moves.length > 0;
-            });
+            filtered = filtered.filter(p => p.specialMoves && p.specialMoves !== '');
         }
 
-        // Filter by specific ribbon
+        // Filter by specific ribbon (partial match for text input)
         if (filterRibbon) {
+            const ribbonQuery = filterRibbon.toLowerCase();
             filtered = filtered.filter(p => {
                 const ribbons = p.ribbons && Array.isArray(p.ribbons)
                     ? p.ribbons.filter(r => r && r !== '')
                     : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
-                return ribbons.includes(filterRibbon);
+                return ribbons.some(r => r.toLowerCase().includes(ribbonQuery));
             });
         }
 
@@ -612,6 +634,18 @@ const baseUrl = import.meta.env.BASE_URL;
         return `<span class="status-badge ${statusClass}">${statusText}</span>`;
     }
 
+    // Game short name mapping
+    const gameShortNames = {
+        "ソード, シールド": "剣盾",
+        "ブリリアントダイヤモンド, シャイニングパール": "BDSP",
+        "Pokémon LEGENDS アルセウス": "LA",
+        "スカーレット, バイオレット": "SV",
+        "Pokémon LEGENDS Z-A": "ZA"
+    };
+    function getGameShortName(game) {
+        return gameShortNames[game] || game;
+    }
+
     // Game type detection helpers
     function isSwSh(game) {
         return game && (game.includes('ソード') || game.includes('シールド'));
@@ -696,7 +730,7 @@ const baseUrl = import.meta.env.BASE_URL;
             const ribbonsRow = cardEl.querySelector('.ribbons-row');
             ribbonsRow.style.display = 'flex';
             cardEl.querySelector('.ribbons').innerHTML = ribbons.map(ribbon =>
-                `<span class="ribbon-icon">🎀 ${ribbon}</span>`
+                `<span class="ribbon-icon"><img src="${getRibbonImageUrl(ribbon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(ribbon) ? '🏅' : '🎀'}</span> ${ribbon}</span>`
             ).join('');
         }
 
@@ -796,8 +830,24 @@ const baseUrl = import.meta.env.BASE_URL;
 
         modalEl.querySelector('.modal-distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
         modalEl.querySelector('.modal-distribution-method').textContent = pokemon.distributionMethod;
+
+        // Password (あいことば)
+        if (pokemon.password && pokemon.password !== '') {
+            const passwordRow = modalEl.querySelector('.modal-password-row');
+            passwordRow.style.display = 'flex';
+            modalEl.querySelector('.modal-password').textContent = pokemon.password;
+            const copyBtn = modalEl.querySelector('.password-copy-btn');
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(pokemon.password).then(() => {
+                    copyBtn.textContent = '✅';
+                    setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+                });
+            });
+        }
+
         modalEl.querySelector('.modal-distribution-location').textContent = pokemon.distributionLocation;
-        modalEl.querySelector('.modal-game').textContent = pokemon.game;
+        modalEl.querySelector('.modal-game').textContent = getGameShortName(pokemon.game);
 
         // Region
         if (pokemon.region) {
@@ -821,7 +871,7 @@ const baseUrl = import.meta.env.BASE_URL;
         // Ball info
         const ballStatus = modalEl.querySelector('.modal-ball-status');
         if (pokemon.ball) {
-            ballStatus.textContent = `⚪ ${pokemon.ball}`;
+            ballStatus.innerHTML = `<img src="${getBallImageUrl(pokemon.ball)}" alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">⚪</span> ${pokemon.ball}`;
         } else {
             ballStatus.textContent = '?';
         }
@@ -838,6 +888,30 @@ const baseUrl = import.meta.env.BASE_URL;
             const itemRow = modalEl.querySelector('.modal-item-row');
             itemRow.style.display = 'flex';
             modalEl.querySelector('.modal-item-tag').textContent = pokemon.heldItem;
+        }
+
+        // IVs (個体値)
+        if (pokemon.ivs) {
+            const ivsRow = modalEl.querySelector('.modal-ivs-row');
+            ivsRow.style.display = 'flex';
+            let ivsText;
+            if (typeof pokemon.ivs === 'object') {
+                const labels = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+                ivsText = Object.entries(labels)
+                    .filter(([key]) => pokemon.ivs[key] !== undefined)
+                    .map(([key, label]) => `${label}:${pokemon.ivs[key]}`)
+                    .join(' / ');
+            } else {
+                ivsText = /^\d+V$/.test(pokemon.ivs) ? `${pokemon.ivs}固定` : pokemon.ivs;
+            }
+            modalEl.querySelector('.modal-ivs').textContent = ivsText;
+        }
+
+        // EVs (努力値)
+        if (pokemon.evs) {
+            const evsRow = modalEl.querySelector('.modal-evs-row');
+            evsRow.style.display = 'flex';
+            modalEl.querySelector('.modal-evs').textContent = pokemon.evs;
         }
 
         // Moves
@@ -857,10 +931,17 @@ const baseUrl = import.meta.env.BASE_URL;
         if (pokemon.ot) {
             if (typeof pokemon.ot === 'object') {
                 const otParts = [];
-                if (pokemon.ot.ja) otParts.push(`日: ${pokemon.ot.ja}`);
-                if (pokemon.ot.en) otParts.push(`英: ${pokemon.ot.en}`);
-                if (pokemon.ot.ko) otParts.push(`韓: ${pokemon.ot.ko}`);
-                if (pokemon.ot.zh) otParts.push(`中: ${pokemon.ot.zh}`);
+                if (pokemon.ot.JPN) otParts.push(`日: ${pokemon.ot.JPN}`);
+                if (pokemon.ot.ENG) otParts.push(`英: ${pokemon.ot.ENG}`);
+                if (pokemon.ot.SPA) otParts.push(`西: ${pokemon.ot.SPA}`);
+                if (pokemon.ot.SPA_EU) otParts.push(`欧西: ${pokemon.ot.SPA_EU}`);
+                if (pokemon.ot.SPA_LA) otParts.push(`米西: ${pokemon.ot.SPA_LA}`);
+                if (pokemon.ot.FRE) otParts.push(`仏: ${pokemon.ot.FRE}`);
+                if (pokemon.ot.GER) otParts.push(`独: ${pokemon.ot.GER}`);
+                if (pokemon.ot.ITA) otParts.push(`伊: ${pokemon.ot.ITA}`);
+                if (pokemon.ot.KOR) otParts.push(`韓: ${pokemon.ot.KOR}`);
+                if (pokemon.ot.CHS) otParts.push(`簡中: ${pokemon.ot.CHS}`);
+                if (pokemon.ot.CHT) otParts.push(`繁中: ${pokemon.ot.CHT}`);
                 otEl.textContent = otParts.join(' / ') || '?';
             } else {
                 otEl.textContent = pokemon.ot;
@@ -883,7 +964,7 @@ const baseUrl = import.meta.env.BASE_URL;
             const ribbonsSection = modalEl.querySelector('.modal-ribbons-section');
             ribbonsSection.style.display = 'block';
             modalEl.querySelector('.modal-ribbons').innerHTML = ribbons.map(ribbon =>
-                `<span class="ribbon-icon">🎀 ${ribbon}</span>`
+                `<span class="ribbon-icon"><img src="${getRibbonImageUrl(ribbon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(ribbon) ? '🏅' : '🎀'}</span> ${ribbon}</span>`
             ).join('');
         }
 
@@ -1264,8 +1345,9 @@ const baseUrl = import.meta.env.BASE_URL;
                 ? pokemon.ribbons.filter(r => r && r !== '')
                 : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
 
+            const otLangLabels = { JPN: '日', ENG: '英', SPA: '西', SPA_EU: '欧西', SPA_LA: '米西', FRE: '仏', GER: '独', ITA: '伊', KOR: '韓', CHS: '簡中', CHT: '繁中' };
             const otDisplay = typeof pokemon.ot === 'object'
-                ? Object.entries(pokemon.ot).map(([lang, name]) => `${escapeHtml(lang)}: ${escapeHtml(name)}`).join(' / ')
+                ? Object.entries(pokemon.ot).map(([lang, name]) => `${escapeHtml(otLangLabels[lang] || lang)}: ${escapeHtml(name)}`).join(' / ')
                 : escapeHtml(pokemon.ot) || '?';
 
             modalHtml += `
@@ -1281,17 +1363,19 @@ const baseUrl = import.meta.env.BASE_URL;
                         <div class="compare-row"><strong>配信期間:</strong> ${formatDate(pokemon.startDate)} 〜 ${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}</div>
                         <div class="compare-row"><strong>配信方法:</strong> ${escapeHtml(pokemon.distributionMethod)}</div>
                         ${pokemon.region ? `<div class="compare-row"><strong>地域:</strong> ${escapeHtml(pokemon.region)}</div>` : ''}
-                        <div class="compare-row"><strong>ゲーム:</strong> ${escapeHtml(pokemon.game)}</div>
+                        <div class="compare-row"><strong>ゲーム:</strong> ${escapeHtml(getGameShortName(pokemon.game))}</div>
                         <div class="compare-row"><strong>レベル:</strong> ${escapeHtml(String(pokemon.level)) || '?'}</div>
                         <div class="compare-row"><strong>親名:</strong> ${otDisplay}</div>
                         ${pokemon.trainerId ? `<div class="compare-row"><strong>ID:</strong> ${escapeHtml(String(pokemon.trainerId))}</div>` : ''}
                         ${pokemon.nature ? `<div class="compare-row"><strong>性格:</strong> ${escapeHtml(pokemon.nature)}</div>` : ''}
                         <div class="compare-row"><strong>特性:</strong> ${escapeHtml(pokemon.ability) || '?'}</div>
-                        ${pokemon.ball ? `<div class="compare-row"><strong>ボール:</strong> ${escapeHtml(pokemon.ball)}</div>` : ''}
+                        ${pokemon.ball ? `<div class="compare-row"><strong>ボール:</strong> <img src="${getBallImageUrl(pokemon.ball)}" alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">⚪</span> ${escapeHtml(pokemon.ball)}</div>` : ''}
                         ${pokemon.teraType ? `<div class="compare-row"><strong>テラスタイプ:</strong> ${escapeHtml(pokemon.teraType)}</div>` : ''}
                         ${pokemon.heldItem ? `<div class="compare-row"><strong>持ち物:</strong> ${escapeHtml(pokemon.heldItem)}</div>` : ''}
+                        ${pokemon.ivs ? `<div class="compare-row"><strong>個体値:</strong> ${typeof pokemon.ivs === 'object' ? Object.entries({hp:'H',atk:'A',def:'B',spa:'C',spd:'D',spe:'S'}).filter(([k])=>pokemon.ivs[k]!==undefined).map(([k,l])=>`${l}:${pokemon.ivs[k]}`).join(' / ') : (/^\d+V$/.test(pokemon.ivs) ? escapeHtml(pokemon.ivs)+'固定' : escapeHtml(pokemon.ivs))}</div>` : ''}
+                        ${pokemon.evs ? `<div class="compare-row"><strong>努力値:</strong> ${escapeHtml(pokemon.evs)}</div>` : ''}
                         ${moves.length > 0 ? `<div class="compare-row"><strong>技:</strong><br>${moves.map(m => escapeHtml(m)).join('<br>')}</div>` : ''}
-                        ${ribbons.length > 0 ? `<div class="compare-row"><strong>リボン:</strong><br>${ribbons.map(r => escapeHtml(r)).join('<br>')}</div>` : ''}
+                        ${ribbons.length > 0 ? `<div class="compare-row"><strong>リボン:</strong><br>${ribbons.map(r => `<span class="ribbon-icon"><img src="${getRibbonImageUrl(r)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(r) ? '🏅' : '🎀'}</span> ${escapeHtml(r)}</span>`).join(' ')}</div>` : ''}
                     </div>
                 </div>
             `;
