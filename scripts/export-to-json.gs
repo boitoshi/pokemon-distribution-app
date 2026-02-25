@@ -169,8 +169,16 @@ function formatValue(header, value) {
 
   // 数値型の処理
   if (typeof value === 'number') {
+    // managementId: 数値で入力されても5桁ゼロ埋め文字列に変換
+    if (header === 'managementId') {
+      return String(Math.floor(value)).padStart(5, '0');
+    }
+    // trainerId: 先頭0が消えないよう文字列として保持
+    if (header === 'trainerId') {
+      return String(Math.floor(value));
+    }
     // 整数として扱うフィールド
-    const integerFields = ['dexNo', 'generation', 'level', 'trainerId'];
+    const integerFields = ['dexNo', 'generation', 'level'];
     if (integerFields.includes(header)) {
       return Math.floor(value);
     }
