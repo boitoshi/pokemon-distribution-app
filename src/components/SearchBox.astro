@@ -15,9 +15,9 @@
             <option value="4">第4世代 (DPPt/HGSS)</option>
             <option value="3">第3世代 (RSE/FRLG)</option>
         </select>
-        <select id="filterGame">
-            <option value="">すべてのゲーム</option>
-        </select>
+        <div id="gameFilterButtons" class="game-filter-buttons">
+            <!-- populateFilters()で動的生成 -->
+        </div>
         <select id="filterMethod">
             <option value="">すべての配信方法</option>
         </select>
@@ -78,9 +78,22 @@
                 <input type="checkbox" id="filterActive">
                 <span>🟢 配信中のみ</span>
             </label>
-            <div class="ribbon-input-wrapper">
-                <input type="text" id="filterRibbon" list="ribbonList" class="ribbon-input" placeholder="🎀 リボンで絞る">
+            <div class="ribbon-filter-area">
+                <div class="ribbon-input-row">
+                    <input type="text" id="filterRibbonInput" list="ribbonList"
+                           class="ribbon-input" placeholder="🎀 リボンを追加...">
+                    <button type="button" id="addRibbonBtn" class="add-ribbon-btn">追加</button>
+                </div>
                 <datalist id="ribbonList"></datalist>
+                <div class="ribbon-mode-row" id="ribbonModeRow" style="display:none">
+                    <label class="ribbon-mode-label">
+                        <input type="radio" name="ribbonMode" value="OR" checked> いずれか（OR）
+                    </label>
+                    <label class="ribbon-mode-label">
+                        <input type="radio" name="ribbonMode" value="AND"> すべて（AND）
+                    </label>
+                </div>
+                <div id="selectedRibbonTags" class="selected-ribbon-tags"></div>
             </div>
         </div>
 
@@ -116,7 +129,7 @@
         // テキスト入力とセレクトをクリア
         document.getElementById('searchName').value = '';
         document.getElementById('filterGeneration').value = '';
-        document.getElementById('filterGame').value = '';
+        document.querySelectorAll('.game-tag-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('filterMethod').value = '';
         document.getElementById('filterRegion').value = '';
         document.getElementById('sortOrder').value = 'date-desc';
@@ -130,9 +143,6 @@
         document.getElementById('filterSpecialMoves').checked = false;
         document.getElementById('filterHeldItem').checked = false;
         document.getElementById('filterActive').checked = false;
-
-        // リボンセレクトをクリア
-        document.getElementById('filterRibbon').value = '';
 
         // 逆引き検索フィールドをクリア
         document.getElementById('filterOT').value = '';

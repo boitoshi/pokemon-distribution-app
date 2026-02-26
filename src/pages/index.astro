@@ -21,6 +21,14 @@ const baseUrl = import.meta.env.BASE_URL;
 
     <SearchBox />
 
+    <!-- プリセットエリア -->
+    <div class="preset-area" id="presetArea">
+        <div class="preset-save-row">
+            <button type="button" id="savePresetBtn" class="save-preset-btn">★ 現在の条件を保存</button>
+        </div>
+        <div id="presetButtons" class="preset-buttons"></div>
+    </div>
+
     <!-- 統計ダッシュボード -->
     <div class="dashboard" id="dashboard" style="display: none;">
         <div class="dashboard-grid">
@@ -40,16 +48,29 @@ const baseUrl = import.meta.env.BASE_URL;
                 <div class="dashboard-number" id="favoriteCount">0</div>
                 <div class="dashboard-label">お気に入り</div>
             </div>
+            <div class="dashboard-card">
+                <div class="dashboard-number" id="ownedCount">0</div>
+                <div class="dashboard-label">所持済み</div>
+            </div>
         </div>
         <button id="toggleDashboard" class="toggle-dashboard-btn">📊 統計を閉じる</button>
     </div>
     <button id="showDashboard" class="show-dashboard-btn" style="display: none;">📊 統計を表示</button>
+
+    <!-- コレクション統計 -->
+    <div class="collection-stats-panel" id="collectionStatsPanel" style="display:none;">
+        <div class="collection-stats-inner" id="collectionStatsInner">
+            <!-- updateCollectionStats() で動的生成 -->
+        </div>
+    </div>
+    <button id="toggleCollectionStats" class="toggle-collection-stats-btn">📊 コレクション統計を表示</button>
 
     <div class="stats" id="stats" style="display: none;">
         <div class="stats-left">
             <span id="resultCount"></span>
             <div class="stats-actions">
                 <button id="showFavorites" class="action-btn" title="お気に入りのみ表示">⭐ お気に入り</button>
+                <button id="showOwned" class="action-btn" title="所持済みのみ表示">📦 所持済み</button>
                 <button id="toggleCompareMode" class="action-btn" title="比較モード">🔄 比較</button>
                 <button id="compareSelected" class="compare-btn" style="display: none;">選択した配信を比較 (<span id="compareCount">0</span>個)</button>
             </div>
@@ -106,12 +127,55 @@ const baseUrl = import.meta.env.BASE_URL;
     let isLoadingMore = false;
     let infiniteScrollObserver = null;
 
+    // リボン複数選択
+    let selectedRibbons = [];
+    let ribbonFilterMode = 'OR';
+
     // セキュリティ: HTMLエスケープ関数
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // リボン複数選択管理
+    function addRibbon(value) {
+        const v = value.trim();
+        if (!v || selectedRibbons.includes(v)) return;
+        selectedRibbons.push(v);
+        const input = document.getElementById('filterRibbonInput');
+        if (input) input.value = '';
+        renderRibbonTags();
+        searchPokemon();
+    }
+
+    function removeRibbon(value) {
+        selectedRibbons = selectedRibbons.filter(r => r !== value);
+        renderRibbonTags();
+        searchPokemon();
+    }
+
+    function renderRibbonTags() {
+        const container = document.getElementById('selectedRibbonTags');
+        const modeRow = document.getElementById('ribbonModeRow');
+        if (!container) return;
+        container.innerHTML = '';
+        selectedRibbons.forEach(ribbon => {
+            const tag = document.createElement('span');
+            tag.className = 'ribbon-tag';
+            tag.innerHTML = `${escapeHtml(ribbon)} <button type="button" data-ribbon="${escapeHtml(ribbon)}">×</button>`;
+            tag.querySelector('button').addEventListener('click', () => removeRibbon(ribbon));
+            container.appendChild(tag);
+        });
+        if (modeRow) {
+            modeRow.style.display = selectedRibbons.length >= 2 ? 'flex' : 'none';
+            // 現在のモードをUIに反映
+            const modeRadios = document.querySelectorAll('input[name="ribbonMode"]');
+            modeRadios.forEach(radio => {
+                radio.checked = radio.value === ribbonFilterMode;
+            });
+        }
     }
 
     // お気に入り管理
@@ -149,6 +213,33 @@ const baseUrl = import.meta.env.BASE_URL;
     function updateFavoriteCount() {
         const count = getFavorites().length;
         document.getElementById('favoriteCount').textContent = count;
+    }
+
+    // 所持管理
+    function getOwned() {
+        try {
+            const stored = localStorage.getItem('pokemon-owned');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) { return []; }
+    }
+    function saveOwned(owned) {
+        localStorage.setItem('pokemon-owned', JSON.stringify(owned));
+        updateOwnedCount();
+    }
+    function toggleOwned(managementId) {
+        const owned = getOwned();
+        const index = owned.indexOf(managementId);
+        if (index === -1) { owned.push(managementId); }
+        else { owned.splice(index, 1); }
+        saveOwned(owned);
+        return index === -1;
+    }
+    function isOwned(managementId) {
+        return getOwned().includes(managementId);
+    }
+    function updateOwnedCount() {
+        const el = document.getElementById('ownedCount');
+        if (el) el.textContent = getOwned().length;
     }
 
     // メモ管理（保管場所・カスタムメモ）
@@ -274,17 +365,122 @@ const baseUrl = import.meta.env.BASE_URL;
             if (regionSelect) regionSelect.value = region;
         }
 
-        // リボンパラメータ
-        const ribbon = params.get('ribbon');
-        if (ribbon) {
+        // ゲーム複数対応（?game=SV&game=LA など）
+        const gameParams = params.getAll('game');
+        if (gameParams.length > 0) {
+            document.querySelectorAll('.game-tag-btn').forEach(btn => {
+                if (gameParams.includes(btn.dataset.game)) btn.classList.add('active');
+            });
             hasFilters = true;
-            const ribbonSelect = document.getElementById('filterRibbon');
-            if (ribbonSelect) ribbonSelect.value = ribbon;
+        }
+
+        // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
+        const ribbonParams = params.getAll('ribbon');
+        if (ribbonParams.length > 0) {
+            selectedRibbons = ribbonParams;
+            renderRibbonTags();
+            hasFilters = true;
         }
 
         if (hasFilters) {
             searchPokemon();
         }
+    }
+
+    // プリセット管理
+    function getPresets() {
+        try { return JSON.parse(localStorage.getItem('pokemon-search-presets') || '[]'); }
+        catch { return []; }
+    }
+
+    function getCurrentFilterState() {
+        return {
+            searchName: document.getElementById('searchName')?.value || '',
+            generation: document.getElementById('filterGeneration')?.value || '',
+            games: [...document.querySelectorAll('.game-tag-btn.active')].map(b => b.dataset.game),
+            method: document.getElementById('filterMethod')?.value || '',
+            region: document.getElementById('filterRegion')?.value || '',
+            shiny: document.getElementById('filterShiny')?.checked || false,
+            gigantamax: document.getElementById('filterGigantamax')?.checked || false,
+            alpha: document.getElementById('filterAlpha')?.checked || false,
+            specialMoves: document.getElementById('filterSpecialMoves')?.checked || false,
+            heldItem: document.getElementById('filterHeldItem')?.checked || false,
+            active: document.getElementById('filterActive')?.checked || false,
+            ribbons: [...selectedRibbons],
+            ribbonMode: ribbonFilterMode,
+            dateFrom: document.getElementById('filterDateFrom')?.value || '',
+            dateTo: document.getElementById('filterDateTo')?.value || '',
+            ot: document.getElementById('filterOT')?.value || '',
+            trainerId: document.getElementById('filterTrainerId')?.value || '',
+            sortOrder: document.getElementById('sortOrder')?.value || 'date-desc'
+        };
+    }
+
+    function applyFilterState(filters) {
+        if (document.getElementById('searchName')) document.getElementById('searchName').value = filters.searchName || '';
+        if (document.getElementById('filterGeneration')) document.getElementById('filterGeneration').value = filters.generation || '';
+        if (document.getElementById('filterMethod')) document.getElementById('filterMethod').value = filters.method || '';
+        if (document.getElementById('filterRegion')) document.getElementById('filterRegion').value = filters.region || '';
+        if (document.getElementById('filterShiny')) document.getElementById('filterShiny').checked = filters.shiny || false;
+        if (document.getElementById('filterGigantamax')) document.getElementById('filterGigantamax').checked = filters.gigantamax || false;
+        if (document.getElementById('filterAlpha')) document.getElementById('filterAlpha').checked = filters.alpha || false;
+        if (document.getElementById('filterSpecialMoves')) document.getElementById('filterSpecialMoves').checked = filters.specialMoves || false;
+        if (document.getElementById('filterHeldItem')) document.getElementById('filterHeldItem').checked = filters.heldItem || false;
+        if (document.getElementById('filterActive')) document.getElementById('filterActive').checked = filters.active || false;
+        if (document.getElementById('filterDateFrom')) document.getElementById('filterDateFrom').value = filters.dateFrom || '';
+        if (document.getElementById('filterDateTo')) document.getElementById('filterDateTo').value = filters.dateTo || '';
+        if (document.getElementById('filterOT')) document.getElementById('filterOT').value = filters.ot || '';
+        if (document.getElementById('filterTrainerId')) document.getElementById('filterTrainerId').value = filters.trainerId || '';
+        if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = filters.sortOrder || 'date-desc';
+
+        // ゲームタグ
+        document.querySelectorAll('.game-tag-btn').forEach(btn => {
+            btn.classList.toggle('active', (filters.games || []).includes(btn.dataset.game));
+        });
+
+        // リボン
+        selectedRibbons = filters.ribbons || [];
+        ribbonFilterMode = filters.ribbonMode || 'OR';
+        renderRibbonTags();
+
+        searchPokemon();
+    }
+
+    function savePreset(name) {
+        const presets = getPresets();
+        if (presets.length >= 5) {
+            alert('プリセットは最大5件まで保存できます。');
+            return;
+        }
+        presets.push({ id: `preset_${Date.now()}`, name, filters: getCurrentFilterState() });
+        localStorage.setItem('pokemon-search-presets', JSON.stringify(presets));
+        renderPresets();
+    }
+
+    function deletePreset(id) {
+        const presets = getPresets().filter(p => p.id !== id);
+        localStorage.setItem('pokemon-search-presets', JSON.stringify(presets));
+        renderPresets();
+    }
+
+    function renderPresets() {
+        const container = document.getElementById('presetButtons');
+        if (!container) return;
+        const presets = getPresets();
+        container.innerHTML = '';
+        presets.forEach(preset => {
+            const wrap = document.createElement('span');
+            wrap.className = 'preset-btn-wrap';
+            wrap.innerHTML = `
+                <button type="button" class="preset-btn" data-id="${escapeHtml(preset.id)}">${escapeHtml(preset.name)}</button>
+                <button type="button" class="preset-delete-btn" data-id="${escapeHtml(preset.id)}" title="削除">×</button>
+            `;
+            wrap.querySelector('.preset-btn').addEventListener('click', () => applyFilterState(preset.filters));
+            wrap.querySelector('.preset-delete-btn').addEventListener('click', () => {
+                if (confirm(`「${preset.name}」を削除しますか？`)) deletePreset(preset.id);
+            });
+            container.appendChild(wrap);
+        });
     }
 
     // Load data on page load
@@ -312,7 +508,7 @@ const baseUrl = import.meta.env.BASE_URL;
             applyUrlParameters();
 
             const params = new URLSearchParams(window.location.search);
-            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active'].includes(key))) {
+            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'game', 'item', 'region', 'active'].includes(key))) {
                 const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
                 searchResults = sortData(allData, sortOrder);
                 displayResults(searchResults);
@@ -330,6 +526,7 @@ const baseUrl = import.meta.env.BASE_URL;
         document.getElementById('shinyCount').textContent = allData.filter(p => p.shiny && p.shiny !== '').length;
         document.getElementById('activeCount').textContent = allData.filter(p => isDistributionActive(p.endDate)).length;
         updateFavoriteCount();
+        updateOwnedCount();
     }
 
     // Populate filter dropdowns from data
@@ -337,13 +534,18 @@ const baseUrl = import.meta.env.BASE_URL;
         const games = [...new Set(allData.map(p => p.game))].sort();
         const methods = [...new Set(allData.map(p => p.distributionMethod))].sort();
 
-        const gameSelect = document.getElementById('filterGame');
+        const gameContainer = document.getElementById('gameFilterButtons');
         games.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game;
-            const short = getGameShortName(game);
-            option.textContent = short !== game ? `${short}（${game}）` : game;
-            gameSelect.appendChild(option);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'game-tag-btn';
+            btn.dataset.game = game;
+            btn.textContent = getGameShortName(game);
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                searchPokemon();
+            });
+            gameContainer.appendChild(btn);
         });
 
         const methodSelect = document.getElementById('filterMethod');
@@ -418,7 +620,7 @@ const baseUrl = import.meta.env.BASE_URL;
     function searchPokemon() {
         const searchName = document.getElementById('searchName').value.toLowerCase();
         const filterGeneration = document.getElementById('filterGeneration').value;
-        const filterGame = document.getElementById('filterGame').value;
+        const selectedGames = [...document.querySelectorAll('.game-tag-btn.active')].map(b => b.dataset.game);
         const filterMethod = document.getElementById('filterMethod').value;
         const filterRegion = document.getElementById('filterRegion').value;
         const filterShiny = document.getElementById('filterShiny')?.checked;
@@ -427,7 +629,6 @@ const baseUrl = import.meta.env.BASE_URL;
         const filterSpecialMoves = document.getElementById('filterSpecialMoves')?.checked;
         const filterHeldItem = document.getElementById('filterHeldItem')?.checked;
         const filterActive = document.getElementById('filterActive')?.checked;
-        const filterRibbon = document.getElementById('filterRibbon')?.value;
         const filterDateFrom = document.getElementById('filterDateFrom')?.value;
         const filterDateTo = document.getElementById('filterDateTo')?.value;
         const filterOT = document.getElementById('filterOT')?.value.toLowerCase();
@@ -456,9 +657,9 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.generation === parseInt(filterGeneration));
         }
 
-        // Filter by game
-        if (filterGame) {
-            filtered = filtered.filter(p => p.game === filterGame);
+        // Filter by game (複数選択)
+        if (selectedGames.length > 0) {
+            filtered = filtered.filter(p => selectedGames.includes(p.game));
         }
 
         // Filter by distribution method
@@ -499,14 +700,17 @@ const baseUrl = import.meta.env.BASE_URL;
             filtered = filtered.filter(p => p.specialMoves && p.specialMoves !== '');
         }
 
-        // Filter by specific ribbon (partial match for text input)
-        if (filterRibbon) {
-            const ribbonQuery = filterRibbon.toLowerCase();
+        // Filter by ribbons (複数選択・AND/OR)
+        if (selectedRibbons.length > 0) {
             filtered = filtered.filter(p => {
                 const ribbons = p.ribbons && Array.isArray(p.ribbons)
                     ? p.ribbons.filter(r => r && r !== '')
                     : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
-                return ribbons.some(r => r.toLowerCase().includes(ribbonQuery));
+                if (ribbonFilterMode === 'AND') {
+                    return selectedRibbons.every(sel => ribbons.some(r => r.toLowerCase().includes(sel.toLowerCase())));
+                } else {
+                    return selectedRibbons.some(sel => ribbons.some(r => r.toLowerCase().includes(sel.toLowerCase())));
+                }
             });
         }
 
@@ -551,7 +755,9 @@ const baseUrl = import.meta.env.BASE_URL;
         // Reset display count
         displayedCount = 0;
         showingFavorites = false;
+        showingOwned = false;
         document.getElementById('showFavorites').classList.remove('active');
+        document.getElementById('showOwned').classList.remove('active');
 
         searchResults = filtered;
         resetQuickFilters();
@@ -744,6 +950,21 @@ const baseUrl = import.meta.env.BASE_URL;
                 favBtn.classList.toggle('active', added);
             });
         }
+
+        // Owned button
+        const ownedBtn = cardEl.querySelector('.owned-btn');
+        if (ownedBtn) {
+            ownedBtn.classList.toggle('active', isOwned(pokemon.managementId));
+            ownedBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const added = toggleOwned(pokemon.managementId);
+                ownedBtn.classList.toggle('active', added);
+                cardEl.classList.toggle('is-owned', added);
+                updateCollectionStats();
+            });
+        }
+        // カード初期状態
+        cardEl.classList.toggle('is-owned', isOwned(pokemon.managementId));
 
         // Location badge (保管場所バッジ)
         const locationBadge = cardEl.querySelector('.location-badge');
@@ -1140,6 +1361,7 @@ const baseUrl = import.meta.env.BASE_URL;
                 if (cardEl) {
                     cardEl.addEventListener('click', function(e) {
                         if (e.target.closest('.favorite-btn')) return;
+                        if (e.target.closest('.owned-btn')) return;
                         if (e.target.closest('.compare-checkbox')) return;
                         const pokemonData = JSON.parse(this.dataset.pokemonData);
                         showDetailModal(pokemonData);
@@ -1210,6 +1432,7 @@ const baseUrl = import.meta.env.BASE_URL;
             if (cardEl) {
                 cardEl.addEventListener('click', function(e) {
                     if (e.target.closest('.favorite-btn')) return;
+                    if (e.target.closest('.owned-btn')) return;
                     if (e.target.closest('.compare-checkbox')) return;
                     const pokemonData = JSON.parse(this.dataset.pokemonData);
                     showDetailModal(pokemonData);
@@ -1261,12 +1484,31 @@ const baseUrl = import.meta.env.BASE_URL;
     document.getElementById('showFavorites').addEventListener('click', function() {
         showingFavorites = !showingFavorites;
         this.classList.toggle('active', showingFavorites);
+        showingOwned = false;
+        document.getElementById('showOwned').classList.remove('active');
 
         if (showingFavorites) {
             const favorites = getFavorites();
             const favoriteData = allData.filter(p => favorites.includes(p.managementId));
             displayedCount = 0;
             displayResults(favoriteData);
+        } else {
+            displayResults(searchResults.length > 0 ? searchResults : allData);
+        }
+    });
+
+    // 所持済み表示
+    let showingOwned = false;
+    document.getElementById('showOwned').addEventListener('click', function() {
+        showingOwned = !showingOwned;
+        this.classList.toggle('active', showingOwned);
+        showingFavorites = false;
+        document.getElementById('showFavorites').classList.remove('active');
+        if (showingOwned) {
+            const owned = getOwned();
+            const ownedData = allData.filter(p => owned.includes(p.managementId));
+            displayedCount = 0;
+            displayResults(ownedData);
         } else {
             displayResults(searchResults.length > 0 ? searchResults : allData);
         }
@@ -1403,13 +1645,116 @@ const baseUrl = import.meta.env.BASE_URL;
     window.addEventListener('clearSearch', () => {
         searchResults = allData;
         showingFavorites = false;
+        showingOwned = false;
         displayedCount = 0;
         document.getElementById('showFavorites').classList.remove('active');
+        document.getElementById('showOwned').classList.remove('active');
+        selectedRibbons = [];
+        ribbonFilterMode = 'OR';
+        renderRibbonTags();
         displayResults(allData);
+    });
+
+    // リボン追加ボタン
+    document.getElementById('addRibbonBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('filterRibbonInput');
+        if (input) addRibbon(input.value);
+    });
+
+    document.getElementById('filterRibbonInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addRibbon(e.target.value);
+        }
+    });
+
+    // リボンモード切替
+    document.querySelectorAll('input[name="ribbonMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            ribbonFilterMode = e.target.value;
+            searchPokemon();
+        });
+    });
+
+    // プリセット保存ボタン
+    document.getElementById('savePresetBtn')?.addEventListener('click', () => {
+        const name = prompt('プリセット名を入力してください（最大20文字）:');
+        if (name && name.trim()) {
+            savePreset(name.trim().slice(0, 20));
+        }
+    });
+
+    // コレクション統計
+    function updateCollectionStats() {
+        const inner = document.getElementById('collectionStatsInner');
+        if (!inner) return;
+        const owned = getOwned();
+        const total = allData.length;
+        const ownedCount = owned.length;
+
+        // 世代別集計
+        const genGroups = {};
+        allData.forEach(p => {
+            const g = `第${p.generation}世代`;
+            if (!genGroups[g]) genGroups[g] = { total: 0, owned: 0 };
+            genGroups[g].total++;
+            if (owned.includes(p.managementId)) genGroups[g].owned++;
+        });
+
+        // ゲーム別集計
+        const gameGroups = {};
+        allData.forEach(p => {
+            const g = getGameShortName(p.game);
+            if (!gameGroups[g]) gameGroups[g] = { total: 0, owned: 0 };
+            gameGroups[g].total++;
+            if (owned.includes(p.managementId)) gameGroups[g].owned++;
+        });
+
+        // HTML生成
+        function renderGroup(title, groups) {
+            const sortedEntries = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
+            const rows = sortedEntries.map(([label, data]) => {
+                const pct = data.total > 0 ? Math.round((data.owned / data.total) * 100) : 0;
+                return `
+                    <div class="stats-row">
+                        <div class="stats-row-label">${escapeHtml(label)}</div>
+                        <div class="stats-row-bar-wrap">
+                            <div class="stats-row-bar" style="width:${pct}%"></div>
+                        </div>
+                        <div class="stats-row-count">${data.owned} / ${data.total}</div>
+                    </div>`;
+            }).join('');
+            return `<div class="stats-group"><h4 class="stats-group-title">${title}</h4>${rows}</div>`;
+        }
+
+        const overallPct = total > 0 ? Math.round((ownedCount / total) * 100) : 0;
+        inner.innerHTML = `
+            <div class="stats-overall">
+                <span class="stats-overall-label">総合</span>
+                <div class="stats-row-bar-wrap">
+                    <div class="stats-row-bar stats-row-bar--overall" style="width:${overallPct}%"></div>
+                </div>
+                <span class="stats-overall-count">${ownedCount} / ${total} (${overallPct}%)</span>
+            </div>
+            <div class="stats-groups">
+                ${renderGroup('世代別', genGroups)}
+                ${renderGroup('ゲーム別', gameGroups)}
+            </div>
+        `;
+    }
+
+    document.getElementById('toggleCollectionStats')?.addEventListener('click', function() {
+        const panel = document.getElementById('collectionStatsPanel');
+        const isHidden = panel.style.display === 'none';
+        panel.style.display = isHidden ? 'block' : 'none';
+        this.textContent = isHidden ? '📊 コレクション統計を閉じる' : '📊 コレクション統計を表示';
+        if (isHidden) updateCollectionStats();
     });
 
     // 初期化
     initDarkMode();
+    renderPresets();
+    updateOwnedCount();
     loadData();
 
     // 一番上に戻るボタンの処理
