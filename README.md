@@ -10,22 +10,26 @@
 pokemon-distribution-app/
 ├── src/
 │   ├── pages/
-│   │   └── index.astro         # メインページ（検索ロジック含む）
+│   │   ├── index.astro              # メインページ（検索・無限スクロール等）
+│   │   └── pokemon/[id].astro       # 個別ポケモンページ
 │   ├── components/
-│   │   ├── SearchBox.astro     # 検索UI（フィルター機能）
-│   │   └── PokemonCard.astro   # カード表示・モーダル
+│   │   ├── SearchBox.astro          # 検索UI（フィルター機能）
+│   │   └── PokemonCard.astro        # カード表示・モーダル
 │   └── layouts/
-│       └── Layout.astro        # 共通レイアウト・グローバルCSS
+│       └── Layout.astro             # 共通レイアウト・グローバルCSS
 ├── public/
-│   └── pokemon.json            # 配信ポケモンデータ
+│   └── pokemon.json                 # 配信ポケモンデータ
 ├── docs/
-│   ├── data-design.md          # データ設計書（カラム定義）
-│   └── deploy.md               # デプロイ手順
+│   ├── data-design.md               # データ設計書（カラム定義）
+│   ├── deploy.md                    # デプロイ手順
+│   └── features.md                  # 機能一覧・実装状況・今後の課題
 ├── scripts/
-│   └── export-to-json.gs       # GASエクスポートスクリプト
+│   └── export-to-json.gs            # GASエクスポートスクリプト
+├── CLAUDE.md                        # Claude Code開発ガイド
+├── SECURITY.md                      # セキュリティチェック結果
 ├── astro.config.mjs
 ├── package.json
-└── nuxt-reference/             # Nuxt版（参考用、修正不要）
+└── nuxt-reference/                  # Nuxt版（参考用、修正不要）
 ```
 
 ## クイックスタート
@@ -74,12 +78,21 @@ Googleスプレッドシートで管理。世代別シートで構成。
 
 ### データ更新手順
 
+#### FTP直接更新（最速、ビルド不要）
+
 1. Googleスプレッドシートを開く
 2. メニュー「Pokemon Export」→「JSONエクスポート」を実行
 3. 出力された `pokemon.json` をダウンロード
-4. サーバーの `pokemon.json` を差し替え（FTP/SFTP）
+4. FTP/SFTPで `public_html/distribution/pokemon.json` を上書き
 
 **ビルド不要**：JSONはクライアントサイドでfetchするため、ファイル差し替えのみでOK。
+
+#### Gitリポジトリ経由（推奨）
+
+1. 上記1〜3を実施
+2. `public/pokemon.json` を置き換え
+3. `npm run build` でビルド確認
+4. mainブランチにプッシュ → FTPでdist/を本番にアップロード
 
 詳細は [`docs/data-design.md`](docs/data-design.md) を参照。
 
@@ -166,8 +179,10 @@ pokemon.json をFTPで上書き（ビルド不要）
 | ファイル | 内容 |
 |---------|------|
 | [`CLAUDE.md`](CLAUDE.md) | 開発ガイド（Claude Code用） |
-| [`docs/data-design.md`](docs/data-design.md) | データ設計書 |
+| [`SECURITY.md`](SECURITY.md) | セキュリティチェック結果 |
+| [`docs/data-design.md`](docs/data-design.md) | データ設計書（カラム定義、GASエクスポート仕様） |
 | [`docs/deploy.md`](docs/deploy.md) | デプロイ手順 |
+| [`docs/features.md`](docs/features.md) | 機能一覧・実装状況・今後の課題 |
 
 ## 参考用：Nuxt版
 
