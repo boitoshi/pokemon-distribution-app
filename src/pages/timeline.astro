@@ -1,0 +1,595 @@
+---
+import Layout from '../layouts/Layout.astro';
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<Layout title="配信タイムライン | 配信ポケモン検索データベース">
+  <header>
+    <div class="tl-header">
+      <a href={baseUrl} class="tl-back-btn">← 一覧</a>
+      <h1 class="tl-title">📅 配信タイムライン</h1>
+      <button id="toggleDarkMode" class="dark-mode-btn">🌙</button>
+    </div>
+  </header>
+
+  <main class="tl-main">
+    <div id="tl-loading" class="tl-loading">読み込み中...</div>
+    <div id="tl-content" style="display:none;">
+      <!-- 配信中セクション -->
+      <section id="tl-active-section" class="tl-active-section">
+        <div class="tl-active-header">
+          <span class="tl-active-dot"></span>
+          <h2>現在配信中</h2>
+          <span id="tl-active-count" class="tl-active-count"></span>
+        </div>
+        <div id="tl-active-list" class="tl-active-list"></div>
+      </section>
+
+      <!-- メインタイムライン -->
+      <div id="tl-timeline" class="tl-timeline"></div>
+
+      <!-- 日付不明 -->
+      <div id="tl-no-date" style="display:none;">
+        <div class="tl-month-header">
+          <span class="tl-month-label">日付不明</span>
+        </div>
+        <div id="tl-no-date-list" class="tl-items"></div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script define:vars={{ baseUrl }}>
+  // HTMLエスケープ
+  function escapeHtml(str) {
+    if (str == null) return '';
+    const d = document.createElement('div');
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    // タイムゾーン問題を回避: YYYY-MM-DD を直接パース
+    const [y, m, d] = dateStr.split('-');
+    return `${y}/${m}/${d}`;
+  }
+
+  function isDistributionActive(endDate) {
+    if (!endDate) return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today <= new Date(endDate);
+  }
+
+  // localStorage
+  function getFavorites() {
+    try { return JSON.parse(localStorage.getItem('pokemon-favorites') || '[]'); } catch { return []; }
+  }
+  function getOwned() {
+    try { return JSON.parse(localStorage.getItem('pokemon-owned') || '[]'); } catch { return []; }
+  }
+  function toggleFav(id) {
+    const favs = getFavorites();
+    const i = favs.indexOf(id);
+    if (i === -1) favs.push(id); else favs.splice(i, 1);
+    localStorage.setItem('pokemon-favorites', JSON.stringify(favs));
+  }
+  function toggleOwn(id) {
+    const owned = getOwned();
+    const i = owned.indexOf(id);
+    if (i === -1) owned.push(id); else owned.splice(i, 1);
+    localStorage.setItem('pokemon-owned', JSON.stringify(owned));
+  }
+
+  // 画像URL
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const assetBase = isLocal ? '/distribution/images' : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+  function getPokemonImageUrl(pokemon) {
+    const dexNo = String(pokemon.dexNo).padStart(4, '0');
+    const name = pokemon.gigantamax ? `キョダイマックス${pokemon.pokemonName}` : pokemon.pokemonName;
+    return `${assetBase}/pokemon/pokedex/${dexNo}_${name}.png`;
+  }
+
+  // ゲーム略称・カラー
+  const gameShortNames = {
+    "ソード, シールド": "剣盾",
+    "ブリリアントダイヤモンド, シャイニングパール": "BDSP",
+    "Pokémon LEGENDS アルセウス": "LA",
+    "スカーレット, バイオレット": "SV",
+    "Pokémon LEGENDS Z-A": "ZA"
+  };
+  const gameColors = {
+    "剣盾": "#e63946", "BDSP": "#4361ee", "LA": "#2dc653",
+    "SV": "#9b5de5", "ZA": "#f77f00"
+  };
+  function getGameShortName(g) { return gameShortNames[g] || g; }
+  function getGameColor(g) {
+    const short = getGameShortName(g);
+    return gameColors[short] || '#888';
+  }
+
+  // カードHTML生成
+  function buildCard(pokemon) {
+    const id = String(pokemon.managementId || '');
+    const favs = getFavorites();
+    const owned = getOwned();
+    const isFav = favs.includes(id);
+    const isOwnedFlag = owned.includes(id);
+    const isActive = isDistributionActive(pokemon.endDate);
+
+    const imgUrl = getPokemonImageUrl(pokemon);
+    const imgHtml = `<img src="${escapeHtml(imgUrl)}" class="tl-pokemon-img" alt="${escapeHtml(pokemon.pokemonName)}" onerror="this.outerHTML='<span class=\\'tl-pokemon-img-fallback\\'>⚪</span>'">`;
+
+    const games = (pokemon.game || '').split(',').map(g => g.trim()).filter(Boolean);
+    const gameBadges = games.map(g => {
+      const short = escapeHtml(getGameShortName(g));
+      const color = escapeHtml(getGameColor(g));
+      return `<span class="tl-game-badge" style="background:${color}">${short}</span>`;
+    }).join('');
+
+    const shinyBadge = (pokemon.shiny && pokemon.shiny !== '') ? '<span class="tl-icon-badge" title="色違い">✨</span>' : '';
+    const gigaBadge = (pokemon.gigantamax && pokemon.gigantamax !== '') ? '<span class="tl-icon-badge" title="キョダイマックス">🔷</span>' : '';
+    const alphaBadge = (pokemon.isAlpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
+
+    const startStr = pokemon.startDate ? formatDate(pokemon.startDate) : '?';
+    const endStr = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
+    const statusBadge = isActive
+      ? '<span class="tl-status-active">配信中</span>'
+      : '<span class="tl-status-ended">終了</span>';
+
+    return `
+      <div class="tl-card" data-id="${escapeHtml(id)}">
+        <div class="tl-card-header">
+          ${imgHtml}
+          <span class="tl-pokemon-name">${escapeHtml(pokemon.pokemonName || '?')}</span>
+          <div class="tl-card-badges">
+            ${shinyBadge}${gigaBadge}${alphaBadge}
+            ${gameBadges}
+          </div>
+        </div>
+        ${pokemon.eventName ? `<div class="tl-event-name">${escapeHtml(pokemon.eventName)}</div>` : ''}
+        <div class="tl-date-row">
+          <span>${escapeHtml(startStr)} 〜 ${escapeHtml(endStr)}</span>
+          ${statusBadge}
+        </div>
+        <div class="tl-card-actions">
+          <button class="tl-action-btn tl-fav-btn${isFav ? ' is-active' : ''}" data-id="${escapeHtml(id)}">
+            ${isFav ? '★ お気に入り済み' : '☆ お気に入り'}
+          </button>
+          <button class="tl-action-btn tl-own-btn${isOwnedFlag ? ' is-active' : ''}" data-id="${escapeHtml(id)}">
+            ${isOwnedFlag ? '✓ 所持済み' : '📦 所持'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // メインレンダリング
+  function renderTimeline(allData) {
+    const activeList = allData.filter(p => isDistributionActive(p.endDate));
+    const activeSection = document.getElementById('tl-active-section');
+    const activeListEl = document.getElementById('tl-active-list');
+    const activeCountEl = document.getElementById('tl-active-count');
+
+    if (activeList.length > 0) {
+      activeSection.style.display = '';
+      activeCountEl.textContent = `${activeList.length}件`;
+      activeListEl.innerHTML = activeList.map(p => buildCard(p)).join('');
+    } else {
+      activeSection.style.display = 'none';
+    }
+
+    // 年月グルーピング（startDate基準、降順）
+    const groups = {}; // { '2025': { '2025-02': [...] } }
+    const noDateList = [];
+
+    allData.forEach(p => {
+      if (!p.startDate) { noDateList.push(p); return; }
+      const year = p.startDate.substring(0, 4);
+      const ym = p.startDate.substring(0, 7);
+      if (!groups[year]) groups[year] = {};
+      if (!groups[year][ym]) groups[year][ym] = [];
+      groups[year][ym].push(p);
+    });
+
+    const timelineEl = document.getElementById('tl-timeline');
+    let html = '';
+
+    const sortedYears = Object.keys(groups).sort((a, b) => b - a);
+    sortedYears.forEach(year => {
+      const sortedMonths = Object.keys(groups[year]).sort((a, b) => b.localeCompare(a));
+      sortedMonths.forEach(ym => {
+        const [y, m] = ym.split('-');
+        const count = groups[year][ym].length;
+        html += `
+          <div class="tl-month-section">
+            <div class="tl-month-header">
+              <span class="tl-month-label">${escapeHtml(y)}年 ${parseInt(m)}月</span>
+              <span class="tl-month-count">${count}件</span>
+            </div>
+            <div class="tl-items">
+              ${groups[year][ym].map(p => `<div class="tl-item">${buildCard(p)}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      });
+    });
+
+    timelineEl.innerHTML = html || '<p class="tl-empty">データがありません</p>';
+
+    // 日付不明
+    if (noDateList.length > 0) {
+      document.getElementById('tl-no-date').style.display = '';
+      document.getElementById('tl-no-date-list').innerHTML =
+        noDateList.map(p => `<div class="tl-item">${buildCard(p)}</div>`).join('');
+    }
+
+    // イベント委譲（カードクリック→詳細ページ、ボタンクリック→toggle）
+    document.getElementById('tl-content').addEventListener('click', e => {
+      const favBtn = e.target.closest('.tl-fav-btn');
+      const ownBtn = e.target.closest('.tl-own-btn');
+      const card = e.target.closest('.tl-card');
+
+      if (favBtn) {
+        e.stopPropagation();
+        const id = favBtn.dataset.id;
+        toggleFav(id);
+        const isFavNow = getFavorites().includes(id);
+        favBtn.textContent = isFavNow ? '★ お気に入り済み' : '☆ お気に入り';
+        favBtn.classList.toggle('is-active', isFavNow);
+        return;
+      }
+      if (ownBtn) {
+        e.stopPropagation();
+        const id = ownBtn.dataset.id;
+        toggleOwn(id);
+        const isOwnedNow = getOwned().includes(id);
+        ownBtn.textContent = isOwnedNow ? '✓ 所持済み' : '📦 所持';
+        ownBtn.classList.toggle('is-active', isOwnedNow);
+        return;
+      }
+      if (card) {
+        const id = card.dataset.id;
+        window.location.href = `${baseUrl}pokemon/${id}`;
+      }
+    });
+  }
+
+  // ダークモード
+  function initDarkMode() {
+    if (localStorage.getItem('dark-mode') === 'true') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('toggleDarkMode').textContent = '☀️';
+    }
+  }
+  document.getElementById('toggleDarkMode').addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('dark-mode', isDark);
+    document.getElementById('toggleDarkMode').textContent = isDark ? '☀️' : '🌙';
+  });
+
+  // 初期化
+  initDarkMode();
+  fetch(`${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('tl-loading').style.display = 'none';
+      document.getElementById('tl-content').style.display = '';
+      renderTimeline(data);
+    })
+    .catch(() => {
+      document.getElementById('tl-loading').textContent = 'データの読み込みに失敗しました';
+    });
+</script>
+
+<style>
+  /* ヘッダー */
+  .tl-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--color-primary);
+  }
+  .tl-back-btn {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .tl-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    flex: 1;
+    margin: 0;
+  }
+  .dark-mode-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  /* メイン */
+  .tl-main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 0 40px;
+  }
+  .tl-loading {
+    text-align: center;
+    padding: 60px 16px;
+    color: var(--color-text-secondary);
+  }
+
+  /* 配信中セクション */
+  .tl-active-section {
+    margin: 16px 12px;
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .tl-active-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f0fdf4;
+    border-bottom: 1px solid #bbf7d0;
+  }
+  body.dark-mode .tl-active-header {
+    background: #14532d;
+    border-bottom-color: #166534;
+  }
+  .tl-active-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: tl-pulse 2s infinite;
+  }
+  @keyframes tl-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  }
+  .tl-active-header h2 {
+    font-size: 15px;
+    font-weight: bold;
+    color: #16a34a;
+    margin: 0;
+  }
+  body.dark-mode .tl-active-header h2 { color: #4ade80; }
+  .tl-active-count {
+    font-size: 12px;
+    color: #16a34a;
+    background: #dcfce7;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+  body.dark-mode .tl-active-count {
+    background: #166534;
+    color: #4ade80;
+  }
+  .tl-active-list {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 月ヘッダー（sticky） */
+  .tl-month-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 8px 12px;
+    background: var(--color-bg-page);
+    border-bottom: 2px solid var(--color-primary);
+    margin-bottom: 4px;
+  }
+  .tl-month-header::before {
+    content: '◉';
+    color: var(--color-primary);
+    font-size: 16px;
+    margin-right: 8px;
+  }
+  .tl-month-label {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--color-text-primary);
+  }
+  .tl-month-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  /* タイムライン縦線エリア */
+  .tl-items {
+    position: relative;
+    padding: 8px 12px 8px 36px;
+  }
+  .tl-items::before {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-light, #fff0d4));
+  }
+
+  /* タイムラインアイテム */
+  .tl-item {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 16px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    border: 2px solid var(--color-bg-page);
+    box-shadow: 0 0 0 2px var(--color-primary);
+    z-index: 1;
+  }
+
+  /* カード */
+  .tl-card {
+    background: var(--color-bg-card);
+    border: 1.5px solid #e0ddd5;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.1s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .tl-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  body.dark-mode .tl-card {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+  }
+
+  /* カード内：ヘッダー行 */
+  .tl-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .tl-pokemon-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .tl-pokemon-img-fallback {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .tl-pokemon-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--color-text-primary);
+  }
+  .tl-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+    align-items: center;
+  }
+  .tl-game-badge {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .tl-icon-badge {
+    font-size: 14px;
+  }
+
+  /* カード内：イベント名 */
+  .tl-event-name {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* カード内：日付・ステータス */
+  .tl-date-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .tl-status-active {
+    display: inline-block;
+    background: #22c55e;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .tl-status-ended {
+    display: inline-block;
+    background: #9ca3af;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* カード内：アクションボタン */
+  .tl-card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-bg-section);
+  }
+  .tl-action-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    background: none;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tl-action-btn.is-active {
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark, #e5a63d);
+    background: var(--color-primary-light, #fff0d4);
+    font-weight: bold;
+  }
+  body.dark-mode .tl-action-btn {
+    border-color: #444;
+    color: #aaa;
+  }
+  body.dark-mode .tl-action-btn.is-active {
+    background: #3a2e1a;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  /* 空・エラー */
+  .tl-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--color-text-secondary);
+  }
+</style>
