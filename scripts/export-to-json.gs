@@ -185,8 +185,13 @@ function formatValue(header, value) {
     return value;
   }
 
-  // 文字列の処理
+  // 文字列だが数値であるべきフィールド → 強制変換
   if (typeof value === 'string') {
+    const forceIntFields = ['dexNo', 'generation', 'level'];
+    if (forceIntFields.includes(header) && value.trim() !== '') {
+      const num = Number(value.trim());
+      if (!isNaN(num)) return Math.floor(num);
+    }
     return value.trim();
   }
 
@@ -321,18 +326,7 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-/**
- * カスタムメニューを追加
- */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Pokemon Export')
-    .addItem('JSONエクスポート（Driveに保存）', 'exportAllSheetsToJson')
-    .addItem('JSONエクスポート（ダイアログ表示）', 'showJsonInDialog')
-    .addSeparator()
-    .addItem('データ検証', 'validateData')
-    .addToUi();
-}
+// onOpen は pokebros-tools/tools/html-generator/gas/main.gs に統合済み
 
 /**
  * データ検証

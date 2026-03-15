@@ -15,9 +15,6 @@
             <option value="4">第4世代 (DPPt/HGSS)</option>
             <option value="3">第3世代 (RSE/FRLG)</option>
         </select>
-        <div id="gameFilterButtons" class="game-filter-buttons">
-            <!-- populateFilters()で動的生成 -->
-        </div>
         <select id="filterMethod">
             <option value="">すべての配信方法</option>
         </select>
@@ -108,8 +105,9 @@
     </div>
 
     <div class="search-buttons">
-        <button id="searchButton" class="search-button">検索</button>
+        <button id="searchButton" class="search-button">↓ 結果へ</button>
         <button id="clearConditions" class="clear-button">クリア</button>
+        <button type="button" id="savePresetBtn" class="save-preset-btn">★</button>
     </div>
 </div>
 
@@ -157,4 +155,3 @@
         window.dispatchEvent(new CustomEvent('clearSearch'));
     });
 </script>
-</div>

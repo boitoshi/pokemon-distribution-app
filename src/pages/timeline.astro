@@ -13,6 +13,7 @@ const baseUrl = import.meta.env.BASE_URL;
   </header>
 
   <main class="tl-main">
+    <p class="tl-description">配信ポケモンを配信開始日の時系列で確認できます。現在配信中のポケモンは上部にまとめて表示されます。</p>
     <div id="tl-loading" class="tl-loading">読み込み中...</div>
     <div id="tl-content" style="display:none;">
       <!-- 配信中セクション -->
@@ -321,6 +322,14 @@ const baseUrl = import.meta.env.BASE_URL;
     max-width: 640px;
     margin: 0 auto;
     padding: 0 0 40px;
+  }
+  .tl-description {
+    text-align: center;
+    padding: 10px 16px 16px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 8px;
   }
   .tl-loading {
     text-align: center;

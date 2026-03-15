@@ -49,11 +49,15 @@ export interface Pokemon {
         <input type="checkbox" class="compare-checkbox" style="display: none;">
         <div class="card-layout">
             <!-- 左側: ポケモン画像 -->
-            <div class="card-image-container">
-                <img class="pokemon-image" src="" alt="" loading="lazy">
-                <button class="favorite-btn" title="お気に入り">☆</button>
-                <button class="owned-btn" title="所持済みにする">📦</button>
-                <div class="location-badge" style="display: none;"></div>
+            <div class="card-left">
+                <div class="card-image-container">
+                    <img class="pokemon-image" src="" alt="" loading="lazy">
+                    <div class="location-badge" style="display: none;"></div>
+                </div>
+                <div class="card-actions">
+                    <button class="favorite-btn" title="お気に入り">☆</button>
+                    <button class="owned-btn" title="所持済みにする">📦</button>
+                </div>
             </div>
 
             <!-- 右側: コンテンツ -->
@@ -71,6 +75,7 @@ export interface Pokemon {
                         <div class="info-label">世代:</div>
                         <div class="info-value">
                             <span class="generation-badge"></span>
+                            <span class="game-name-badge"></span>
                         </div>
                     </div>
 
@@ -132,17 +137,31 @@ export interface Pokemon {
                         </h2>
                         <div class="modal-dex-number"></div>
                         <div class="modal-badges"></div>
-                        <button class="modal-favorite-btn">☆ お気に入り登録</button>
+                        <div class="modal-header-actions">
+                            <button class="modal-favorite-btn" title="お気に入り">☆</button>
+                            <button class="modal-owned-btn" title="所持済み">📦</button>
+                        </div>
                     </div>
+                </div>
+
+                <!-- 詳細記事リンク（ヘッダー直下） -->
+                <div class="modal-article-banner modal-post-url-row" style="display: none;">
+                    <a class="modal-post-url-link" href="" target="_blank" rel="noopener noreferrer">📖 詳細記事を見る</a>
                 </div>
 
                 <div class="modal-grid">
                     <div class="modal-section">
-                        <h3>基本情報</h3>
+                        <h3>配信情報</h3>
                         <div class="info-row">
                             <div class="info-label">世代:</div>
                             <div class="info-value">
                                 <span class="modal-generation-badge"></span>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">ゲーム:</div>
+                            <div class="info-value">
+                                <span class="modal-game-badge"></span>
                             </div>
                         </div>
                         <div class="info-row">
@@ -171,10 +190,6 @@ export interface Pokemon {
                             <div class="info-label">配信場所:</div>
                             <div class="info-value modal-distribution-location"></div>
                         </div>
-                        <div class="info-row">
-                            <div class="info-label">ゲーム:</div>
-                            <div class="info-value modal-game"></div>
-                        </div>
                         <div class="info-row modal-region-row" style="display: none;">
                             <div class="info-label">地域:</div>
                             <div class="info-value modal-region"></div>
@@ -182,7 +197,7 @@ export interface Pokemon {
                     </div>
 
                     <div class="modal-section">
-                        <h3>ステータス</h3>
+                        <h3>ポケモン詳細</h3>
                         <div class="info-row">
                             <div class="info-label">レベル:</div>
                             <div class="info-value modal-level"></div>
@@ -217,17 +232,13 @@ export interface Pokemon {
                             <div class="info-label">努力値:</div>
                             <div class="info-value modal-evs"></div>
                         </div>
-                    </div>
-
-                    <div class="modal-section modal-trainer-section">
-                        <h3>トレーナー情報</h3>
-                        <div class="info-row">
-                            <div class="info-label">親名:</div>
-                            <div class="info-value modal-ot"></div>
-                        </div>
                         <div class="info-row modal-trainer-id-row" style="display: none;">
                             <div class="info-label">ID:</div>
                             <div class="info-value modal-trainer-id"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">親名:</div>
+                            <div class="info-value modal-ot"></div>
                         </div>
                     </div>
 
@@ -285,10 +296,6 @@ export interface Pokemon {
                             <button class="share-copy share-btn">🔗 URLコピー</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="modal-footer modal-post-url-row" style="display: none;">
-                    <a class="modal-post-url-link" href="" target="_blank" rel="noopener noreferrer">詳細記事を見る</a>
                 </div>
 
                 <button class="modal-bottom-close">閉じる</button>

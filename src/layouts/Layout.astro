@@ -82,14 +82,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         --color-primary-light: #fff0d4;
         --color-accent: #0099cc;
         --color-accent-dark: #007aa3;
-        --color-bg-page: #ecebe1;
+        --color-bg-page: #f8f9fa;
         --color-bg-card: #ffffff;
-        --color-bg-section: #f5f2ed;
-        --color-text-primary: #2c2c2c;
-        --color-text-secondary: #666;
-        --color-text-muted: #999;
-        --color-border: #e0ddd5;
-        --color-border-light: #f0ede6;
+        --color-bg-section: #f0f1f3;
+        --color-text-primary: #1a1a1a;
+        --color-text-secondary: #555;
+        --color-text-muted: #888;
+        --color-border: #ddd;
+        --color-border-light: #ebebeb;
         --color-shadow: rgba(0, 0, 0, 0.08);
         --color-shadow-hover: rgba(0, 0, 0, 0.14);
         --radius-sm: 6px;
@@ -148,11 +148,27 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
 
     .search-row {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1.5fr 1.5fr;
+        display: flex;
+        flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 12px;
         max-width: 100%;
+        align-items: center;
+    }
+
+    .search-row > input[type="text"] {
+        flex: 2;
+        min-width: 160px;
+    }
+
+    .search-row > select {
+        flex: 1;
+        min-width: 130px;
+    }
+
+    .search-row > .date-range {
+        flex: 1.5;
+        min-width: 240px;
     }
 
     /* 条件追加ボタン */
@@ -241,37 +257,6 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         box-shadow: 0 0 0 2px rgba(255, 189, 89, 0.2);
     }
 
-    /* ゲームタグボタン */
-    .game-filter-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        align-items: center;
-        min-height: 36px;
-    }
-
-    .game-tag-btn {
-        padding: 4px 10px;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 13px;
-        background: white;
-        transition: all 0.15s;
-        white-space: nowrap;
-    }
-
-    .game-tag-btn:hover {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
-    }
-
-    .game-tag-btn.active {
-        background: var(--color-accent);
-        color: #fff;
-        border-color: var(--color-accent);
-    }
-
     /* リボンフィルターエリア */
     .ribbon-filter-area {
         grid-column: 1 / -1;
@@ -358,23 +343,23 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         flex-wrap: wrap;
     }
 
-    .preset-save-row {
-        display: flex;
-        align-items: center;
-    }
-
     .save-preset-btn {
-        padding: 5px 12px;
-        background: #fff3e0;
-        border: 1px solid #ffb74d;
-        border-radius: 4px;
+        padding: 6px 10px;
+        background: var(--color-bg-card);
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        font-size: 13px;
+        font-size: 14px;
+        color: var(--color-text-secondary);
         white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.2s;
     }
 
     .save-preset-btn:hover {
-        background: #ffe0b2;
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        color: #333;
     }
 
     .preset-buttons {
@@ -446,22 +431,21 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     .search-button {
-        flex: 1;
-        padding: 12px;
-        background: var(--color-primary);
-        color: #333;
-        border: none;
+        padding: 8px 16px;
+        background: var(--color-bg-card);
+        color: var(--color-accent);
+        border: 2px solid var(--color-accent);
         border-radius: var(--radius-sm);
-        font-size: 15px;
-        font-weight: 700;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 0 2px 6px rgba(255, 189, 89, 0.3);
+        white-space: nowrap;
     }
 
     .search-button:hover {
-        background: var(--color-primary-dark);
-        box-shadow: 0 4px 12px rgba(255, 189, 89, 0.4);
+        background: var(--color-accent);
+        color: #fff;
     }
 
     .clear-button {
@@ -570,21 +554,23 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     .stats {
         background: var(--color-bg-card);
-        padding: 12px 15px;
+        padding: 10px 15px;
         border-radius: var(--radius-sm);
         margin-bottom: 16px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 15px;
+        gap: 8px;
         font-size: 12px;
         color: var(--color-text-secondary);
         flex-wrap: wrap;
         border: 1px solid var(--color-border);
     }
 
-    .stats-left {
+    .stats-result-count {
+        margin-left: auto;
         font-weight: 600;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
     }
 
     /* 素早い絞り込みボタン */
@@ -663,7 +649,6 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     .card-image-container {
-        flex-shrink: 0;
         width: 80px;
         height: 80px;
         display: flex;
@@ -671,7 +656,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         justify-content: center;
         background: var(--color-bg-section);
         border-radius: var(--radius-sm);
-        overflow: hidden;
+        overflow: visible;
+        position: relative;
+    }
+
+    .card-image-container .pokemon-image {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
     }
 
     .pokemon-image {
@@ -874,7 +866,6 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         padding-bottom: 8px;
     }
 
-    .modal-ribbons-section,
     .modal-notes-section {
         grid-column: 1 / -1;
     }
@@ -910,10 +901,65 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         line-height: 1.6;
     }
 
-    .modal-footer {
+    /* 記事リンクバナー（ヘッダー直下） */
+    .modal-article-banner {
+        background: var(--color-accent);
+        padding: 10px 20px;
         text-align: center;
-        padding-top: 15px;
-        border-top: 1px solid #f0f0f0;
+    }
+
+    .modal-post-url-link {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .modal-post-url-link:hover {
+        text-decoration: underline;
+    }
+
+    /* モーダルヘッダーアクション */
+    .modal-header-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .modal-header-actions .modal-favorite-btn,
+    .modal-header-actions .modal-owned-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1.5px solid #e0e0e0;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.2s;
+    }
+
+    .modal-header-actions .modal-favorite-btn:hover {
+        background: #fff3e0;
+        border-color: #ff9800;
+    }
+
+    .modal-header-actions .modal-favorite-btn.active {
+        background: #fff3e0;
+        border-color: #ff9800;
+    }
+
+    .modal-header-actions .modal-owned-btn:hover {
+        background: #e8f5e9;
+        border-color: #4caf50;
+    }
+
+    .modal-header-actions .modal-owned-btn.active {
+        background: #e8f5e9;
+        border-color: #4caf50;
     }
 
     @media (max-width: 768px) {
@@ -921,10 +967,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
             grid-template-columns: 1fr;
         }
 
-        .modal-trainer-section,
-        .modal-moves-section {
-            grid-column: 1 / -1;
-        }
+        /* モバイルでは1カラムなのでgrid-column不要 */
 
         .modal-body {
             padding: 20px;
@@ -1029,9 +1072,9 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     .tera-type-badge {
-        display: inline-block;
-        background: #fff3e0;
-        color: #e65100;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
         padding: 3px 8px;
         border-radius: 4px;
         font-size: 11px;
@@ -1039,6 +1082,27 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         margin-left: 5px;
         cursor: help;
     }
+
+    /* テラスタイプ別カラー */
+    .tera-ノーマル { background: #e8e8e0; color: #6d6d4e; }
+    .tera-ほのお { background: #fde8e0; color: #c62828; }
+    .tera-みず { background: #e0effd; color: #1565c0; }
+    .tera-でんき { background: #fff9c4; color: #f57f17; }
+    .tera-くさ { background: #e8f5e9; color: #2e7d32; }
+    .tera-こおり { background: #e0f7fa; color: #00838f; }
+    .tera-かくとう { background: #fce4ec; color: #c62828; }
+    .tera-どく { background: #f3e5f5; color: #7b1fa2; }
+    .tera-じめん { background: #efebe9; color: #795548; }
+    .tera-ひこう { background: #e8eaf6; color: #3949ab; }
+    .tera-エスパー { background: #fce4ec; color: #ad1457; }
+    .tera-むし { background: #f1f8e9; color: #558b2f; }
+    .tera-いわ { background: #efebe9; color: #6d4c41; }
+    .tera-ゴースト { background: #ede7f6; color: #4527a0; }
+    .tera-ドラゴン { background: #e8eaf6; color: #283593; }
+    .tera-あく { background: #efebe9; color: #3e2723; }
+    .tera-はがね { background: #eceff1; color: #546e7a; }
+    .tera-フェアリー { background: #fce4ec; color: #c2185b; }
+    .tera-ランダム { background: linear-gradient(135deg, #fce4ec, #e8eaf6, #e8f5e9); color: #555; }
 
     .info-row {
         display: flex;
@@ -1090,6 +1154,34 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     .gen-7 { border-color: #8e24aa; }
     .gen-6 { border-color: #1e88e5; }
 
+    .game-name-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        background: var(--color-bg-section);
+        border-left: 3px solid var(--color-text-muted);
+        margin-left: 6px;
+    }
+
+    /* ソフト別テーマカラー（ロゴ・パッケージ準拠） */
+    /* 先バージョン = 左枠線 */
+    .game-scarlet { border-color: #e84535; }
+    .game-sword { border-color: #00a2e8; }
+    .game-bd { border-color: #4169e1; }
+    .game-la { border-color: #c5a028; }
+    .game-za { border-color: #e91e63; }
+    /* 後バージョン = 右枠線 */
+    .game-violet { border-left: none; border-right: 3px solid #7b2fb5; }
+    .game-shield { border-left: none; border-right: 3px solid #e4007c; }
+    .game-sp { border-left: none; border-right: 3px solid #e891b9; }
+    /* 複合版 = 左右両枠線 */
+    .game-sv { border-color: #e84535; border-right: 3px solid #7b2fb5; }
+    .game-swsh { border-color: #00a2e8; border-right: 3px solid #e4007c; }
+    .game-bdsp { border-color: #4169e1; border-right: 3px solid #e891b9; }
+
 
     .moves {
         display: flex;
@@ -1123,7 +1215,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         padding: 3px 8px;
         border-radius: 4px;
         font-size: 12px;
-        border: 1px solid var(--color-border);
+        border: none;
     }
 
     .ribbon-icon img,
@@ -1287,12 +1379,20 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
             font-size: 14px;
         }
 
-        .info-label {
-            font-size: 14px;
+        .pokemon-card .info-label {
+            font-size: 13px;
         }
 
-        .info-value {
-            font-size: 14px;
+        .pokemon-card .info-value {
+            font-size: 13px;
+        }
+
+        .modal-section .info-label {
+            font-size: 12px;
+        }
+
+        .modal-section .info-value {
+            font-size: 12px;
         }
 
         .pokemon-name {
@@ -1301,6 +1401,11 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
         /* Card image size improvement */
         .card-image-container {
+            width: 75px;
+            height: 75px;
+        }
+
+        .card-image-container .pokemon-image {
             width: 75px;
             height: 75px;
         }
@@ -1315,7 +1420,16 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         }
 
         .search-row {
-            grid-template-columns: 1fr;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-row > input[type="text"],
+        .search-row > select,
+        .search-row > .date-range {
+            min-width: 0;
+            flex: none;
+            width: 100%;
         }
 
         .conditions-grid {
@@ -1328,12 +1442,12 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         }
 
         .search-buttons {
-            flex-direction: column;
+            flex-wrap: wrap;
             gap: 8px;
         }
 
         .search-button {
-            padding: 10px;
+            padding: 8px 14px;
         }
 
         .clear-button {
@@ -1377,6 +1491,13 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
             top: 0;
             z-index: 90;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .stats-result-count {
+            width: 100%;
+            margin-left: 0;
         }
 
         /* 一番上に戻るボタン（モバイルのみ表示） */
@@ -1388,19 +1509,17 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
             display: block;
         }
 
-        .stats {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
         .results {
             grid-template-columns: 1fr;
         }
 
         .date-range {
-            flex-direction: column;
-            gap: 5px;
+            width: 100%;
+        }
+
+        .date-range input[type="date"] {
+            width: 100px;
+            font-size: 12px;
         }
 
         .dashboard-grid {
@@ -1410,14 +1529,18 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     /* 日付範囲 */
     .date-range {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
+        flex-wrap: nowrap;
     }
 
     .date-range input[type="date"] {
         flex: 1;
         min-width: 0;
+        width: 130px;
+        font-size: 13px;
+        padding: 6px 6px;
     }
 
     .date-separator {
@@ -1472,14 +1595,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     .dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 15px;
         margin-bottom: 10px;
     }
 
     .dashboard-card {
         text-align: center;
-        padding: 16px;
+        padding: 10px 8px;
         background: var(--color-bg-section);
         border-radius: var(--radius-sm);
         border: 1px solid var(--color-border-light);
@@ -1491,7 +1614,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     .dashboard-number {
-        font-size: 28px;
+        font-size: 20px;
         font-weight: 700;
         color: var(--color-primary-dark);
     }
@@ -1548,24 +1671,37 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         color: #333;
     }
 
+    /* カード左カラム（画像+アクション） */
+    .card-left {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* カード内アクションボタン群（画像下） */
+    .card-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
     /* お気に入りボタン */
     .favorite-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.9);
-        border: 2px solid #e0e0e0;
-        font-size: 16px;
+        background: transparent;
+        border: 1.5px solid #e0e0e0;
+        font-size: 13px;
         cursor: pointer;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
         padding: 0;
-        z-index: 10;
     }
 
     .favorite-btn:hover {
@@ -1592,28 +1728,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         position: relative;
     }
 
-    /* モーダル内のお気に入りボタン */
-    .modal-favorite-btn {
-        margin-top: 10px;
-        padding: 8px 16px;
-        background: #fff3e0;
-        border: 2px solid #ff9800;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        color: #e65100;
-        transition: all 0.2s;
-    }
-
-    .modal-favorite-btn:hover {
-        background: #ffe0b2;
-    }
-
-    .modal-favorite-btn.active {
-        background: #ff9800;
-        color: white;
-    }
+    /* モーダル内のお気に入り・所持ボタン（ヘッダーアクションで定義済み） */
 
     /* シェアボタン */
     .share-buttons {
@@ -1764,7 +1879,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     body.dark-mode .ribbon-icon {
         background: var(--color-bg-section);
         color: #e0e0e0;
-        border-color: #444;
+        border: none;
     }
 
     body.dark-mode .modal-password {
@@ -1783,7 +1898,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     }
 
     body.dark-mode .search-button {
-        color: #222;
+        background: var(--color-bg-card);
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    body.dark-mode .search-button:hover {
+        background: var(--color-accent);
+        color: #fff;
     }
 
     /* 保管場所バッジ（カード左上） */
@@ -2011,16 +2133,24 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     /* 所持ボタン */
     .owned-btn {
-        background: none;
-        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1.5px solid #e0e0e0;
         cursor: pointer;
-        font-size: 16px;
-        padding: 4px;
+        font-size: 13px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         opacity: 0.4;
-        transition: opacity 0.2s;
+        transition: all 0.2s;
     }
     .owned-btn.active {
         opacity: 1;
+        background: #e8f5e9;
+        border-color: #4caf50;
     }
     .owned-btn:hover {
         opacity: 0.7;
@@ -2033,7 +2163,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     /* コレクション統計パネル */
     .collection-stats-panel {
-        max-width: 1200px;
+        max-width: 700px;
         margin: 0 auto 16px;
         padding: 16px 20px;
         background: var(--color-bg-card);
@@ -2046,10 +2176,12 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         margin: 0 auto 16px;
         padding: 6px 16px;
         background: var(--color-bg-card);
-        border: 1px solid var(--color-border);
+        border: 1.5px solid var(--color-accent);
         border-radius: 4px;
         cursor: pointer;
         font-size: 13px;
+        font-weight: 600;
+        color: var(--color-accent);
     }
 
     .stats-overall {
