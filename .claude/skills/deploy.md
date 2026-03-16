@@ -1,51 +1,37 @@
 ---
 name: deploy
-description: 本番サーバーへのデプロイ手順を案内します
+description: 本番サーバーへのデプロイ手順を案内する。「デプロイして」「公開して」「本番反映して」「サーバーにアップして」と言ったときに使う。
 user_invocable: true
 ---
 
-<skill>
+# デプロイ手順
 
-## デプロイ手順
+## 前提条件
+`dist/` が最新のビルド結果を持っていること（`/build` 実行済み）。
 
-### 1. ビルド実行
+## 手順
+1. `dist/` の存在と最終更新日時を確認
+2. 古いビルドの場合は `/build` を先に実行するよう案内
+3. デプロイ方法をユーザーに確認（FTP/SFTP/rsync 等）
+4. 選択されたデプロイ方法で `dist/` の内容を本番サーバーにアップロード
+5. デプロイ完了後、URLで動作確認をユーザーに促す
 
-```bash
-npm run build
-```
-
-### 2. 出力確認
-
-`dist/` ディレクトリに静的ファイルが生成されます：
-
+## ディレクトリ構成（出力）
 ```
 dist/
-├── pokemon-distribution-app/
-│   ├── index.html
-│   ├── pokemon.json
-│   └── _astro/
-│       └── (CSS/JSファイル)
+└── pokemon-distribution-app/
+    ├── index.html
+    ├── pokemon.json
+    └── _astro/
+        └── (CSS/JSファイル)
 ```
 
-### 3. サーバーにアップロード
-
-`dist/` ディレクトリの内容を本番サーバーにアップロードしてください。
-
-- FTP/SFTP
-- rsync
-- その他お使いのデプロイ方法
-
-### 設定確認
-
-`astro.config.mjs` でベースパスを確認：
-
+## 設定確認
+`astro.config.mjs` のベースパス:
 ```javascript
-export default defineConfig({
-  site: 'https://boitoshi.github.io',
-  base: '/pokemon-distribution-app',
-});
+base: '/pokemon-distribution-app',  // サブディレクトリ配置の場合
 ```
+ルート配置に変更する場合は `base: '/'` に修正すること。
 
-サーバーのルートにデプロイする場合は `base` を `'/'` に変更してください。
-
-</skill>
+## 次のステップ
+デプロイ完了後 → 本番URLで動作確認 → 問題なければ `/data-update` でデータ更新サイクルへ

@@ -1,33 +1,21 @@
 ---
 name: customize-display
-description: カード・モーダルの表示要素を追加・削除する手順
+description: カード・モーダルの表示要素を追加・削除する。「カードに項目を追加したい」「モーダルの表示を変えたい」「表示要素をカスタマイズしたい」「新しい列を追加して」と言ったときに使う。
 user_invocable: true
 ---
 
-<skill>
-
-## 表示要素のカスタマイズ手順
-
-カードやモーダルに表示する要素を追加・削除する際の手順です。
-
----
+# 表示要素のカスタマイズ
 
 ## ファイル構成
-
 | ファイル | 役割 |
-|----------|------|
-| `src/components/PokemonCard.astro` | HTMLテンプレート（カード・モーダル） |
+|---|---|
+| `src/components/PokemonCard.astro` | HTMLテンプレート（カード・モーダル）+ TypeScript型定義 |
 | `src/pages/index.astro` | JavaScript（データ→表示のロジック） |
 | `src/layouts/Layout.astro` | CSS（スタイル定義） |
 
----
-
 ## 要素を追加する手順
 
-### 1. テンプレートに要素を追加
-
-`PokemonCard.astro` を編集：
-
+### 1. テンプレートに要素を追加（PokemonCard.astro）
 ```html
 <!-- カードに追加する場合 -->
 <div class="info-row 新要素-row" style="display: none;">
@@ -42,13 +30,9 @@ user_invocable: true
 </div>
 ```
 
-### 2. JavaScriptでデータを設定
-
-`index.astro` の該当関数を編集：
-
+### 2. JavaScriptでデータを設定（index.astro）
 **カードの場合（createPokemonCard関数）:**
 ```javascript
-// 新要素の設定
 if (pokemon.新フィールド) {
     card.querySelector('.新要素').textContent = pokemon.新フィールド;
     card.querySelector('.新要素-row').style.display = '';
@@ -57,79 +41,34 @@ if (pokemon.新フィールド) {
 
 **モーダルの場合（showDetailModal関数）:**
 ```javascript
-// 新要素の設定
 if (pokemon.新フィールド) {
     modal.querySelector('.modal-新要素').textContent = pokemon.新フィールド;
     modal.querySelector('.modal-新要素-row').style.display = '';
 }
 ```
 
-### 3. CSSを追加（必要に応じて）
-
-`Layout.astro` の `<style is:global>` 内に追加：
-
-```css
-.新要素 {
-    /* スタイル定義 */
-}
-```
-
-### 4. TypeScript型定義を更新
-
-`PokemonCard.astro` のinterfaceに追加：
-
+### 3. TypeScript型定義を更新（PokemonCard.astro のinterface）
 ```typescript
 export interface Pokemon {
     // 既存フィールド...
-    新フィールド?: string;  // オプションの場合は ? を付ける
+    新フィールド?: string;
 }
 ```
 
----
+### 4. CSSを追加（必要な場合のみ、Layout.astro）
+```css
+.新要素 { /* スタイル定義 */ }
+```
 
 ## 要素を削除する手順
-
-### 1. テンプレートから削除
-
-`PokemonCard.astro` から該当のHTML要素を削除
-
-### 2. JavaScriptから削除
-
-`index.astro` の `createPokemonCard` および `showDetailModal` 関数から該当ロジックを削除
-
-### 3. CSSを削除（任意）
-
-`Layout.astro` から不要になったスタイル定義を削除
-
----
+1. `PokemonCard.astro` から対象のHTML要素を削除
+2. `index.astro` の `createPokemonCard` と `showDetailModal` から対象ロジックを削除
+3. `Layout.astro` から不要なスタイルを削除（任意）
 
 ## よくある表示パターン
 
-### バッジ表示
+### 配列データ（技・リボン等）
 ```javascript
-// バッジを追加
-const badge = document.createElement('span');
-badge.className = 'badge badge-タイプ';
-badge.textContent = 'テキスト';
-container.appendChild(badge);
-```
-
-### 条件付き表示（ゲーム別）
-```javascript
-// ソード・シールドのみ
-if (pokemon.game && (pokemon.game.includes('ソード') || pokemon.game.includes('シールド'))) {
-    // 表示処理
-}
-
-// スカーレット・バイオレットのみ
-if (pokemon.game && (pokemon.game.includes('スカーレット') || pokemon.game.includes('バイオレット'))) {
-    // 表示処理
-}
-```
-
-### 配列データの表示
-```javascript
-// moves配列を表示
 const moves = pokemon.moves || [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(Boolean);
 moves.forEach(move => {
     const item = document.createElement('div');
@@ -139,14 +78,19 @@ moves.forEach(move => {
 });
 ```
 
----
+### ゲーム別条件表示
+```javascript
+if (pokemon.game && pokemon.game.includes('スカーレット')) {
+    // スカーレット限定の表示
+}
+```
 
 ## チェックリスト
+- [ ] PokemonCard.astro: HTMLテンプレートを追加/削除
+- [ ] index.astro: データ設定ロジックを追加/削除
+- [ ] Layout.astro: CSSを追加/削除（必要な場合のみ）
+- [ ] PokemonCard.astro: interface型定義を更新
+- [ ] `/dev` で動作確認
 
-- [ ] テンプレート（HTML）を追加/削除
-- [ ] JavaScript（ロジック）を追加/削除
-- [ ] CSS（スタイル）を追加/削除
-- [ ] 型定義（interface）を更新
-- [ ] 開発サーバーで動作確認
-
-</skill>
+## 次のステップ
+カスタマイズ後 → `/build` でビルド確認

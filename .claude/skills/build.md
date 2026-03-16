@@ -1,37 +1,17 @@
 ---
 name: build
-description: 本番用ビルドを実行します
+description: 本番用ビルドを実行する。「ビルドして」「npm run buildして」「デプロイ前の準備して」「本番用に生成して」と言ったときに使う。
 user_invocable: true
 ---
 
-<skill>
+# 本番ビルド
 
-## 本番ビルド
+## 手順
+1. `npm run build` を実行
+2. ビルドエラーがあれば内容を分析し、修正提案をユーザーに報告
+   - TypeScriptエラー → `src/components/PokemonCard.astro` のinterfaceを確認
+   - パス解決エラー → `astro.config.mjs` の `base` 設定を確認
+3. 成功時: `dist/` に生成されたファイルをユーザーに報告（GitHub Pages用にbase pathが適用済み）
 
-Astroで静的サイトをビルドします。
-
-### 実行コマンド
-
-```bash
-npm run build
-```
-
-### 出力
-
-- `dist/` ディレクトリにビルド結果が生成
-- GitHub Pages用にbase pathが適用済み
-
-### ビルド後の確認
-
-```bash
-npm run preview
-```
-
-でローカルプレビューを確認してください。
-
-### よくあるエラー
-
-1. **TypeScriptエラー**: `src/components/PokemonCard.astro` のinterfaceを確認
-2. **パス解決エラー**: `@/*` エイリアスが正しく設定されているか確認
-
-</skill>
+## 次のステップ
+ビルド成功後 → `/preview` でプレビュー確認 → `/deploy` でデプロイ

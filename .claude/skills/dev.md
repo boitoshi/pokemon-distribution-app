@@ -1,32 +1,20 @@
 ---
 name: dev
-description: 開発サーバーを起動します
+description: 開発サーバーを起動する。「開発サーバー起動して」「dev起動」「ローカルで確認したい」「npm run devして」と言ったときに使う。
 user_invocable: true
 ---
 
-<skill>
+# 開発サーバー起動
 
-## 開発サーバー起動
+## 手順
+1. `npm run dev` を実行
+2. サーバー起動後、URLをユーザーに報告
+   - `http://localhost:4321/pokemon-distribution-app/`
+3. ポートが使用中の場合は `npx astro dev --port 4322` で起動
 
-Astro開発サーバーを起動します。
+## 確認事項
+- ホットリロード有効（ファイル変更が即座に反映される）
+- ベースパス付き: `/pokemon-distribution-app/`
 
-### 実行コマンド
-
-```bash
-npm run dev
-```
-
-### 確認事項
-
-- サーバーは http://localhost:4321 で起動
-- ベースパス付き: http://localhost:4321/pokemon-distribution-app/
-- ホットリロード有効
-
-### トラブルシューティング
-
-ポートが使用中の場合:
-```bash
-npx astro dev --port 4322
-```
-
-</skill>
+## 次のステップ
+確認完了後 → `/build` で本番ビルド
