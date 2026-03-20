@@ -12,6 +12,7 @@ logs
 .DS_Store
 .fleet
 .idea
+.pokedex-build-backup
 
 # Local env files
 .env
