@@ -118,6 +118,86 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - 画像がない場合は絵文字（⚪/🎀/🏅）にフォールバック
 - あかしはリボンと同じ `ribbons` 配列に格納。名前が「あかし」で終わるもので自動判定
 
+## 世代別まとめページ・Championsページ
+
+### ページ構成と役割分担
+
+| URL | 役割 | データソース |
+|------|------|------------|
+| `/distribution/` | 全世代横断の検索UI | `pokemon.json`（generation 0 を除外） |
+| `/distribution/gen/{1〜7}/` | 第1〜7世代の配信まとめ（解説 + 配信方法別一覧） | `pokemon.json` + `gen-guides.json` |
+| `/distribution/champions/` | Pokémon Champions 配信まとめ | `pokemon.json`（`generation === 0`） |
+| WordPress記事 | 第8・9世代まとめは WP 投稿で運用（例: `/eventpokemon-genviii/`）。**DB側では gen8/gen9 ページを生成しない** |
+
+役割分担の原則:
+- WP記事 = 読み物・解説・SEO着地点（第8・9世代）
+- 世代まとめページ = 第7世代以前の読み物 + 一覧（記事の代替、自動生成）
+- 検索UI = 全世代の網羅的検索ツール
+- Championsページ = 本編と性質が異なる配信（HOME転送不可等）の専用まとめ
+
+### Championsデータの扱い
+
+- 識別: `generation: 0` かつ `tournamentType: "Champions"`
+- **検索UI（index.astro）とタイムライン（timeline.astro）の対象から除外する**。データ読み込み直後に `data.filter(p => p.generation !== 0)` でフィルタ
+- 個別ページ（`/pokemon/[id]`）は Champions 含む全エントリで生成を継続（championsページからのリンク先として必要）
+- Champions固有フィールド: `tournamentType`, `tournamentYear`, `tournamentSchedule`, `winner` など。`level` は文字列の場合がある（例: `"Lv.50相当(非表示)"`）ため数値前提の処理をしない
+- HOME転送不可である旨の注記をページ冒頭に固定表示する
+
+### データファイル: src/data/gen-guides.json
+
+世代別の解説テキスト。当面は手動管理、将来的にGASエクスポート（スプレッドシートの「世代解説」シート）に統合予定。
+
+```json
+{
+  "7": {
+    "title": "第7世代（サン・ムーン / ウルトラサン・ウルトラムーン）",
+    "hardware": "3DS",
+    "intro": "第7世代の配信の特徴の説明。リージョンロックの話など。",
+    "methods": [
+      {
+        "name": "シリアルコード",
+        "description": "この世代におけるシリアルコード配信の解説"
+      }
+    ],
+    "notes": "補足事項（任意）"
+  }
+}
+```
+
+- `methods[].name` は `pokemon.json` の `distributionMethod` の値と一致させること（グルーピング表示時に解説を紐付けるため）
+- 解説が未登録の配信方法グループは解説なしで一覧のみ表示
+
+### gen/[generation].astro の仕様
+
+- `src/pages/gen/[generation].astro` を新規作成
+- `getStaticPaths`: `pokemon.json` に1件以上データが存在する世代 ∩ {1..7} のみ生成（空ページを公開しない。第8・9世代はWP記事があるため対象外）
+- ページ構成（上から順に）:
+  1. パンくず（トップ > 第N世代）
+  2. 見出し + `gen-guides.json` の `intro`（解説セクション）
+  3. 配信方法別グルーピング。各グループ見出しの直下に `methods[]` の該当解説を表示
+  4. 各ポケモンは カード形式（画像・名前・色違い等バッジ・イベント名・配信期間・地域）で、`/pokemon/[id]` への詳細リンク
+- **グループ内ソートは `startDate` 昇順（古い順）**。検索UIのデフォルト（新しい順）と逆だが、まとめページは歴史を追う読み物のため
+- SEO: `Layout.astro` の props で title / description / canonicalUrl を世代ごとに設定。description には世代名・ハード名・件数を含める
+- 画像・スタイルは既存の `pokemon/[id].astro` の実装（`getPokemonImageUrl` 等）とCSS変数を踏襲
+
+### champions.astro の仕様
+
+- `src/pages/champions.astro` を新規作成
+- 対象: `generation === 0` の全エントリ
+- ページ構成:
+  1. パンくず + 見出し
+  2. 注意書きセクション（固定文）: Pokémon Champions の配信は HOME 転送不可・ゲーム内受取である旨
+  3. `distributionMethod` 別グルーピング（バトルパス報酬 / 大会参加賞 / あいことば / メールボックス 等）
+  4. 各エントリ: 画像・名前・イベント名・期間・配信中/終了バッジ・`/pokemon/[id]` への詳細リンク
+- グループ内ソートは `startDate` 降順（現役の配信が重要なため新しい順）
+- 空文字フィールド（`ot`, `ball`, `moves: []` 等）が多いため、すべて条件付き表示にする
+
+### 導線
+
+- 検索UIヘッダー下（または stats バー付近）に世代まとめ・Championsへのリンク帯を追加（最小限のテキストリンクで可。本格的なグローバルナビは nav.json 対応時に実施）
+- 各世代まとめページのフッターに「全配信を検索する → /distribution/」リンク
+- 第8・9世代分のリンクは WP記事URL に向ける（gen-guides.json に `"8": { "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }` 形式で持たせ、リンク帯の生成元を gen-guides.json に一本化する）
+
 ## コーディング規約
 
 ### Astroコンポーネント

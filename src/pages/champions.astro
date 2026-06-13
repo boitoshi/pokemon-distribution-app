@@ -1,0 +1,535 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+interface PokemonData {
+    managementId: string;
+    pokemonName: string;
+    shiny?: string;
+    dexNo: number;
+    generation: number;
+    game: string;
+    region?: string;
+    eventName?: string;
+    tournamentType?: string;
+    tournamentYear?: string;
+    tournamentSchedule?: string;
+    tournamentLocation?: string;
+    winner?: string;
+    distributionMethod: string;
+    distributionLocation?: string;
+    startDate?: string;
+    endDate?: string;
+    ot?: string | { JPN?: string; ENG?: string };
+    trainerId?: string;
+    ball?: string;
+    level?: string;
+    gender?: string;
+    ability?: string;
+    nature?: string;
+    heldItem?: string;
+    moves?: string[];
+    ribbons?: string[];
+    password?: string;
+    notes?: string;
+    gigantamax?: string;
+}
+
+// データ読み込み
+const jsonPath = join(process.cwd(), 'public', 'pokemon.json');
+const allData: PokemonData[] = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+const entries = allData.filter((p) => p.generation === 0);
+
+// ヘルパー関数（[id].astro / [generation].astro と同じ実装）
+const isDev = import.meta.env.DEV;
+const assetBase = isDev
+    ? '/distribution/images'
+    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
+
+function getPokemonImageUrl(pokemon: PokemonData) {
+    const dexNo = String(pokemon.dexNo).padStart(4, '0');
+    const name = pokemon.gigantamax
+        ? `キョダイマックス${pokemon.pokemonName}`
+        : pokemon.pokemonName;
+    return `${imageBaseUrl}/${dexNo}_${name}.png`;
+}
+
+function formatDate(dateStr?: string) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+}
+
+function isDistributionActive(endDate?: string) {
+    if (!endDate) return true;
+    const now = new Date();
+    const end = new Date(endDate);
+    return now <= end;
+}
+
+// グルーピング: distributionMethod 別
+const groupMap = new Map<string, PokemonData[]>();
+for (const p of entries) {
+    const method = p.distributionMethod || '不明';
+    if (!groupMap.has(method)) groupMap.set(method, []);
+    groupMap.get(method)!.push(p);
+}
+// 各グループ内を startDate 降順（新しい順）にソート
+for (const [, arr] of groupMap) {
+    arr.sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+}
+// グループ自体を件数多い順にソート
+const groups = [...groupMap.entries()].sort((a, b) => b[1].length - a[1].length);
+
+const baseUrl = import.meta.env.BASE_URL;
+const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+
+const pageTitle = 'Pokémon Champions 配信ポケモンまとめ | 配信ポケモン検索';
+const pageDescription = `Pokémon Champions で配布される配信ポケモン ${entries.length} 件のまとめ。配信方法別に一覧で確認できます。`;
+const canonicalUrl = 'https://www.pokebros.net/distribution/champions/';
+---
+
+<Layout
+    title={pageTitle}
+    description={pageDescription}
+    canonicalUrl={canonicalUrl}
+>
+    <!-- ヘッダー行: breadcrumb + ダークモードトグル -->
+    <header>
+        <div class="gen-header">
+            <div class="gen-breadcrumb">
+                <a href={baseUrl}>トップ</a>
+                <span class="breadcrumb-sep">&gt;</span>
+                <span>Champions</span>
+            </div>
+            <button id="toggleDarkMode" class="dark-mode-btn">🌙</button>
+        </div>
+    </header>
+
+    <main class="gen-main">
+        <h1 class="gen-title">Pokémon Champions 配信まとめ</h1>
+
+        {/* 注意書きボックス */}
+        <div class="notice-box">
+            Pokémon Champions で配布されるポケモンは Pokémon HOME へ転送できず、Champions 内でのみ使用できます。
+        </div>
+
+        {/* distributionMethod 別グループ */}
+        {groups.map(([method, pokemons]) => (
+            <section class="gen-group">
+                <h2 class="gen-group-title">
+                    {method}
+                    <span class="gen-group-count">（{pokemons.length}件）</span>
+                </h2>
+                <div class="gen-card-list">
+                    {pokemons.map((p) => {
+                        const active = isDistributionActive(p.endDate);
+                        return (
+                            <a
+                                class={`gen-card${active ? ' gen-card--active' : ''}`}
+                                href={`${normalizedBaseUrl}pokemon/${p.managementId}`}
+                            >
+                                <img
+                                    class="gen-card-image"
+                                    src={getPokemonImageUrl(p)}
+                                    alt={p.pokemonName}
+                                    loading="lazy"
+                                />
+                                <div class="gen-card-body">
+                                    <div class="gen-card-name">
+                                        {p.pokemonName}
+                                        {p.shiny && p.shiny !== '' && (
+                                            <span class="badge badge--shiny" title="色違い">✨</span>
+                                        )}
+                                    </div>
+                                    <div class="gen-card-status">
+                                        <span class={`status-badge ${active ? 'status-badge--active' : 'status-badge--ended'}`}>
+                                            {active ? '配信中' : '終了'}
+                                        </span>
+                                    </div>
+                                    {p.eventName && p.eventName !== '' && (
+                                        <div class="gen-card-event">{p.eventName}</div>
+                                    )}
+                                    {p.startDate && p.startDate !== '' && (
+                                        <div class="gen-card-date">
+                                            {formatDate(p.startDate)}〜{p.endDate ? formatDate(p.endDate) : ''}
+                                        </div>
+                                    )}
+                                    {p.tournamentSchedule && p.tournamentSchedule !== '' && (
+                                        <div class="gen-card-tournament">開催期間: {p.tournamentSchedule}</div>
+                                    )}
+                                </div>
+                            </a>
+                        );
+                    })}
+                </div>
+            </section>
+        ))}
+
+        {/* フッター */}
+        <div class="page-footer">
+            <a href={baseUrl} class="footer-search-link">すべての配信ポケモンを検索する →</a>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    /* ヘッダー */
+    .gen-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        background: var(--color-primary);
+    }
+
+    .gen-breadcrumb {
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .gen-breadcrumb a {
+        color: #fff;
+        text-decoration: none;
+        padding: 4px 10px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+    }
+
+    .gen-breadcrumb a:hover {
+        background: rgba(0, 0, 0, 0.25);
+        text-decoration: none;
+    }
+
+    .breadcrumb-sep {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .gen-breadcrumb span:last-child {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .dark-mode-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    /* メイン */
+    .gen-main {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 16px 12px 48px;
+    }
+
+    .gen-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: var(--color-text-primary);
+        margin: 0 0 16px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid var(--color-primary);
+    }
+
+    /* 注意書きボックス */
+    .notice-box {
+        background: var(--color-primary-light);
+        border: 2px solid var(--color-primary);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--color-text-primary);
+        font-weight: 500;
+    }
+
+    /* グループ見出し */
+    .gen-group {
+        margin-bottom: 32px;
+    }
+
+    .gen-group-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--color-text-primary);
+        margin: 0 0 6px;
+        padding: 8px 12px;
+        background: var(--color-bg-section);
+        border-left: 4px solid var(--color-primary);
+        border-radius: 0 6px 6px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .gen-group-count {
+        font-size: 14px;
+        font-weight: normal;
+        color: var(--color-text-secondary);
+    }
+
+    /* カード一覧 */
+    .gen-card-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .gen-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--color-bg-card);
+        border: 2px solid var(--color-border-light);
+        border-radius: 10px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        width: calc(50% - 5px);
+        box-sizing: border-box;
+        box-shadow: 0 1px 4px var(--color-shadow);
+    }
+
+    .gen-card:hover {
+        border-color: var(--color-accent);
+        background: var(--color-primary-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px var(--color-shadow-hover);
+    }
+
+    .gen-card--active {
+        border-color: #22c55e;
+    }
+
+    .gen-card-image {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        background: var(--color-bg-section);
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .gen-card-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .gen-card-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--color-text-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+
+    /* バッジ */
+    .badge {
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .badge--shiny {
+        font-size: 13px;
+    }
+
+    /* 配信中/終了バッジ */
+    .gen-card-status {
+        margin-bottom: 4px;
+    }
+
+    .status-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .status-badge--active {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #22c55e;
+    }
+
+    .status-badge--ended {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+    }
+
+    .gen-card-event {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
+    }
+
+    .gen-card-date {
+        font-size: 11px;
+        color: var(--color-text-muted);
+    }
+
+    .gen-card-tournament {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        margin-top: 2px;
+    }
+
+    /* フッター */
+    .page-footer {
+        margin-top: 40px;
+        text-align: center;
+        padding-top: 24px;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .footer-search-link {
+        display: inline-block;
+        padding: 10px 20px;
+        background: var(--color-primary);
+        color: #fff;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: opacity 0.2s;
+    }
+
+    .footer-search-link:hover {
+        opacity: 0.85;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+        .gen-card {
+            width: 100%;
+        }
+
+        .gen-title {
+            font-size: 18px;
+        }
+
+        .gen-group-title {
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .gen-header {
+            padding: 8px 12px;
+        }
+
+        .gen-breadcrumb {
+            font-size: 12px;
+        }
+    }
+
+    /* ダークモード上書き */
+    body.dark-mode .gen-breadcrumb span:last-child {
+        color: #fff;
+    }
+
+    body.dark-mode .gen-title {
+        color: #f0f0f0;
+    }
+
+    body.dark-mode .notice-box {
+        background: #1a2a1a;
+        border-color: var(--color-primary);
+        color: #d0f0d0;
+    }
+
+    body.dark-mode .gen-group-title {
+        background: #2a2a2a;
+        color: #f0f0f0;
+    }
+
+    body.dark-mode .gen-group-count {
+        color: #aaa;
+    }
+
+    body.dark-mode .gen-card {
+        background: #1e1e1e;
+        border-color: #3a3a3a;
+    }
+
+    body.dark-mode .gen-card:hover {
+        background: #2a2a2a;
+        border-color: var(--color-accent);
+    }
+
+    body.dark-mode .gen-card-image {
+        background: #2a2a2a;
+    }
+
+    body.dark-mode .gen-card-name {
+        color: #f0f0f0;
+    }
+
+    body.dark-mode .gen-card-event {
+        color: #bbb;
+    }
+
+    body.dark-mode .gen-card-date,
+    body.dark-mode .gen-card-tournament {
+        color: #888;
+    }
+
+    body.dark-mode .status-badge--active {
+        background: #14532d;
+        color: #86efac;
+        border-color: #22c55e;
+    }
+
+    body.dark-mode .status-badge--ended {
+        background: #374151;
+        color: #9ca3af;
+        border-color: #4b5563;
+    }
+
+    body.dark-mode .page-footer {
+        border-color: #444;
+    }
+</style>
+
+<script>
+    // ダークモード（[generation].astro の方式を踏襲）
+    function initDarkMode() {
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.body.classList.add('dark-mode');
+            const btn = document.getElementById('toggleDarkMode');
+            if (btn) btn.textContent = '☀️';
+        }
+    }
+
+    const toggleBtn = document.getElementById('toggleDarkMode');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('dark-mode', String(isDark));
+            toggleBtn.textContent = isDark ? '☀️' : '🌙';
+        });
+    }
+
+    initDarkMode();
+</script>

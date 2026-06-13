@@ -50,6 +50,9 @@
 - [x] PWA対応（manifest.json, Service Worker） → `public/manifest.json`, `public/sw.js`
 - [x] 関連ポケモンリンク（同ポケモン/同イベント/同地域） → `src/pages/pokemon/[id].astro`
 - [x] regionフィールド全世代対応 → `docs/data-design.md`
+- [x] 世代別まとめページ生成（`/gen/[generation]`、第1〜7世代・データのある世代のみ生成、配信方法別グルーピング＋解説） → `src/pages/gen/[generation].astro` / `src/data/gen-guides.json`
+- [x] Championsページ（`/champions`、`generation:0` 専用・HOME転送不可の注記付き） → `src/pages/champions.astro`
+- [x] 世代・Championsへの導線リンク帯（検索UIヘッダー下、外部WP記事URL対応・404回避） → `src/pages/index.astro`
 
 ### UI機能
 - [x] 無限スクロール（24件ずつ追加読み込み、IntersectionObserver使用） → `src/pages/index.astro`
