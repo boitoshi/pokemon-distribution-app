@@ -232,10 +232,12 @@ const baseUrl = import.meta.env.BASE_URL;
       sortedMonths.forEach(ym => {
         const [y, m] = ym.split('-');
         const count = groups[year][ym].length;
+        // 年のみの日付（YYYY形式）は月ラベルを付けない
+        const monthLabel = m ? ` ${parseInt(m)}月` : '';
         html += `
           <div class="tl-month-section">
             <div class="tl-month-header">
-              <span class="tl-month-label">${escapeHtml(y)}年 ${parseInt(m)}月</span>
+              <span class="tl-month-label">${escapeHtml(y)}年${monthLabel}</span>
               <span class="tl-month-count">${count}件</span>
             </div>
             <div class="tl-items">

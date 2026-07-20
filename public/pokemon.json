@@ -6779,6 +6779,8 @@
       "バリアー",
       "めいそう"
     ],
+    "notes": "韓国での配布。",
+    "region": "韓国",
     "ivs": {
       "hp": 30,
       "atk": 31,
@@ -7312,7 +7314,7 @@
     "dexNo": 791,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Shiny Solgaleo",
+    "eventName": "いろちがいの　ソルガレオ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-12-19",
     "endDate": "2020-02-03",
@@ -7333,7 +7335,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07053",
@@ -7341,7 +7344,7 @@
     "dexNo": 792,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Shiny Lunala",
+    "eventName": "いろちがいの　ルナアーラ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-12-19",
     "endDate": "2020-02-03",
@@ -7362,7 +7365,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07054",
@@ -7370,7 +7374,7 @@
     "dexNo": 517,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Fennel's Munna",
+    "eventName": "マコモのムンナ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-11-25",
     "endDate": "2020-02-24",
@@ -7390,7 +7394,8 @@
     ],
     "ribbons": [
       "おもいでリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07097",
@@ -7684,6 +7689,8 @@
       "テレポート",
       "じこさいせい"
     ],
+    "notes": "米国での配布。",
+    "region": "アメリカ",
     "ivs": "3V"
   },
   {
@@ -7750,7 +7757,7 @@
     "dexNo": 785,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Melemele Island Shiny Tapu Koko",
+    "eventName": "いろちがいの　カプ・コケコ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-10-18",
     "endDate": "2019-11-30",
@@ -7767,11 +7774,12 @@
       "１０まんボルト",
       "マジカルシャイン",
       "ボルトチェンジ",
-      "Nature's Madness"
+      "しぜんのいかり"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07096",
@@ -7837,13 +7845,13 @@
     "dexNo": 98,
     "generation": 7,
     "game": "ピカブイ",
-    "eventName": "Secret Shiny Krabby",
+    "eventName": "ひみつの色違いクラブ",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-10-04",
     "endDate": "2020-02-03",
     "shiny": "あり",
     "ot": "ひみつ",
-    "trainerId": "132",
+    "trainerId": "000132",
     "metLocation": "すてきなばしょ",
     "ball": "プレシャスボール",
     "level": 15,
@@ -7854,7 +7862,9 @@
       "どくどく",
       "からげんき",
       "バブルこうせん"
-    ]
+    ],
+    "notes": "日本での配布。",
+    "region": "日本"
   },
   {
     "managementId": "07050",
@@ -7862,13 +7872,13 @@
     "dexNo": 800,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Secret Shiny Necrozma",
+    "eventName": "ひみつの　ネクロズマ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-09-06",
     "endDate": "2020-02-03",
     "shiny": "あり",
     "ot": "ひみつ",
-    "trainerId": "132",
+    "trainerId": "000132",
     "metLocation": "すてきなばしょ",
     "ball": "プレシャスボール",
     "level": 75,
@@ -7881,7 +7891,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07145",
@@ -7906,6 +7917,8 @@
       "テレポート",
       "じこさいせい"
     ],
+    "notes": "欧州での配布。",
+    "region": "欧州",
     "ivs": "3V"
   },
   {
@@ -8013,10 +8026,10 @@
     "dexNo": 788,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Poni Island Shiny Tapu Fini",
+    "eventName": "いろちがいの　カプ・レヒレ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-05-21",
-    "endDate": "June 28, 2019\nJune 11 to July 30, 2019",
+    "endDate": "2019-06-28",
     "shiny": "あり",
     "ot": "ポニ",
     "trainerId": "190419",
@@ -8027,14 +8040,16 @@
     "nature": "ランダム",
     "heldItem": "ミストシード",
     "moves": [
-      "Nature's Madness",
+      "しぜんのいかり",
       "だくりゅう",
       "アクアリング",
       "ハイドロポンプ"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "notes": "シリアルコードの引き換え期間は2019-06-11〜2019-07-30",
+    "region": "日本"
   },
   {
     "managementId": "07143",
@@ -8060,7 +8075,9 @@
       "アイアンテール",
       "てだすけ",
       "からげんき"
-    ]
+    ],
+    "notes": "米国での配布（Target店舗）。ピカチュウ版で受け取り。",
+    "region": "アメリカ"
   },
   {
     "managementId": "07144",
@@ -8086,7 +8103,9 @@
       "にどげり",
       "かげぶんしん",
       "かみなり"
-    ]
+    ],
+    "notes": "米国での配布（Target店舗）。イーブイ版で受け取り。",
+    "region": "アメリカ"
   },
   {
     "managementId": "07141",
@@ -8112,7 +8131,9 @@
       "あなをほる",
       "アイアンテール",
       "てだすけ"
-    ]
+    ],
+    "notes": "韓国での配布。ピカチュウ版で受け取り。",
+    "region": "韓国"
   },
   {
     "managementId": "07142",
@@ -8138,7 +8159,9 @@
       "でんこうせっか",
       "アイアンテール",
       "てだすけ"
-    ]
+    ],
+    "notes": "韓国での配布。イーブイ版で受け取り。",
+    "region": "韓国"
   },
   {
     "managementId": "07140",
@@ -8146,7 +8169,7 @@
     "dexNo": 150,
     "generation": 7,
     "game": "ピカブイ",
-    "eventName": "Professor's Mewtwo",
+    "eventName": "はかせのミュウツー",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-04-12",
     "endDate": "2019-09-30",
@@ -8163,6 +8186,8 @@
       "バリアー",
       "めいそう"
     ],
+    "notes": "日本でのシリアルコード配布。",
+    "region": "日本",
     "ivs": {
       "hp": 30,
       "atk": 31,
@@ -8178,7 +8203,7 @@
     "dexNo": 787,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Ula'ula Island Shiny Tapu Bulu",
+    "eventName": "いろちがいの　カプ・ブルル　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2019-03-19",
     "endDate": "2019-04-29",
@@ -8192,14 +8217,15 @@
     "nature": "ランダム",
     "heldItem": "グラスシード",
     "moves": [
-      "Nature's Madness",
+      "しぜんのいかり",
       "しねんのずつき",
       "メガホーン",
       "ロケットずつき"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07092",
@@ -8331,7 +8357,7 @@
     "dexNo": 786,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Akala Island Shiny Tapu Lele",
+    "eventName": "いろちがいの　カプ・テテフ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-12-18",
     "endDate": "2019-01-31",
@@ -8345,14 +8371,15 @@
     "nature": "ランダム",
     "heldItem": "サイコシード",
     "moves": [
-      "Nature's Madness",
+      "しぜんのいかり",
       "じんつうりき",
       "おだてる",
       "ムーンフォース"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07091",
@@ -8418,7 +8445,7 @@
     "dexNo": 807,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Fula City Zeraora",
+    "eventName": "フウラシティのゼラオラ",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-12-01",
     "endDate": "2019-03-31",
@@ -8438,7 +8465,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07090",
@@ -8474,7 +8502,7 @@
     "dexNo": 151,
     "generation": 7,
     "game": "ピカブイ",
-    "eventName": "Poké Ball Plus Mew",
+    "eventName": "モンスターボール Plus特典 ミュウ",
     "distributionMethod": "Poké Ball Plus",
     "startDate": "2018-11-16",
     "ot": "(プレイヤーのもの)",
@@ -8487,6 +8515,8 @@
     "moves": [
       "はたく"
     ],
+    "notes": "モンスターボール Plus 購入特典。",
+    "region": "全世界",
     "ivs": "3V"
   },
   {
@@ -8495,7 +8525,7 @@
     "dexNo": 113,
     "generation": 7,
     "game": "ピカブイ",
-    "eventName": "Pokémon Center Birthday Chansey",
+    "eventName": "ポケモンセンター バースデー ラッキー",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-11-16",
     "endDate": "2020-02-29",
@@ -8510,7 +8540,9 @@
     "moves": [
       "はたく",
       "おいわい"
-    ]
+    ],
+    "notes": "ポケモンセンターのバースデー特典。",
+    "region": "日本"
   },
   {
     "managementId": "07044",
@@ -8518,7 +8550,7 @@
     "dexNo": 778,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Ultra Spooky Cup Shiny Mimikyu",
+    "eventName": "いろちがいのミミッキュ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-11-13",
     "endDate": "2018-12-30",
@@ -8540,7 +8572,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07089",
@@ -8597,7 +8630,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "アジア"
   },
   {
     "managementId": "07058",
@@ -9490,7 +9524,7 @@
     "dexNo": 249,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Fula City Lugia",
+    "eventName": "かぜのルギア　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-04-13",
     "endDate": "2018-09-30",
@@ -9509,7 +9543,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07120",
@@ -9640,7 +9675,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "アジア"
   },
   {
     "managementId": "07042",
@@ -9668,7 +9704,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "香港"
   },
   {
     "managementId": "07070",
@@ -9753,7 +9790,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "2018 Tohoku Pikachu",
+    "eventName": "とどけ　トウホクへのギフトパス",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-03-05",
     "endDate": "2018-04-26",
@@ -9774,7 +9811,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07040",
@@ -9782,7 +9820,7 @@
     "dexNo": 803,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Ultra Shiny Poipole",
+    "eventName": "はっこうのベベノム／せんこうのアーゴヨン",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-03-02",
     "endDate": "2018-05-06",
@@ -9802,7 +9840,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07118",
@@ -9943,7 +9982,7 @@
     "dexNo": 493,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "CoroCoro Arceus",
+    "eventName": "まぼろしのポケモン　アルセウス",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-01-15",
     "endDate": "2018-03-14",
@@ -9962,7 +10001,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07038",
@@ -9970,7 +10010,7 @@
     "dexNo": 222,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "Hajime Syacho's Corsola",
+    "eventName": "はじめしゃちょーの　サニーゴ",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-01-14",
     "endDate": "2018-02-28",
@@ -9987,7 +10027,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07036",
@@ -9995,7 +10036,7 @@
     "dexNo": 383,
     "generation": 7,
     "game": "ウルトラムーン",
-    "eventName": "Groudon",
+    "eventName": "いろちがいのグラードン　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-01-13",
     "endDate": "2018-03-19",
@@ -10015,7 +10056,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07037",
@@ -10023,7 +10065,7 @@
     "dexNo": 382,
     "generation": 7,
     "game": "ウルトラサン",
-    "eventName": "Kyogre",
+    "eventName": "いろちがいのカイオーガ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2018-01-13",
     "endDate": "2018-03-19",
@@ -10043,7 +10085,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07110",
@@ -10303,7 +10346,7 @@
     "dexNo": 720,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Hoopa",
+    "eventName": "ゼンリョク2017　フーパ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-12-01",
     "endDate": "2018-04-30",
@@ -10322,7 +10365,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07034",
@@ -10330,7 +10374,7 @@
     "dexNo": 648,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Meloetta",
+    "eventName": "ゼンリョク2017　メロエッタ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-12-01",
     "endDate": "2018-04-30",
@@ -10348,7 +10392,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07035",
@@ -10356,7 +10401,7 @@
     "dexNo": 490,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Manaphy",
+    "eventName": "ゼンリョク2017　マナフィ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-12-01",
     "endDate": "2018-04-30",
@@ -10375,7 +10420,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07003",
@@ -10383,7 +10429,7 @@
     "dexNo": 744,
     "generation": 7,
     "game": "ウルトラムーン",
-    "eventName": "Thunder Fang Rockruff",
+    "eventName": "イワンコ　プレゼント（かみなりのキバ）",
     "distributionMethod": "ニンテンドーネットワーク",
     "startDate": "2017-11-17",
     "endDate": "2018-01-10",
@@ -10404,7 +10450,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07004",
@@ -10412,7 +10459,7 @@
     "dexNo": 744,
     "generation": 7,
     "game": "ウルトラサン",
-    "eventName": "Fire Fang Rockruff",
+    "eventName": "イワンコ　プレゼント（ほのおのキバ）",
     "distributionMethod": "ニンテンドーネットワーク",
     "startDate": "2017-11-17",
     "endDate": "2018-01-10",
@@ -10433,7 +10480,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07031",
@@ -10441,7 +10489,7 @@
     "dexNo": 479,
     "generation": 7,
     "game": "ウルトラサン, ウルトラムーン",
-    "eventName": "LINE Rotom",
+    "eventName": "スマートフォンに　はいりこんでいた　ロトム",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-11-17",
     "endDate": "2018-04-30",
@@ -10459,7 +10507,8 @@
     ],
     "ribbons": [
       "おもいでリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07030",
@@ -10472,7 +10521,7 @@
     "startDate": "2017-11-10",
     "endDate": "2017-11-23",
     "ot": "Ash",
-    "trainerId": "90898",
+    "trainerId": "090898",
     "metLocation": "ポケモン映画2017",
     "ball": "モンスターボール",
     "level": 1,
@@ -10487,7 +10536,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "シンガポール"
   },
   {
     "managementId": "07067",
@@ -10554,7 +10604,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "台湾"
   },
   {
     "managementId": "07108",
@@ -10657,7 +10708,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Alola Cap",
+    "eventName": "サトシのピカチュウ（アローラキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-09-27",
     "endDate": "2017-10-09",
@@ -10677,7 +10728,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07026",
@@ -10685,7 +10737,7 @@
     "dexNo": 251,
     "generation": 7,
     "game": "サン, ムーン, ウルトラサン, ウルトラムーン",
-    "eventName": "Ilex Forest Celebi",
+    "eventName": "ときわたりポケモン　セレビィ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-09-22",
     "endDate": "2018-10-31",
@@ -10704,7 +10756,8 @@
     ],
     "ribbons": [
       "おもいでリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07027",
@@ -10712,7 +10765,7 @@
     "dexNo": 773,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Japanese Aether Silvally",
+    "eventName": "きらめきの　シルヴァディ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-09-22",
     "endDate": "2017-11-16",
@@ -10733,7 +10786,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07028",
@@ -10762,7 +10816,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "台湾"
   },
   {
     "managementId": "07064",
@@ -10947,7 +11002,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Kalos Cap",
+    "eventName": "サトシのピカチュウ（カロスキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-09-13",
     "endDate": "2017-09-25",
@@ -10967,7 +11022,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07011",
@@ -10975,7 +11031,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Unova Cap",
+    "eventName": "サトシのピカチュウ（イッシュキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-30",
     "endDate": "2017-09-11",
@@ -10995,7 +11051,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07105",
@@ -11030,12 +11087,12 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Sinnoh Cap",
+    "eventName": "サトシのピカチュウ（シンオウキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-16",
     "endDate": "2017-08-28",
     "ot": "サトシ",
-    "trainerId": "60928",
+    "trainerId": "060928",
     "metLocation": "ポケモン映画2017",
     "ball": "モンスターボール",
     "level": 10,
@@ -11050,7 +11107,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07057",
@@ -11115,12 +11173,12 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Hoenn Cap",
+    "eventName": "サトシのピカチュウ（ホウエンキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-02",
     "endDate": "2017-08-14",
     "ot": "サトシ",
-    "trainerId": "21121",
+    "trainerId": "021121",
     "metLocation": "ポケモン映画2017",
     "ball": "モンスターボール",
     "level": 6,
@@ -11135,7 +11193,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07019",
@@ -11143,7 +11202,7 @@
     "dexNo": 393,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Verity's Piplup",
+    "eventName": "キミにきめた！　マコトのポッチャマ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-01",
     "endDate": "2017-08-28",
@@ -11163,7 +11222,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07020",
@@ -11171,7 +11231,7 @@
     "dexNo": 448,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Sorrel's Lucario",
+    "eventName": "キミにきめた！　ソウジのルカリオ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-01",
     "endDate": "2017-08-28",
@@ -11191,7 +11251,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07021",
@@ -11199,7 +11260,7 @@
     "dexNo": 6,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Ash's Charizard",
+    "eventName": "キミにきめた！　サトシのリザードン",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-08-01",
     "endDate": "2017-08-28",
@@ -11219,7 +11280,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07024",
@@ -11227,7 +11289,7 @@
     "dexNo": 337,
     "generation": 7,
     "game": "ムーン",
-    "eventName": "Lunatone",
+    "eventName": "ポケモンミステリーファイル　ルナ…",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-26",
     "endDate": "2017-10-31",
@@ -11247,7 +11309,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07025",
@@ -11255,7 +11318,7 @@
     "dexNo": 338,
     "generation": 7,
     "game": "サン",
-    "eventName": "Solrock",
+    "eventName": "ポケモンミステリーファイル　ソル…",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-26",
     "endDate": "2017-10-31",
@@ -11275,7 +11338,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07014",
@@ -11283,7 +11347,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Original Cap",
+    "eventName": "サトシのピカチュウ（オリジナルキャップ）",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-19",
     "endDate": "2017-07-31",
@@ -11303,7 +11367,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07023",
@@ -11311,7 +11376,7 @@
     "dexNo": 250,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Mount Tensei Ho-Oh",
+    "eventName": "テンセイざんの　ホウオウ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-15",
     "endDate": "2017-09-14",
@@ -11331,7 +11396,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07055",
@@ -11368,7 +11434,7 @@
     "dexNo": 151,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Mew",
+    "eventName": "えいが「ミュウツーの逆襲」のミュウ",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-11",
     "endDate": "2017-08-07",
@@ -11387,7 +11453,8 @@
     ],
     "ribbons": [
       "ウィッシュリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07018",
@@ -11395,7 +11462,7 @@
     "dexNo": 37,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Lillie's Alolan Vulpix",
+    "eventName": "リーリエのシロン プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-07-05",
     "endDate": "2017-07-24",
@@ -11413,7 +11480,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07017",
@@ -11421,7 +11489,7 @@
     "dexNo": 776,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Kiawe's Turtonator",
+    "eventName": "カキのバクガメス プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-06-26",
     "endDate": "2017-07-14",
@@ -11441,7 +11509,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07016",
@@ -11449,7 +11518,7 @@
     "dexNo": 762,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Mallow's Steenee",
+    "eventName": "マオのアママイコ プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-06-17",
     "endDate": "2017-07-04",
@@ -11469,7 +11538,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07056",
@@ -11607,14 +11677,15 @@
     "nature": "おくびょう",
     "heldItem": "エレキシード",
     "moves": [
-      "Nature's Madness",
+      "しぜんのいかり",
       "ほうでん",
       "こうそくいどう",
       "エレキボール"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "台湾"
   },
   {
     "managementId": "07098",
@@ -11708,7 +11779,7 @@
     "dexNo": 785,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Japanese Melemele Island Shiny Tapu Koko",
+    "eventName": "くろい　カプ・コケコ　プレゼント",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-03-17",
     "endDate": "2017-05-31",
@@ -11722,14 +11793,15 @@
     "nature": "おくびょう",
     "heldItem": "エレキシード",
     "moves": [
-      "Nature's Madness",
+      "しぜんのいかり",
       "ほうでん",
       "こうそくいどう",
       "エレキボール"
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07007",
@@ -11737,7 +11809,7 @@
     "dexNo": 6,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "CoroCoro Charizard",
+    "eventName": "コロコロ40しゅうねん　リザードン",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-03-15",
     "endDate": "2017-05-14",
@@ -11756,7 +11828,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07006",
@@ -11764,7 +11837,7 @@
     "dexNo": 25,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Tohoku Pikachu",
+    "eventName": "トウホクへのギフトパス♡",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-03-11",
     "endDate": "2017-04-20",
@@ -11785,7 +11858,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07002",
@@ -11793,7 +11867,7 @@
     "dexNo": 68,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Saori Yoshida's Machamp",
+    "eventName": "サオリの　カイリキー",
     "distributionMethod": "ニンテンドーゾーン",
     "startDate": "2017-02-08",
     "endDate": "2017-02-28",
@@ -11813,7 +11887,8 @@
     ],
     "ribbons": [
       "チャンピオンリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "07005",
@@ -11821,7 +11896,7 @@
     "dexNo": 129,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Lunar Magikarp",
+    "eventName": "旧正月 色違いコイキング",
     "distributionMethod": "シリアルコード",
     "startDate": "2017-01-26",
     "endDate": "2017-02-06",
@@ -11841,7 +11916,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "06079",
@@ -11879,7 +11955,7 @@
     "dexNo": 446,
     "generation": 7,
     "game": "サン, ムーン",
-    "eventName": "Snorlium Z Munchlax",
+    "eventName": "早期購入特典 ゴンベ（カビゴンZ）",
     "distributionMethod": "ニンテンドーネットワーク",
     "startDate": "2016-11-18",
     "endDate": "2017-01-11",
@@ -11899,7 +11975,8 @@
     ],
     "ribbons": [
       "クラシックリボン"
-    ]
+    ],
+    "region": "日本"
   },
   {
     "managementId": "06089",
@@ -12186,7 +12263,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12216,7 +12293,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12246,7 +12323,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12276,7 +12353,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12306,7 +12383,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12336,7 +12413,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12366,7 +12443,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12396,7 +12473,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12426,7 +12503,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12456,7 +12533,7 @@
     "startDate": "2016-10-01",
     "endDate": "2016-12-31",
     "ot": "ポケセン♪",
-    "trainerId": "{{tt|10123|First distribution}}\n{{tt|10014|Second distribution}}\n{{tt|10015|Third distribution}}\n{{tt|10016|Fourth distribution}}",
+    "trainerId": "10123（第1回）, 10014（第2回）, 10015（第3回）, 10016（第4回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 10,
@@ -12670,7 +12747,7 @@
     "distributionMethod": "ローカル通信",
     "startDate": "2016-08-01",
     "endDate": "2016-08-31",
-    "ot": "ひこぼし{{sup/6|XY}}",
+    "ot": "ひこぼし",
     "trainerId": "08076",
     "metLocation": "ポケモンセンタートウホク",
     "ball": "プレシャスボール",
@@ -13992,7 +14069,7 @@
     "startDate": "2016-01-30",
     "endDate": "2016-01-31",
     "ot": "ポケセン",
-    "trainerId": "{{tt|01016|First distribution}}\n{{tt|01096|Second distribution}}\n{{tt|01166|Third distribution}}\n{{tt|01236|Fourth distribution}}\n{{tt|01306|Fifth distribution}}",
+    "trainerId": "01016（第1回）, 01096（第2回）, 01166（第3回）, 01236（第4回）, 01306（第5回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 100,
@@ -14023,7 +14100,7 @@
     "startDate": "2016-01-30",
     "endDate": "2016-01-31",
     "ot": "ポケセン",
-    "trainerId": "{{tt|01016|First distribution}}\n{{tt|01096|Second distribution}}\n{{tt|01166|Third distribution}}\n{{tt|01236|Fourth distribution}}\n{{tt|01306|Fifth distribution}}",
+    "trainerId": "01016（第1回）, 01096（第2回）, 01166（第3回）, 01236（第4回）, 01306（第5回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 100,
@@ -14054,7 +14131,7 @@
     "startDate": "2016-01-30",
     "endDate": "2016-01-31",
     "ot": "ポケセン",
-    "trainerId": "{{tt|01016|First distribution}}\n{{tt|01096|Second distribution}}\n{{tt|01166|Third distribution}}\n{{tt|01236|Fourth distribution}}\n{{tt|01306|Fifth distribution}}",
+    "trainerId": "01016（第1回）, 01096（第2回）, 01166（第3回）, 01236（第4回）, 01306（第5回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 100,
@@ -14085,7 +14162,7 @@
     "startDate": "2016-01-30",
     "endDate": "2016-01-31",
     "ot": "ポケセン",
-    "trainerId": "{{tt|01016|First distribution}}\n{{tt|01096|Second distribution}}\n{{tt|01166|Third distribution}}\n{{tt|01236|Fourth distribution}}\n{{tt|01306|Fifth distribution}}",
+    "trainerId": "01016（第1回）, 01096（第2回）, 01166（第3回）, 01236（第4回）, 01306（第5回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 100,
@@ -14116,7 +14193,7 @@
     "startDate": "2016-01-30",
     "endDate": "2016-01-31",
     "ot": "ポケセン",
-    "trainerId": "{{tt|01016|First distribution}}\n{{tt|01096|Second distribution}}\n{{tt|01166|Third distribution}}\n{{tt|01236|Fourth distribution}}\n{{tt|01306|Fifth distribution}}",
+    "trainerId": "01016（第1回）, 01096（第2回）, 01166（第3回）, 01236（第4回）, 01306（第5回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 100,
@@ -15433,7 +15510,7 @@
     "distributionMethod": "ローカル通信",
     "startDate": "2015-07-18",
     "endDate": "2015-08-16",
-    "ot": "おりひめ{{sup/6|XY}}",
+    "ot": "おりひめ",
     "trainerId": "07185",
     "metLocation": "ポケモンセンタートウホク",
     "ball": "プレシャスボール",
@@ -16975,6 +17052,7 @@
     "eventName": "ORAS体験版　オニゴーリ",
     "distributionMethod": "ポケモンリンク",
     "startDate": "2014-10-15",
+    "endDate": "2023-03-27",
     "ot": {
       "JPN": "オメガ",
       "ENG": "Orlando",
@@ -16998,7 +17076,7 @@
       "まもる",
       "こおりのいぶき"
     ],
-    "notes": "オメガルビー・アルファサファイア特別体験版からの連動特典。",
+    "notes": "オメガルビー・アルファサファイア特別体験版からの連動特典。／ORAS体験版のポケモンリンク特典。3DSニンテンドーeショップ営業終了（2023-03-27）以降は体験版の新規入手不可",
     "region": "全世界",
     "ivs": "ランダム"
   },
@@ -17011,6 +17089,7 @@
     "eventName": "ORAS体験版　ハガネール",
     "distributionMethod": "ポケモンリンク",
     "startDate": "2014-10-15",
+    "endDate": "2023-03-27",
     "ot": {
       "JPN": "オメガ",
       "ENG": "Orlando",
@@ -17034,7 +17113,7 @@
       "いわなだれ",
       "いやなおと"
     ],
-    "notes": "オメガルビー・アルファサファイア特別体験版からの連動特典。",
+    "notes": "オメガルビー・アルファサファイア特別体験版からの連動特典。／ORAS体験版のポケモンリンク特典。3DSニンテンドーeショップ営業終了（2023-03-27）以降は体験版の新規入手不可",
     "region": "全世界",
     "ivs": "ランダム"
   },
@@ -17576,7 +17655,7 @@
     "startDate": "2014-07-07",
     "endDate": "2014-07-21",
     "ot": "ポケセン",
-    "trainerId": "{{tt|06024|First distribution}}\n{{tt|07074|Second distribution}}",
+    "trainerId": "06024（第1回）, 07074（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -17607,7 +17686,7 @@
     "startDate": "2014-07-07",
     "endDate": "2014-07-21",
     "ot": "ポケセン",
-    "trainerId": "{{tt|06094|First distribution}}\n{{tt|07074|Second distribution}}",
+    "trainerId": "06094（第1回）, 07074（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -17638,7 +17717,7 @@
     "startDate": "2014-07-07",
     "endDate": "2014-07-21",
     "ot": "ポケセン",
-    "trainerId": "{{tt|06164|First distribution}}\n{{tt|07074|Second distribution}}",
+    "trainerId": "06164（第1回）, 07074（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -17855,7 +17934,7 @@
     "startDate": "2014-06-23",
     "endDate": "2014-07-06",
     "ot": "ポケセン",
-    "trainerId": "{{tt|05104|First distribution}}\n{{tt|06234|Second distribution}}",
+    "trainerId": "05104（第1回）, 06234（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -17886,7 +17965,7 @@
     "startDate": "2014-06-23",
     "endDate": "2014-07-06",
     "ot": "ポケセン",
-    "trainerId": "{{tt|05194|First distribution}}\n{{tt|06234|Second distribution}}",
+    "trainerId": "05194（第1回）, 06234（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -17917,7 +17996,7 @@
     "startDate": "2014-06-23",
     "endDate": "2014-07-06",
     "ot": "ポケセン",
-    "trainerId": "{{tt|05264|First distribution}}\n{{tt|06234|Second distribution}}",
+    "trainerId": "05264（第1回）, 06234（第2回）",
     "metLocation": "ポケモンセンター",
     "ball": "プレシャスボール",
     "level": 50,
@@ -19379,7 +19458,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "P2ラボのゲノセクト",
     "distributionMethod": "ローカル通信",
-    "startDate": "2013",
+    "startDate": "2013-01-11",
+    "endDate": "2013-02-10",
     "ot": "Ｐ２ラボ",
     "trainerId": "01113",
     "metLocation": "ポケモンセンター",
@@ -19396,6 +19476,7 @@
     "ribbons": [
       "クラシックリボン"
     ],
+    "notes": "ポケモンセンター店舗で配信。台湾でも2013-02-14〜28に配信された",
     "region": "日本",
     "ivs": "ランダム"
   },
@@ -19407,7 +19488,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "ミュウツー　プレゼント",
     "distributionMethod": "ローカル通信",
-    "startDate": "2013",
+    "startDate": "2013-06-15",
+    "endDate": "2013-09-01",
     "ot": "Ｐヒルズ",
     "trainerId": "06153",
     "metLocation": "ポケモン映画13",
@@ -19425,6 +19507,7 @@
     "ribbons": [
       "ウィッシュリボン"
     ],
+    "notes": "ポケモンセンター店舗で赤外線配信。次世代ワールドホビーフェア2013（2013-06-29〜30）でも配信",
     "region": "日本",
     "ivs": "ランダム"
   },
@@ -19436,7 +19519,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "あかいゲノセクト　プレゼント",
     "distributionMethod": "ローカル通信",
-    "startDate": "2013",
+    "startDate": "2013-07-13",
+    "endDate": "2013-09-30",
     "shiny": "あり",
     "ot": "えいがかん",
     "trainerId": "07133",
@@ -19455,6 +19539,7 @@
     "ribbons": [
       "ウィッシュリボン"
     ],
+    "notes": "映画上映劇場で配信。2013-06-29に先行配信あり",
     "region": "日本",
     "ivs": "ランダム"
   },
@@ -19466,7 +19551,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "さいきょうクラスの ピカチュウ",
     "distributionMethod": "ローカル通信",
-    "startDate": "2013",
+    "startDate": "2013-07-26",
+    "endDate": "2013-08-20",
     "ot": "イベント",
     "trainerId": "07263",
     "metLocation": "ポケモンイベント",
@@ -19485,7 +19571,8 @@
     "ribbons": [
       "イベントリボン"
     ],
-    "region": "日本",
+    "notes": "香港ACGHK2013（2013-07-26〜30）と台湾漫画博覧会（2013-08-15〜20）で配信。日本国内では未配信",
+    "region": "香港, 台湾",
     "ivs": "ランダム"
   },
   {
@@ -21088,7 +21175,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "ケルディオ　プレゼント",
     "distributionMethod": "ローカル通信",
-    "startDate": "2012",
+    "startDate": "2012-06-23",
+    "endDate": "2012-08-31",
     "ot": "しょこたん",
     "trainerId": "06232",
     "metLocation": "ポケモン映画12",
@@ -21106,6 +21194,7 @@
     "ribbons": [
       "ウィッシュリボン"
     ],
+    "notes": "ポケモンセンター店舗で赤外線配信。台湾でも2012-09-20〜10-20に配信された",
     "region": "日本",
     "ivs": "ランダム"
   },
@@ -21117,7 +21206,8 @@
     "game": "ブラック, ホワイト, ブラック2, ホワイト2",
     "eventName": "メロエッタ　プレゼント",
     "distributionMethod": "ローカル通信",
-    "startDate": "2012",
+    "startDate": "2012-07-14",
+    "endDate": "2012-09-30",
     "ot": "えいがかん",
     "trainerId": "07142",
     "metLocation": "ポケモン映画12",
@@ -21134,6 +21224,7 @@
     "ribbons": [
       "ウィッシュリボン"
     ],
+    "notes": "映画「キュレムVS聖剣士ケルディオ」上映劇場で配信。2012-07-01に先行配信あり",
     "region": "日本",
     "ivs": "ランダム"
   },
@@ -21573,7 +21664,7 @@
     "eventName": "ポケモンサーチャーBW キバゴ",
     "distributionMethod": "ローカル通信",
     "startDate": "2011-03-19",
-    "endDate": "April 3, \nApril 29 to May 8, 2011",
+    "endDate": "2011-05-08",
     "ot": "サーチャー",
     "trainerId": "03191",
     "metLocation": "ポケモンイベント",
@@ -21592,6 +21683,7 @@
     "ribbons": [
       "おもいでリボン"
     ],
+    "notes": "配信期間は2011-03-19〜04-03と2011-04-29〜05-08の2期に分けて実施",
     "region": "日本",
     "ivs": "ランダム"
   },

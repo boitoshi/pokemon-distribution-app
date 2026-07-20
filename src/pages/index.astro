@@ -622,16 +622,8 @@ if (genCount[0] && genCount[0] >= 1) {
         return (region || '').split(',').map(r => r.trim()).filter(Boolean);
     }
 
-    // 地域の優先表示順（先頭固定）と国旗絵文字（既知の地域のみ）
+    // 地域の優先表示順（先頭固定）
     const REGION_PRIORITY_ORDER = ['日本', '全世界', '北米', '欧州', '韓国', '台湾'];
-    const REGION_FLAGS = {
-        '日本': '🇯🇵',
-        '全世界': '🌍',
-        '北米': '🇺🇸',
-        '欧州': '🇪🇺',
-        '韓国': '🇰🇷',
-        '台湾': '🇹🇼'
-    };
 
     // 世代の略称マッピング（プルダウン表示用）
     const GENERATION_SHORT_NAMES = {
@@ -688,8 +680,7 @@ if (genCount[0] && genCount[0] >= 1) {
         orderedRegions.forEach(region => {
             const option = document.createElement('option');
             option.value = region;
-            const flag = REGION_FLAGS[region];
-            option.textContent = flag ? `${flag} ${region}` : region;
+            option.textContent = region;
             regionSelect.appendChild(option);
         });
 
