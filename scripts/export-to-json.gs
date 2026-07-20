@@ -10,13 +10,11 @@
  */
 
 // エクスポート対象のシート名（マスターデータなどは除外）
+// includes() 判定のため、「第7世代」「第8世代」等のタブ名はすべて '世代' にマッチする。
+// 「記事生成」「シート1」等はここに含まれないため自動的に除外される。
 const TARGET_SHEETS = [
-  '第1-2世代',
-  '第3世代',
-  '第4-5世代',
-  '第6-7世代',
-  '第8世代',
-  '第9世代'
+  '世代',
+  'チャンピオンズ'
 ];
 
 // 除外するシート名のパターン
@@ -75,12 +73,18 @@ function exportAllSheetsToJson() {
   Logger.log(`エクスポート完了: ${allData.length}件`);
   Logger.log(`ファイルURL: ${file.getUrl()}`);
 
-  // 完了メッセージ
-  SpreadsheetApp.getUi().alert(
-    'エクスポート完了',
-    `${allData.length}件のデータをエクスポートしました。\n\nファイル: ${file.getUrl()}`,
-    SpreadsheetApp.getUi().ButtonSet.OK
-  );
+  // 完了メッセージ（toastは非ブロッキング。alertはOKが押されるまで実行時間を
+  // 消費し続け、エディタから実行すると Exceeded maximum execution time になるため使わない）
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(
+      `${allData.length}件のデータをエクスポートしました`,
+      'エクスポート完了',
+      10
+    );
+  } catch (e) {
+    // UIが使えないコンテキスト（トリガー実行等）ではログのみ
+    Logger.log('完了通知はスキップ: ' + e);
+  }
 
   return jsonString;
 }
@@ -212,6 +216,16 @@ function formatDate(date) {
  * 特殊フィールドの変換（moves, ribbons, ot）
  */
 function transformSpecialFields(obj) {
+  // game: シート入力の略記をゲーム正式名（カンマ区切り）に展開
+  // スプレッドシート側で略記が再投入されても正規化されるようにするための保険
+  const GAME_ABBREVIATIONS = {
+    'sus': 'サン, ウルトラサン',
+    'mum': 'ムーン, ウルトラムーン'
+  };
+  if (obj.game && typeof obj.game === 'string' && GAME_ABBREVIATIONS[obj.game.trim()]) {
+    obj.game = GAME_ABBREVIATIONS[obj.game.trim()];
+  }
+
   // moves: カンマ区切り文字列 → 配列
   if (obj.moves && typeof obj.moves === 'string') {
     obj.moves = obj.moves.split(',').map(m => m.trim()).filter(m => m);
@@ -392,12 +406,20 @@ function validateData() {
     }
   }
 
-  // 結果表示
+  // 結果表示（alertはブロッキングのためtoast+ログに変更）
   if (errors.length === 0) {
-    SpreadsheetApp.getUi().alert('検証完了', 'エラーはありませんでした。', SpreadsheetApp.getUi().ButtonSet.OK);
+    Logger.log('検証完了: エラーはありませんでした。');
+    try {
+      SpreadsheetApp.getActiveSpreadsheet().toast('エラーはありませんでした。', '検証完了', 10);
+    } catch (e) { /* UIなしコンテキストでは何もしない */ }
   } else {
-    const message = errors.slice(0, 20).join('\n') + (errors.length > 20 ? `\n\n...他 ${errors.length - 20}件` : '');
-    SpreadsheetApp.getUi().alert('検証エラー', message, SpreadsheetApp.getUi().ButtonSet.OK);
     Logger.log('検証エラー:\n' + errors.join('\n'));
+    try {
+      SpreadsheetApp.getActiveSpreadsheet().toast(
+        `${errors.length}件のエラーがあります。詳細は実行ログを確認してください。`,
+        '検証エラー',
+        10
+      );
+    } catch (e) { /* UIなしコンテキストでは何もしない */ }
   }
 }

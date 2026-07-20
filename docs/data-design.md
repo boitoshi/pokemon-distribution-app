@@ -4,6 +4,16 @@
 
 配信ポケモンデータはGoogleスプレッドシートで管理し、Google Apps Script（GAS）でJSON形式にエクスポートする。
 
+### データソースの正本
+
+| データ | 正本 | 反映方法 |
+|---|---|---|
+| 第5〜7世代（整備済み分） | pokebros-tools `tools/summary-pages/src/data/pokemon-all.json` | `node scripts/sync-from-tools.mjs`（managementId単位で上書き。正本に無いエントリは温存） |
+| 第8・9世代・チャンピオンズ・未整備の第7世代分 | スプレッドシート | GASエクスポート（`scripts/export-to-json.gs`） |
+
+スプレッドシートのエクスポート結果で `public/pokemon.json` を丸ごと置き換えると
+tools由来の世代が消えるため、置き換え後に必ず `sync-from-tools.mjs` を再実行すること。
+
 ## スプレッドシート構成
 
 ### シート構成
@@ -75,7 +85,7 @@ pokemon-distribution（スプレッドシート）
 | **region** | 全世代 | 配布地域（後述） | `日本`, `北米`, `欧州` |
 | gigantamax | 8世代（剣盾） | キョダイマックス | `キョダイマックス` |
 | teraType | 9世代（SV） | テラスタイプ | `でんき` |
-| isAlpha | LA/Z-A | オヤブン | `オヤブン` |
+| alpha | LA/Z-A | オヤブン | `オヤブン` |
 
 ---
 

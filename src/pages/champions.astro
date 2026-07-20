@@ -136,7 +136,9 @@ const canonicalUrl = 'https://www.pokebros.net/distribution/champions/';
                                     src={getPokemonImageUrl(p)}
                                     alt={p.pokemonName}
                                     loading="lazy"
+                                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
                                 />
+                                <span class="gen-card-image-fallback" style="display:none" aria-hidden="true"></span>
                                 <div class="gen-card-body">
                                     <div class="gen-card-name">
                                         {p.pokemonName}
@@ -318,6 +320,22 @@ const canonicalUrl = 'https://www.pokebros.net/distribution/champions/';
         object-fit: contain;
         background: var(--color-bg-section);
         border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    /* 画像404時のプレースホルダー（CSSのみのモンスターボール風） */
+    .gen-card-image-fallback {
+        display: none;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border);
+        background: linear-gradient(
+            to bottom,
+            var(--color-bg-section) 0 44%,
+            var(--color-border) 44% 56%,
+            var(--color-bg-card) 56% 100%
+        );
         flex-shrink: 0;
     }
 

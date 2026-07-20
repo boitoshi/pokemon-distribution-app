@@ -18,7 +18,7 @@ interface PokemonData {
     endDate?: string;
     ot?: string | { JPN?: string; ENG?: string };
     gigantamax?: string;
-    isAlpha?: string;
+    alpha?: string;
     teraType?: string;
     level?: number;
     ability?: string;
@@ -98,7 +98,7 @@ function isSwSh(game: string) {
 }
 
 function isLegendsGame(game: string) {
-    return game && (game.includes('アルセウス') || game.includes('Z-A'));
+    return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
 }
 
 interface Props {
@@ -190,7 +190,9 @@ const ogImage = entries.length > 0 ? getPokemonImageUrl(entries[0]) : undefined;
                                         src={getPokemonImageUrl(p)}
                                         alt={p.pokemonName}
                                         loading="lazy"
+                                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
                                     />
+                                    <span class="gen-card-image-fallback" style="display:none" aria-hidden="true"></span>
                                     <div class="gen-card-body">
                                         <div class="gen-card-name">
                                             {p.pokemonName}
@@ -200,7 +202,7 @@ const ogImage = entries.length > 0 ? getPokemonImageUrl(entries[0]) : undefined;
                                             {p.gigantamax && p.gigantamax !== '' && isSwSh(p.game) && (
                                                 <span class="badge badge--gigantamax">キョダイ</span>
                                             )}
-                                            {p.isAlpha && p.isAlpha !== '' && isLegendsGame(p.game) && (
+                                            {p.alpha && p.alpha !== '' && isLegendsGame(p.game) && (
                                                 <span class="badge badge--alpha">オヤブン</span>
                                             )}
                                         </div>
@@ -388,6 +390,22 @@ const ogImage = entries.length > 0 ? getPokemonImageUrl(entries[0]) : undefined;
         object-fit: contain;
         background: var(--color-bg-section);
         border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    /* 画像404時のプレースホルダー（CSSのみのモンスターボール風） */
+    .gen-card-image-fallback {
+        display: none;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border);
+        background: linear-gradient(
+            to bottom,
+            var(--color-bg-section) 0 44%,
+            var(--color-border) 44% 56%,
+            var(--color-bg-card) 56% 100%
+        );
         flex-shrink: 0;
     }
 

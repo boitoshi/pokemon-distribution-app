@@ -98,11 +98,40 @@ const baseUrl = import.meta.env.BASE_URL;
     "ブリリアントダイヤモンド, シャイニングパール": "BDSP",
     "Pokémon LEGENDS アルセウス": "LA",
     "スカーレット, バイオレット": "SV",
-    "Pokémon LEGENDS Z-A": "ZA"
+    "Pokémon LEGENDS Z-A": "ZA",
+    // 第5世代
+    "ブラック, ホワイト": "BW",
+    "ブラック2, ホワイト2": "BW2",
+    "ブラック, ホワイト, ブラック2, ホワイト2": "BW/BW2",
+    // 第6世代
+    "X, Y": "XY",
+    "オメガルビー, アルファサファイア": "ORAS",
+    "X, Y, オメガルビー, アルファサファイア": "XY/ORAS",
+    // 第7世代
+    "サン, ムーン": "SM",
+    "ウルトラサン, ウルトラムーン": "USUM",
+    "サン, ムーン, ウルトラサン, ウルトラムーン": "SM/USUM",
+    "ピカブイ": "ピカブイ",
+    "ピカチュウ（Let's Go）": "ピカブイ",
+    "イーブイ（Let's Go）": "ピカブイ"
   };
+  // 補足: game は「,」区切りで個別名に分割してから1件ずつ変換するため、
+  // 上記の複合キー（例:「ソード, シールド」）はこの変換経路では実質使われない。
+  // 分割後に出てくる個別名（例:「ソード」「サン」）は gameShortNames に無ければ
+  // そのままの文字列で表示されるので、下の gameColors にその個別名キーで色を用意する。
   const gameColors = {
     "剣盾": "#e63946", "BDSP": "#4361ee", "LA": "#2dc653",
-    "SV": "#9b5de5", "ZA": "#f77f00"
+    "SV": "#9b5de5", "ZA": "#f77f00",
+    // 第5世代（ダークグレー系）
+    "BW": "#37474f", "BW2": "#546e7a", "BW/BW2": "#263238",
+    "ブラック": "#546e7a", "ホワイト": "#546e7a", "ブラック2": "#546e7a", "ホワイト2": "#546e7a",
+    // 第6世代（青系・ルビー系）
+    "XY": "#1976d2", "ORAS": "#ad1457", "XY/ORAS": "#6a1b9a",
+    "X": "#1976d2", "Y": "#1976d2", "オメガルビー": "#ad1457", "アルファサファイア": "#ad1457",
+    // 第7世代（オレンジ系・紫系）
+    "SM": "#ef6c00", "USUM": "#7b1fa2", "SM/USUM": "#e65100",
+    "サン": "#ef6c00", "ムーン": "#ef6c00", "ウルトラサン": "#7b1fa2", "ウルトラムーン": "#7b1fa2",
+    "ピカブイ": "#a67c00"
   };
   function getGameShortName(g) { return gameShortNames[g] || g; }
   function getGameColor(g) {
@@ -131,7 +160,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
     const shinyBadge = (pokemon.shiny && pokemon.shiny !== '') ? '<span class="tl-icon-badge" title="色違い">✨</span>' : '';
     const gigaBadge = (pokemon.gigantamax && pokemon.gigantamax !== '') ? '<span class="tl-icon-badge" title="キョダイマックス">🔷</span>' : '';
-    const alphaBadge = (pokemon.isAlpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
+    const alphaBadge = (pokemon.alpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
 
     const startStr = pokemon.startDate ? formatDate(pokemon.startDate) : '?';
     const endStr = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
@@ -203,10 +232,12 @@ const baseUrl = import.meta.env.BASE_URL;
       sortedMonths.forEach(ym => {
         const [y, m] = ym.split('-');
         const count = groups[year][ym].length;
+        // 年のみの日付（YYYY形式）は月ラベルを付けない
+        const monthLabel = m ? ` ${parseInt(m)}月` : '';
         html += `
           <div class="tl-month-section">
             <div class="tl-month-header">
-              <span class="tl-month-label">${escapeHtml(y)}年 ${parseInt(m)}月</span>
+              <span class="tl-month-label">${escapeHtml(y)}年${monthLabel}</span>
               <span class="tl-month-count">${count}件</span>
             </div>
             <div class="tl-items">
