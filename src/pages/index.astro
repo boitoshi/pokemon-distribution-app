@@ -65,7 +65,10 @@ if (genCount[0] && genCount[0] >= 1) {
                 <p>配信ポケモンを検索できます</p>
             </div>
             <div class="header-right">
-                <a href={`${baseUrl}timeline`} class="timeline-link-btn">📅 タイムライン</a>
+                <a href={`${baseUrl}timeline`} class="timeline-link-btn" aria-label="タイムライン">
+                    <span aria-hidden="true">📅</span>
+                    <span class="timeline-link-label">タイムライン</span>
+                </a>
                 <button id="toggleDarkMode" class="dark-mode-btn" title="ダークモード切替">🌙</button>
             </div>
         </div>
@@ -231,6 +234,8 @@ if (genCount[0] && genCount[0] >= 1) {
                 radio.checked = radio.value === ribbonFilterMode;
             });
         }
+        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
+        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
     }
 
     // お気に入り管理
@@ -440,6 +445,8 @@ if (genCount[0] && genCount[0] >= 1) {
         if (hasFilters) {
             searchPokemon();
         }
+        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
+        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
     }
 
     // プリセット管理
@@ -499,6 +506,8 @@ if (genCount[0] && genCount[0] >= 1) {
         renderRibbonTags();
 
         searchPokemon();
+        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
+        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
     }
 
     function savePreset(name) {
@@ -893,7 +902,32 @@ if (genCount[0] && genCount[0] >= 1) {
         "スカーレット": "スカーレット",
         "バイオレット": "バイオレット",
         "Pokémon LEGENDS Z-A": "ZA",
-        "ZA": "Z-A"
+        "ZA": "Z-A",
+        // 第5世代（ブラック・ホワイト系）
+        "ブラック, ホワイト": "BW",
+        "ブラック2, ホワイト2": "BW2",
+        "ブラック, ホワイト, ブラック2, ホワイト2": "BW/BW2",
+        "ブラック": "ブラック",
+        "ホワイト": "ホワイト",
+        "ブラック2": "ブラック2",
+        "ホワイト2": "ホワイト2",
+        // 第6世代（X・Y / オメガルビー・アルファサファイア系）
+        "X, Y": "XY",
+        "オメガルビー, アルファサファイア": "ORAS",
+        "X, Y, オメガルビー, アルファサファイア": "XY/ORAS",
+        "X": "X",
+        "Y": "Y",
+        // 第7世代（サン・ムーン / ウルトラサン・ウルトラムーン / ピカブイ系）
+        "サン, ムーン": "SM",
+        "ウルトラサン, ウルトラムーン": "USUM",
+        "サン, ムーン, ウルトラサン, ウルトラムーン": "SM/USUM",
+        "ピカブイ": "ピカブイ",
+        "ピカチュウ（Let's Go）": "ピカブイ",
+        "イーブイ（Let's Go）": "ピカブイ",
+        "サン": "サン",
+        "ムーン": "ムーン",
+        "ウルトラサン": "ウルトラサン",
+        "ウルトラムーン": "ウルトラムーン"
     };
     function getGameShortName(game) {
         if (gameShortNames[game]) return gameShortNames[game];
@@ -939,6 +973,25 @@ if (genCount[0] && genCount[0] >= 1) {
         if (hasSP) return 'game-sp';
         if (game.includes('アルセウス')) return 'game-la';
         if (game.includes('Z-A') || game.includes('ZA')) return 'game-za';
+
+        // 第5〜7世代（gameShortNames の変換結果から判定）
+        const shortName = gameShortNames[game];
+        if (shortName === 'BW') return 'game-bw';
+        if (shortName === 'BW2') return 'game-bw2';
+        if (shortName === 'BW/BW2') return 'game-bwbw2';
+        if (['ブラック', 'ホワイト', 'ブラック2', 'ホワイト2'].includes(game)) return 'gen-5';
+
+        if (shortName === 'XY') return 'game-xy';
+        if (shortName === 'ORAS') return 'game-oras';
+        if (shortName === 'XY/ORAS') return 'game-xyoras';
+        if (['X', 'Y'].includes(game)) return 'gen-6';
+
+        if (shortName === 'SM') return 'game-sm';
+        if (shortName === 'USUM') return 'game-usum';
+        if (shortName === 'SM/USUM') return 'game-smusum';
+        if (shortName === 'ピカブイ') return 'game-pikabuy';
+        if (['サン', 'ムーン', 'ウルトラサン', 'ウルトラムーン'].includes(game)) return 'gen-7';
+
         return '';
     }
 
@@ -1907,7 +1960,9 @@ if (genCount[0] && genCount[0] >= 1) {
 
 <style>
 .timeline-link-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 6px 12px;
   background: rgba(255,255,255,0.2);
   color: #fff;
@@ -1915,6 +1970,17 @@ if (genCount[0] && genCount[0] >= 1) {
   border-radius: 8px;
   font-size: 13px;
   font-weight: bold;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .timeline-link-btn {
+    padding: 6px 8px;
+  }
+
+  .timeline-link-label {
+    display: none;
+  }
 }
 
 /* 世代リンク帯 */

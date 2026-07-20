@@ -168,7 +168,109 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     .search-row > .date-range {
         flex: 1.5;
-        min-width: 240px;
+        min-width: 260px;
+    }
+
+    /* キーワード検索 + 詳細フィルタートグル（常時表示） */
+    .search-row-primary {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .search-row-primary #searchName {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .advanced-filters-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: var(--color-bg-section);
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .advanced-filters-toggle:hover {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        color: var(--color-text-primary);
+    }
+
+    .advanced-filters-toggle.is-open {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        color: var(--color-text-primary);
+    }
+
+    .advanced-filters-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        background: var(--color-accent);
+        color: #fff;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .advanced-filters-caret {
+        font-size: 10px;
+        transition: transform 0.2s;
+    }
+
+    .advanced-filters-toggle.is-open .advanced-filters-caret {
+        transform: rotate(180deg);
+    }
+
+    /* 詳細フィルター本体: デスクトップは初期展開、モバイルは初期折りたたみ */
+    .advanced-filters {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .search-row-primary {
+            flex-wrap: wrap;
+        }
+
+        .search-row-primary #searchName {
+            flex: 1 1 100%;
+        }
+
+        .advanced-filters-toggle {
+            flex: 1 1 100%;
+        }
+
+        .advanced-filters {
+            display: none;
+        }
+    }
+
+    /* 配信日範囲のラベル */
+    .date-field {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .date-range-label {
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
     }
 
     /* 条件追加ボタン */
@@ -1182,6 +1284,26 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     .game-swsh { border-color: #00a2e8; border-right: 3px solid #e4007c; }
     .game-bdsp { border-color: #4169e1; border-right: 3px solid #e891b9; }
 
+    /* 第5世代（ブラック・ホワイト系） */
+    .game-bw { border-color: #37474f; }
+    .game-bw2 { border-color: #546e7a; }
+    .game-bwbw2 { border-color: #263238; border-right: 3px solid #546e7a; }
+
+    /* 第6世代（X・Y / オメガルビー・アルファサファイア系） */
+    .game-xy { border-color: #1976d2; }
+    .game-oras { border-color: #ad1457; }
+    .game-xyoras { border-color: #1976d2; border-right: 3px solid #ad1457; }
+
+    /* 第7世代（サン・ムーン / ウルトラサン・ウルトラムーン / ピカブイ系） */
+    .game-sm { border-color: #ef6c00; }
+    .game-usum { border-color: #7b1fa2; }
+    .game-smusum { border-color: #ef6c00; border-right: 3px solid #7b1fa2; }
+    .game-pikabuy {
+        background: #fdd835;
+        color: #6d4c19;
+        border-left: none;
+    }
+
 
     .moves {
         display: flex;
@@ -1515,6 +1637,7 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
         .date-range {
             width: 100%;
+            flex-wrap: wrap;
         }
 
         .date-range input[type="date"] {
@@ -1557,11 +1680,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     .header-left {
         flex: 1;
+        min-width: 0;
     }
 
     .header-right {
         display: flex;
+        align-items: center;
         gap: 10px;
+        flex-shrink: 0;
     }
 
     .dark-mode-btn {
@@ -1576,11 +1702,53 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
+        flex-shrink: 0;
     }
 
     .dark-mode-btn:hover {
         background: rgba(0, 0, 0, 0.2);
         transform: scale(1.1);
+    }
+
+    /* ヘッダーのモバイルレイアウト */
+    @media (max-width: 768px) {
+        header {
+            padding: 12px 16px;
+        }
+
+        .header-content {
+            gap: 8px;
+        }
+
+        header h1 {
+            font-size: 17px;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        header p {
+            font-size: 11px;
+        }
+
+        .header-right {
+            gap: 6px;
+        }
+
+        .dark-mode-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        header h1 {
+            font-size: 14px;
+        }
+
+        header p {
+            display: none;
+        }
     }
 
     /* ダッシュボード */
@@ -2257,5 +2425,39 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
         width: 120px;
         flex-shrink: 0;
         font-size: 13px;
+    }
+
+    /* ===== カード内の視覚階層 =====
+       ポケモン名・イベント名・配信期間を主役に、配信方法/場所/リボン等は控えめに。
+       常に最後に置いて、上記の各種レスポンシブ調整より優先されるようにする。 */
+    .pokemon-card .event-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        line-height: 1.4;
+    }
+
+    .pokemon-card .distribution-period {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+    }
+
+    .pokemon-card .distribution-method,
+    .pokemon-card .distribution-location,
+    .pokemon-card .region-value {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--color-text-muted);
+    }
+
+    .pokemon-card .ribbons-row .ribbon-icon {
+        opacity: 0.85;
+    }
+
+    /* 配信中バッジをより目立たせる */
+    .status-active {
+        background: #16a34a;
+        box-shadow: 0 1px 4px rgba(22, 163, 74, 0.35);
     }
 </style>

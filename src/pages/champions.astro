@@ -136,7 +136,9 @@ const canonicalUrl = 'https://www.pokebros.net/distribution/champions/';
                                     src={getPokemonImageUrl(p)}
                                     alt={p.pokemonName}
                                     loading="lazy"
+                                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
                                 />
+                                <span class="gen-card-image-fallback" style="display:none">⚪</span>
                                 <div class="gen-card-body">
                                     <div class="gen-card-name">
                                         {p.pokemonName}
@@ -316,6 +318,18 @@ const canonicalUrl = 'https://www.pokebros.net/distribution/champions/';
         width: 56px;
         height: 56px;
         object-fit: contain;
+        background: var(--color-bg-section);
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .gen-card-image-fallback {
+        display: none;
+        width: 56px;
+        height: 56px;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
         background: var(--color-bg-section);
         border-radius: 8px;
         flex-shrink: 0;

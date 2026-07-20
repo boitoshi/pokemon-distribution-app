@@ -3,107 +3,127 @@
 ---
 
 <div class="search-box">
-    <div class="search-row">
+    <!-- キーワード検索と詳細フィルタートグルは常時表示 -->
+    <div class="search-row-primary">
         <input type="text" id="searchName" placeholder="ポケモン名・イベント名で検索">
-        <select id="filterGeneration">
-            <option value="">すべての世代</option>
-            <option value="9">第9世代 (SV)</option>
-            <option value="8">第8世代 (剣盾)</option>
-            <option value="7">第7世代 (SM/USUM)</option>
-            <option value="6">第6世代 (XY/ORAS)</option>
-            <option value="5">第5世代 (BW/BW2)</option>
-            <option value="4">第4世代 (DPPt/HGSS)</option>
-            <option value="3">第3世代 (RSE/FRLG)</option>
-        </select>
-        <select id="filterMethod">
-            <option value="">すべての配信方法</option>
-        </select>
+        <button type="button" id="toggleAdvancedFilters" class="advanced-filters-toggle" aria-expanded="true" aria-controls="advancedFilters">
+            <span class="advanced-filters-toggle-icon" aria-hidden="true">🔧</span>
+            詳細フィルター
+            <span id="advancedFiltersBadge" class="advanced-filters-badge" style="display:none">0</span>
+            <span class="advanced-filters-caret" aria-hidden="true">▾</span>
+        </button>
     </div>
 
-    <div class="search-row">
-        <select id="filterRegion">
-            <option value="">すべての地域</option>
-            <option value="日本">🇯🇵 日本</option>
-            <option value="北米">🇺🇸 北米</option>
-            <option value="欧州">🇪🇺 欧州</option>
-            <option value="韓国">🇰🇷 韓国</option>
-            <option value="台湾">🇹🇼 台湾</option>
-            <option value="全世界">🌍 全世界</option>
-        </select>
-        <select id="sortOrder">
-            <option value="date-desc">配信日（新しい順）</option>
-            <option value="date-asc">配信日（古い順）</option>
-            <option value="dex-asc">図鑑No（小さい順）</option>
-            <option value="dex-desc">図鑑No（大きい順）</option>
-            <option value="name-asc">ポケモン名（あ→ん）</option>
-            <option value="name-desc">ポケモン名（ん→あ）</option>
-        </select>
-        <div class="date-range">
-            <input type="date" id="filterDateFrom" placeholder="開始日">
-            <span class="date-separator">〜</span>
-            <input type="date" id="filterDateTo" placeholder="終了日">
+    <!-- 詳細フィルター（モバイルでは初期折りたたみ、デスクトップでは初期展開） -->
+    <div id="advancedFilters" class="advanced-filters">
+        <div class="search-row">
+            <select id="filterGeneration">
+                <option value="">すべての世代</option>
+                <option value="9">第9世代 (SV)</option>
+                <option value="8">第8世代 (剣盾)</option>
+                <option value="7">第7世代 (SM/USUM)</option>
+                <option value="6">第6世代 (XY/ORAS)</option>
+                <option value="5">第5世代 (BW/BW2)</option>
+                <option value="4">第4世代 (DPPt/HGSS)</option>
+                <option value="3">第3世代 (RSE/FRLG)</option>
+            </select>
+            <select id="filterMethod">
+                <option value="">すべての配信方法</option>
+            </select>
         </div>
-    </div>
 
-    <!-- 条件追加ボタン -->
-    <button id="toggleConditions" class="add-conditions-btn">＋ 条件を追加</button>
-
-    <!-- 検索条件（開閉式） -->
-    <div id="searchConditions" class="search-conditions" style="display: none;">
-        <div class="conditions-grid">
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterShiny">
-                <span>✨ 色違い</span>
-            </label>
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterGigantamax">
-                <span>🔷 キョダイマックス</span>
-            </label>
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterAlpha">
-                <span>👑 オヤブン</span>
-            </label>
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterSpecialMoves">
-                <span>🎯 特別な技あり</span>
-            </label>
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterHeldItem">
-                <span>🎁 持ち物あり</span>
-            </label>
-            <label class="condition-checkbox">
-                <input type="checkbox" id="filterActive">
-                <span>🟢 配信中のみ</span>
-            </label>
-            <div class="ribbon-filter-area">
-                <div class="ribbon-input-row">
-                    <input type="text" id="filterRibbonInput" list="ribbonList"
-                           class="ribbon-input" placeholder="🎀 リボンを追加...">
-                    <button type="button" id="addRibbonBtn" class="add-ribbon-btn">追加</button>
-                </div>
-                <datalist id="ribbonList"></datalist>
-                <div class="ribbon-mode-row" id="ribbonModeRow" style="display:none">
-                    <label class="ribbon-mode-label">
-                        <input type="radio" name="ribbonMode" value="OR" checked> いずれか（OR）
-                    </label>
-                    <label class="ribbon-mode-label">
-                        <input type="radio" name="ribbonMode" value="AND"> すべて（AND）
-                    </label>
-                </div>
-                <div id="selectedRibbonTags" class="selected-ribbon-tags"></div>
+        <div class="search-row">
+            <select id="filterRegion">
+                <option value="">すべての地域</option>
+                <option value="日本">🇯🇵 日本</option>
+                <option value="北米">🇺🇸 北米</option>
+                <option value="欧州">🇪🇺 欧州</option>
+                <option value="韓国">🇰🇷 韓国</option>
+                <option value="台湾">🇹🇼 台湾</option>
+                <option value="全世界">🌍 全世界</option>
+            </select>
+            <select id="sortOrder">
+                <option value="date-desc">配信日（新しい順）</option>
+                <option value="date-asc">配信日（古い順）</option>
+                <option value="dex-asc">図鑑No（小さい順）</option>
+                <option value="dex-desc">図鑑No（大きい順）</option>
+                <option value="name-asc">ポケモン名（あ→ん）</option>
+                <option value="name-desc">ポケモン名（ん→あ）</option>
+            </select>
+            <div class="date-range">
+                <span class="date-field">
+                    <label class="date-range-label" for="filterDateFrom">開始日</label>
+                    <input type="date" id="filterDateFrom">
+                </span>
+                <span class="date-separator">〜</span>
+                <span class="date-field">
+                    <label class="date-range-label" for="filterDateTo">終了日</label>
+                    <input type="date" id="filterDateTo">
+                </span>
             </div>
         </div>
 
-        <!-- 逆引き検索エリア -->
-        <div class="reverse-search-section">
-            <h4 class="reverse-search-title">🔍 逆引き検索（中古ROM判定用）</h4>
-            <div class="reverse-search-grid">
-                <input type="text" id="filterOT" placeholder="親名（OT）で検索 例：サトシ、Ash">
-                <input type="text" id="filterTrainerId" placeholder="トレーナーIDで検索 例：191115">
+        <!-- 条件追加ボタン -->
+        <button id="toggleConditions" class="add-conditions-btn">＋ 条件を追加</button>
+
+        <!-- 検索条件（開閉式） -->
+        <div id="searchConditions" class="search-conditions" style="display: none;">
+            <div class="conditions-grid">
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterShiny">
+                    <span>✨ 色違い</span>
+                </label>
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterGigantamax">
+                    <span>🔷 キョダイマックス</span>
+                </label>
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterAlpha">
+                    <span>👑 オヤブン</span>
+                </label>
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterSpecialMoves">
+                    <span>🎯 特別な技あり</span>
+                </label>
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterHeldItem">
+                    <span>🎁 持ち物あり</span>
+                </label>
+                <label class="condition-checkbox">
+                    <input type="checkbox" id="filterActive">
+                    <span>🟢 配信中のみ</span>
+                </label>
+                <div class="ribbon-filter-area">
+                    <div class="ribbon-input-row">
+                        <input type="text" id="filterRibbonInput" list="ribbonList"
+                               class="ribbon-input" placeholder="🎀 リボンを追加...">
+                        <button type="button" id="addRibbonBtn" class="add-ribbon-btn">追加</button>
+                    </div>
+                    <datalist id="ribbonList"></datalist>
+                    <div class="ribbon-mode-row" id="ribbonModeRow" style="display:none">
+                        <label class="ribbon-mode-label">
+                            <input type="radio" name="ribbonMode" value="OR" checked> いずれか（OR）
+                        </label>
+                        <label class="ribbon-mode-label">
+                            <input type="radio" name="ribbonMode" value="AND"> すべて（AND）
+                        </label>
+                    </div>
+                    <div id="selectedRibbonTags" class="selected-ribbon-tags"></div>
+                </div>
+            </div>
+
+            <!-- 逆引き検索エリア -->
+            <div class="reverse-search-section">
+                <h4 class="reverse-search-title">🔍 逆引き検索（中古ROM判定用）</h4>
+                <div class="reverse-search-grid">
+                    <input type="text" id="filterOT" placeholder="親名（OT）で検索 例：サトシ、Ash">
+                    <input type="text" id="filterTrainerId" placeholder="トレーナーIDで検索 例：191115">
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- 検索・クリアボタンは常時表示 -->
     <div class="search-buttons">
         <button id="searchButton" class="search-button">↓ 結果へ</button>
         <button id="clearConditions" class="clear-button">クリア</button>
@@ -121,6 +141,94 @@
         conditionsArea.style.display = isHidden ? 'block' : 'none';
         toggleBtn.textContent = isHidden ? '− 条件を閉じる' : '＋ 条件を追加';
     });
+
+    // 詳細フィルターの開閉（モバイルは初期折りたたみ、デスクトップは初期展開）
+    // 初期表示状態は CSS のメディアクエリ側で決めており、ここではそれに追従して
+    // トグルボタンの見た目（aria-expanded / キャレット向き）を同期させる。
+    const advancedToggleBtn = document.getElementById('toggleAdvancedFilters');
+    const advancedFiltersEl = document.getElementById('advancedFilters');
+
+    function isAdvancedFiltersOpen() {
+        if (!advancedFiltersEl) return false;
+        if (advancedFiltersEl.style.display) {
+            return advancedFiltersEl.style.display !== 'none';
+        }
+        return window.getComputedStyle(advancedFiltersEl).display !== 'none';
+    }
+
+    function setAdvancedFiltersState(isOpen) {
+        if (!advancedFiltersEl || !advancedToggleBtn) return;
+        advancedFiltersEl.style.display = isOpen ? 'block' : 'none';
+        advancedToggleBtn.classList.toggle('is-open', isOpen);
+        advancedToggleBtn.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    if (advancedToggleBtn && advancedFiltersEl) {
+        setAdvancedFiltersState(isAdvancedFiltersOpen());
+        advancedToggleBtn.addEventListener('click', () => {
+            setAdvancedFiltersState(!isAdvancedFiltersOpen());
+        });
+    }
+
+    // 詳細フィルターの適用件数バッジ
+    function countActiveAdvancedFilters() {
+        let count = 0;
+
+        ['filterGeneration', 'filterMethod', 'filterRegion'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el && el.value) count++;
+        });
+
+        ['filterShiny', 'filterGigantamax', 'filterAlpha', 'filterSpecialMoves', 'filterHeldItem', 'filterActive'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el && el.checked) count++;
+        });
+
+        const dateFrom = document.getElementById('filterDateFrom');
+        const dateTo = document.getElementById('filterDateTo');
+        if (dateFrom && dateFrom.value) count++;
+        if (dateTo && dateTo.value) count++;
+
+        const otEl = document.getElementById('filterOT');
+        const trainerIdEl = document.getElementById('filterTrainerId');
+        if (otEl && otEl.value.trim()) count++;
+        if (trainerIdEl && trainerIdEl.value.trim()) count++;
+
+        const ribbonTags = document.getElementById('selectedRibbonTags');
+        if (ribbonTags && ribbonTags.children.length > 0) count++;
+
+        return count;
+    }
+
+    function updateAdvancedFiltersBadge() {
+        const badge = document.getElementById('advancedFiltersBadge');
+        if (!badge) return;
+        const count = countActiveAdvancedFilters();
+        if (count > 0) {
+            badge.textContent = String(count);
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    // index.astro側（検索処理）からも呼べるようにグローバルへ公開
+    window.updateAdvancedFiltersBadge = updateAdvancedFiltersBadge;
+
+    // 詳細フィルター内の各項目が変更された時点でバッジを即時更新
+    // （検索の実行自体は index.astro 側のイベントリスナーが担当）
+    [
+        'filterGeneration', 'filterMethod', 'filterRegion',
+        'filterShiny', 'filterGigantamax', 'filterAlpha', 'filterSpecialMoves', 'filterHeldItem', 'filterActive',
+        'filterDateFrom', 'filterDateTo', 'filterOT', 'filterTrainerId'
+    ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', updateAdvancedFiltersBadge);
+            el.addEventListener('input', updateAdvancedFiltersBadge);
+        }
+    });
+
+    updateAdvancedFiltersBadge();
 
     // 条件クリアボタン
     document.getElementById('clearConditions').addEventListener('click', () => {
