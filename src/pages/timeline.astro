@@ -160,7 +160,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
     const shinyBadge = (pokemon.shiny && pokemon.shiny !== '') ? '<span class="tl-icon-badge" title="色違い">✨</span>' : '';
     const gigaBadge = (pokemon.gigantamax && pokemon.gigantamax !== '') ? '<span class="tl-icon-badge" title="キョダイマックス">🔷</span>' : '';
-    const alphaBadge = (pokemon.isAlpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
+    const alphaBadge = (pokemon.alpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
 
     const startStr = pokemon.startDate ? formatDate(pokemon.startDate) : '?';
     const endStr = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';

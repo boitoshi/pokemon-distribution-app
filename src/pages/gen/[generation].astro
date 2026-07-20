@@ -18,7 +18,7 @@ interface PokemonData {
     endDate?: string;
     ot?: string | { JPN?: string; ENG?: string };
     gigantamax?: string;
-    isAlpha?: string;
+    alpha?: string;
     teraType?: string;
     level?: number;
     ability?: string;
@@ -98,7 +98,7 @@ function isSwSh(game: string) {
 }
 
 function isLegendsGame(game: string) {
-    return game && (game.includes('アルセウス') || game.includes('Z-A'));
+    return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
 }
 
 interface Props {
@@ -202,7 +202,7 @@ const ogImage = entries.length > 0 ? getPokemonImageUrl(entries[0]) : undefined;
                                             {p.gigantamax && p.gigantamax !== '' && isSwSh(p.game) && (
                                                 <span class="badge badge--gigantamax">キョダイ</span>
                                             )}
-                                            {p.isAlpha && p.isAlpha !== '' && isLegendsGame(p.game) && (
+                                            {p.alpha && p.alpha !== '' && isLegendsGame(p.game) && (
                                                 <span class="badge badge--alpha">オヤブン</span>
                                             )}
                                         </div>

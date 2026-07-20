@@ -19,13 +19,7 @@
         <div class="search-row">
             <select id="filterGeneration">
                 <option value="">すべての世代</option>
-                <option value="9">第9世代 (SV)</option>
-                <option value="8">第8世代 (剣盾)</option>
-                <option value="7">第7世代 (SM/USUM)</option>
-                <option value="6">第6世代 (XY/ORAS)</option>
-                <option value="5">第5世代 (BW/BW2)</option>
-                <option value="4">第4世代 (DPPt/HGSS)</option>
-                <option value="3">第3世代 (RSE/FRLG)</option>
+                <!-- 世代の選択肢は index.astro の populateFilters() でデータから動的生成 -->
             </select>
             <select id="filterMethod">
                 <option value="">すべての配信方法</option>
@@ -35,16 +29,12 @@
         <div class="search-row">
             <select id="filterRegion">
                 <option value="">すべての地域</option>
-                <option value="日本">🇯🇵 日本</option>
-                <option value="北米">🇺🇸 北米</option>
-                <option value="欧州">🇪🇺 欧州</option>
-                <option value="韓国">🇰🇷 韓国</option>
-                <option value="台湾">🇹🇼 台湾</option>
-                <option value="全世界">🌍 全世界</option>
+                <!-- 地域の選択肢は index.astro の populateFilters() でデータから動的生成 -->
             </select>
             <select id="sortOrder">
                 <option value="date-desc">配信日（新しい順）</option>
                 <option value="date-asc">配信日（古い順）</option>
+                <option value="end-soon">終了日が近い順（受け取り忘れ防止）</option>
                 <option value="dex-asc">図鑑No（小さい順）</option>
                 <option value="dex-desc">図鑑No（大きい順）</option>
                 <option value="name-asc">ポケモン名（あ→ん）</option>
@@ -235,7 +225,6 @@
         // テキスト入力とセレクトをクリア
         document.getElementById('searchName').value = '';
         document.getElementById('filterGeneration').value = '';
-        document.querySelectorAll('.game-tag-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('filterMethod').value = '';
         document.getElementById('filterRegion').value = '';
         document.getElementById('sortOrder').value = 'date-desc';

@@ -98,11 +98,11 @@ if (genCount[0] && genCount[0] >= 1) {
                 <div class="dashboard-number" id="totalCount">0</div>
                 <div class="dashboard-label">総配布数</div>
             </div>
-            <div class="dashboard-card">
+            <div class="dashboard-card" id="shinyStatTile" data-filter-toggle="filterShiny" role="button" tabindex="0" aria-pressed="false" title="クリックで色違いのみ表示を切替">
                 <div class="dashboard-number" id="shinyCount">0</div>
                 <div class="dashboard-label">色違い</div>
             </div>
-            <div class="dashboard-card">
+            <div class="dashboard-card" id="activeStatTile" data-filter-toggle="filterActive" role="button" tabindex="0" aria-pressed="false" title="クリックで配信中のみ表示を切替">
                 <div class="dashboard-number" id="activeCount">0</div>
                 <div class="dashboard-label">配信中</div>
             </div>
@@ -188,6 +188,15 @@ if (genCount[0] && genCount[0] >= 1) {
     // リボン複数選択
     let selectedRibbons = [];
     let ribbonFilterMode = 'OR';
+
+    // かな正規化検索用: NFKC正規化 → 小文字化 → ひらがな→カタカナ変換
+    // 「ぴかちゅう」でピカチュウがヒットしたり、全角英数（ｐｉｋａ）でも検索できるようにする
+    function normalizeSearchText(str) {
+        return String(str || '')
+            .normalize('NFKC')
+            .toLowerCase()
+            .replace(/[ぁ-ゖ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+    }
 
     // セキュリティ: HTMLエスケープ関数
     function escapeHtml(text) {
@@ -425,15 +434,6 @@ if (genCount[0] && genCount[0] >= 1) {
             if (regionSelect) regionSelect.value = region;
         }
 
-        // ゲーム複数対応（?game=SV&game=LA など）
-        const gameParams = params.getAll('game');
-        if (gameParams.length > 0) {
-            document.querySelectorAll('.game-tag-btn').forEach(btn => {
-                if (gameParams.includes(btn.dataset.game)) btn.classList.add('active');
-            });
-            hasFilters = true;
-        }
-
         // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
         const ribbonParams = params.getAll('ribbon');
         if (ribbonParams.length > 0) {
@@ -459,7 +459,6 @@ if (genCount[0] && genCount[0] >= 1) {
         return {
             searchName: document.getElementById('searchName')?.value || '',
             generation: document.getElementById('filterGeneration')?.value || '',
-            games: [...document.querySelectorAll('.game-tag-btn.active')].map(b => b.dataset.game),
             method: document.getElementById('filterMethod')?.value || '',
             region: document.getElementById('filterRegion')?.value || '',
             shiny: document.getElementById('filterShiny')?.checked || false,
@@ -494,11 +493,6 @@ if (genCount[0] && genCount[0] >= 1) {
         if (document.getElementById('filterOT')) document.getElementById('filterOT').value = filters.ot || '';
         if (document.getElementById('filterTrainerId')) document.getElementById('filterTrainerId').value = filters.trainerId || '';
         if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = filters.sortOrder || 'date-desc';
-
-        // ゲームタグ
-        document.querySelectorAll('.game-tag-btn').forEach(btn => {
-            btn.classList.toggle('active', (filters.games || []).includes(btn.dataset.game));
-        });
 
         // リボン
         selectedRibbons = filters.ribbons || [];
@@ -573,7 +567,7 @@ if (genCount[0] && genCount[0] >= 1) {
             applyUrlParameters();
 
             const params = new URLSearchParams(window.location.search);
-            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'game', 'item', 'region', 'active'].includes(key))) {
+            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active'].includes(key))) {
                 const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
                 searchResults = sortData(allData, sortOrder);
                 displayResults(searchResults);
@@ -593,6 +587,64 @@ if (genCount[0] && genCount[0] >= 1) {
         updateFavoriteCount();
         updateOwnedCount();
     }
+
+    // 統計タイル（色違い・配信中）をクリック/タップでフィルタートグル
+    function updateStatTileStates() {
+        document.querySelectorAll('.dashboard-card[data-filter-toggle]').forEach(tile => {
+            const checkbox = document.getElementById(tile.dataset.filterToggle);
+            const pressed = !!(checkbox && checkbox.checked);
+            tile.classList.toggle('is-pressed', pressed);
+            tile.setAttribute('aria-pressed', String(pressed));
+        });
+    }
+
+    function toggleStatTileFilter(checkboxId) {
+        const checkbox = document.getElementById(checkboxId);
+        if (!checkbox) return;
+        checkbox.checked = !checkbox.checked;
+        searchPokemon();
+        updateStatTileStates();
+        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
+    }
+
+    document.querySelectorAll('.dashboard-card[data-filter-toggle]').forEach(tile => {
+        tile.addEventListener('click', () => toggleStatTileFilter(tile.dataset.filterToggle));
+        tile.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleStatTileFilter(tile.dataset.filterToggle);
+            }
+        });
+    });
+
+    // region フィールドをカンマ区切りで分割し、トリムした配列にする
+    function regionTokens(region) {
+        return (region || '').split(',').map(r => r.trim()).filter(Boolean);
+    }
+
+    // 地域の優先表示順（先頭固定）と国旗絵文字（既知の地域のみ）
+    const REGION_PRIORITY_ORDER = ['日本', '全世界', '北米', '欧州', '韓国', '台湾'];
+    const REGION_FLAGS = {
+        '日本': '🇯🇵',
+        '全世界': '🌍',
+        '北米': '🇺🇸',
+        '欧州': '🇪🇺',
+        '韓国': '🇰🇷',
+        '台湾': '🇹🇼'
+    };
+
+    // 世代の略称マッピング（プルダウン表示用）
+    const GENERATION_SHORT_NAMES = {
+        9: 'SV',
+        8: '剣盾・BDSP・LA',
+        7: 'SM・USUM・ピカブイ',
+        6: 'XY・ORAS',
+        5: 'BW・BW2',
+        4: 'DPPt・HGSS',
+        3: 'RSE・FRLG',
+        2: '金銀',
+        1: '赤緑'
+    };
 
     // Populate filter dropdowns from data
     function populateFilters() {
@@ -622,6 +674,37 @@ if (genCount[0] && genCount[0] >= 1) {
             option.value = ribbon;
             ribbonList.appendChild(option);
         });
+
+        // 地域の選択肢をデータから動的生成（カンマ区切りの複合値は分割して個別値を候補にする）
+        const regionSet = new Set();
+        allData.forEach(p => regionTokens(p.region).forEach(r => regionSet.add(r)));
+        const priorityRegions = REGION_PRIORITY_ORDER.filter(r => regionSet.has(r));
+        const otherRegions = [...regionSet]
+            .filter(r => !REGION_PRIORITY_ORDER.includes(r))
+            .sort((a, b) => a.localeCompare(b, 'ja'));
+        const orderedRegions = [...priorityRegions, ...otherRegions];
+
+        const regionSelect = document.getElementById('filterRegion');
+        orderedRegions.forEach(region => {
+            const option = document.createElement('option');
+            option.value = region;
+            const flag = REGION_FLAGS[region];
+            option.textContent = flag ? `${flag} ${region}` : region;
+            regionSelect.appendChild(option);
+        });
+
+        // 世代の選択肢をデータから動的生成（降順。Championsのgeneration:0は対象外）
+        const generations = [...new Set(allData.map(p => p.generation))]
+            .filter(g => g !== 0)
+            .sort((a, b) => b - a);
+        const generationSelect = document.getElementById('filterGeneration');
+        generations.forEach(gen => {
+            const option = document.createElement('option');
+            option.value = String(gen);
+            const short = GENERATION_SHORT_NAMES[gen];
+            option.textContent = short ? `第${gen}世代 (${short})` : `第${gen}世代`;
+            generationSelect.appendChild(option);
+        });
     }
 
     // 検索結果を保存
@@ -644,6 +727,27 @@ if (genCount[0] && genCount[0] >= 1) {
                 case 'date-asc':
                     result = (a.startDate || '').localeCompare(b.startDate || '');
                     break;
+                case 'end-soon': {
+                    // 1. 配信中＋終了日あり（締切が近い順） 2. 配信中＋終了日なし 3. 終了済み（最近終わった順）
+                    const rankOf = (p) => {
+                        const active = isDistributionActive(p.endDate);
+                        if (active && p.endDate) return 0;
+                        if (active) return 1;
+                        return 2;
+                    };
+                    const rankA = rankOf(a);
+                    const rankB = rankOf(b);
+                    if (rankA !== rankB) {
+                        result = rankA - rankB;
+                    } else if (rankA === 0) {
+                        result = (a.endDate || '').localeCompare(b.endDate || '');
+                    } else if (rankA === 2) {
+                        result = (b.endDate || '').localeCompare(a.endDate || '');
+                    } else {
+                        result = 0;
+                    }
+                    break;
+                }
                 case 'dex-asc':
                     result = (a.dexNo || 0) - (b.dexNo || 0);
                     break;
@@ -668,9 +772,8 @@ if (genCount[0] && genCount[0] >= 1) {
 
     // Search function
     function searchPokemon() {
-        const searchName = document.getElementById('searchName').value.toLowerCase();
+        const searchName = document.getElementById('searchName').value;
         const filterGeneration = document.getElementById('filterGeneration').value;
-        const selectedGames = [...document.querySelectorAll('.game-tag-btn.active')].map(b => b.dataset.game);
         const filterMethod = document.getElementById('filterMethod').value;
         const filterRegion = document.getElementById('filterRegion').value;
         const filterShiny = document.getElementById('filterShiny')?.checked;
@@ -681,24 +784,25 @@ if (genCount[0] && genCount[0] >= 1) {
         const filterActive = document.getElementById('filterActive')?.checked;
         const filterDateFrom = document.getElementById('filterDateFrom')?.value;
         const filterDateTo = document.getElementById('filterDateTo')?.value;
-        const filterOT = document.getElementById('filterOT')?.value.toLowerCase();
+        const filterOT = document.getElementById('filterOT')?.value;
         const filterTrainerId = document.getElementById('filterTrainerId')?.value;
         const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
 
         let filtered = allData;
 
-        // Filter by Pokemon name, event name, OT, distribution info, notes
+        // Filter by Pokemon name, event name, OT, distribution info, notes（かな正規化して比較）
         if (searchName) {
+            const normalizedSearchName = normalizeSearchText(searchName);
             filtered = filtered.filter(p => {
                 const otStr = typeof p.ot === 'object'
-                    ? Object.values(p.ot).join(' ').toLowerCase()
-                    : (p.ot || '').toLowerCase();
-                return p.pokemonName.toLowerCase().includes(searchName) ||
-                    p.eventName.toLowerCase().includes(searchName) ||
-                    otStr.includes(searchName) ||
-                    (p.distributionMethod || '').toLowerCase().includes(searchName) ||
-                    (p.distributionLocation || '').toLowerCase().includes(searchName) ||
-                    (p.notes || '').toLowerCase().includes(searchName);
+                    ? Object.values(p.ot).join(' ')
+                    : (p.ot || '');
+                return normalizeSearchText(p.pokemonName).includes(normalizedSearchName) ||
+                    normalizeSearchText(p.eventName).includes(normalizedSearchName) ||
+                    normalizeSearchText(otStr).includes(normalizedSearchName) ||
+                    normalizeSearchText(p.distributionMethod).includes(normalizedSearchName) ||
+                    normalizeSearchText(p.distributionLocation).includes(normalizedSearchName) ||
+                    normalizeSearchText(p.notes).includes(normalizedSearchName);
             });
         }
 
@@ -707,19 +811,18 @@ if (genCount[0] && genCount[0] >= 1) {
             filtered = filtered.filter(p => p.generation === parseInt(filterGeneration));
         }
 
-        // Filter by game (複数選択)
-        if (selectedGames.length > 0) {
-            filtered = filtered.filter(p => selectedGames.includes(p.game));
-        }
-
         // Filter by distribution method
         if (filterMethod) {
             filtered = filtered.filter(p => p.distributionMethod === filterMethod);
         }
 
-        // Filter by region
+        // Filter by region（カンマ区切り複合値対応。特定地域選択時は「全世界」も含める）
         if (filterRegion) {
-            filtered = filtered.filter(p => p.region === filterRegion);
+            filtered = filtered.filter(p => {
+                const tokens = regionTokens(p.region);
+                if (filterRegion === '全世界') return tokens.includes('全世界');
+                return tokens.includes(filterRegion) || tokens.includes('全世界');
+            });
         }
 
         // Filter by date range
@@ -742,7 +845,7 @@ if (genCount[0] && genCount[0] >= 1) {
 
         // Filter by Alpha
         if (filterAlpha) {
-            filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
+            filtered = filtered.filter(p => p.alpha && p.alpha !== '');
         }
 
         // Filter by special moves flag
@@ -774,17 +877,18 @@ if (genCount[0] && genCount[0] >= 1) {
             filtered = filtered.filter(p => isDistributionActive(p.endDate));
         }
 
-        // Filter by OT (親名) - supports multi-language OT
+        // Filter by OT (親名) - supports multi-language OT（かな正規化して比較）
         if (filterOT) {
+            const normalizedFilterOT = normalizeSearchText(filterOT);
             filtered = filtered.filter(p => {
                 if (!p.ot) return false;
                 if (typeof p.ot === 'string') {
-                    return p.ot.toLowerCase().includes(filterOT);
+                    return normalizeSearchText(p.ot).includes(normalizedFilterOT);
                 }
                 // Multi-language OT object
                 if (typeof p.ot === 'object') {
                     return Object.values(p.ot).some(otValue =>
-                        otValue && otValue.toLowerCase().includes(filterOT)
+                        otValue && normalizeSearchText(otValue).includes(normalizedFilterOT)
                     );
                 }
                 return false;
@@ -830,7 +934,7 @@ if (genCount[0] && genCount[0] >= 1) {
                     filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
                     break;
                 case 'alpha':
-                    filtered = filtered.filter(p => p.isAlpha && p.isAlpha !== '');
+                    filtered = filtered.filter(p => p.alpha && p.alpha !== '');
                     break;
                 case 'moves':
                     filtered = filtered.filter(p => {
@@ -950,7 +1054,7 @@ if (genCount[0] && genCount[0] >= 1) {
     }
 
     function isLegendsGame(game) {
-        return game && (game.includes('アルセウス') || game.includes('Z-A'));
+        return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
     }
 
     function getGameColorClass(game) {
@@ -1028,7 +1132,7 @@ if (genCount[0] && genCount[0] >= 1) {
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">💎 ${pokemon.teraType}</span>`;
         }
-        if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
+        if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
             badgesHtml += '<span class="icon-badge" title="オヤブン">👑</span>';
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
@@ -1169,7 +1273,7 @@ if (genCount[0] && genCount[0] >= 1) {
             badgesHtml += '<span class="icon-badge mobile-only" title="キョダイマックス">🔷</span>';
             badgesHtml += '<span class="text-badge pc-only">キョダイマックス可</span>';
         }
-        if (pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game)) {
+        if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
             badgesHtml += '<span class="icon-badge mobile-only" title="オヤブン">👑</span>';
             badgesHtml += '<span class="text-badge pc-only">オヤブン</span>';
         }
@@ -1577,6 +1681,7 @@ if (genCount[0] && genCount[0] >= 1) {
 
         currentDisplayData = data;
         displayedCount = 0;
+        updateStatTileStates();
 
         const totalItems = data.length;
         resultCountDiv.textContent = `${totalItems}件のポケモンが見つかりました`;
@@ -2042,5 +2147,29 @@ body.dark-mode .gen-nav-link {
 body.dark-mode .gen-nav-link:hover {
     background: var(--color-accent);
     color: #fff;
+}
+
+/* 統計タイル（色違い・配信中）クリックでフィルタートグル */
+.dashboard-card[data-filter-toggle] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.dashboard-card[data-filter-toggle]:hover {
+    border-color: var(--color-primary);
+}
+
+.dashboard-card[data-filter-toggle]:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+.dashboard-card[data-filter-toggle].is-pressed {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+body.dark-mode .dashboard-card[data-filter-toggle].is-pressed {
+    background: var(--color-primary-dark);
 }
 </style>

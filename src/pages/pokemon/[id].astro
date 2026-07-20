@@ -34,7 +34,7 @@ interface PokemonData {
     nature?: string;
     gigantamax?: string;
     teraType?: string;
-    isAlpha?: string;
+    alpha?: string;
     heldItem?: string;
     ivs?: string | { hp?: number; atk?: number; def?: number; spa?: number; spd?: number; spe?: number };
     evs?: string;
@@ -169,7 +169,7 @@ function isSV(game: string) {
 }
 
 function isLegendsGame(game: string) {
-    return game && (game.includes('アルセウス') || game.includes('Z-A'));
+    return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
 }
 
 // OT表示用
@@ -270,7 +270,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
                     {pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game) && (
                         <span class="tera-type-badge">テラスタイプ: {pokemon.teraType}</span>
                     )}
-                    {pokemon.isAlpha && pokemon.isAlpha !== '' && isLegendsGame(pokemon.game) && (
+                    {pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game) && (
                         <span class="text-badge">オヤブン</span>
                     )}
                 </div>

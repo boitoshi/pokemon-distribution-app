@@ -75,7 +75,7 @@ pokemon-distribution（スプレッドシート）
 | **region** | 全世代 | 配布地域（後述） | `日本`, `北米`, `欧州` |
 | gigantamax | 8世代（剣盾） | キョダイマックス | `キョダイマックス` |
 | teraType | 9世代（SV） | テラスタイプ | `でんき` |
-| isAlpha | LA/Z-A | オヤブン | `オヤブン` |
+| alpha | LA/Z-A | オヤブン | `オヤブン` |
 
 ---
 

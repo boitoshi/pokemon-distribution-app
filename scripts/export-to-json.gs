@@ -10,13 +10,11 @@
  */
 
 // エクスポート対象のシート名（マスターデータなどは除外）
+// includes() 判定のため、「第7世代」「第8世代」等のタブ名はすべて '世代' にマッチする。
+// 「記事生成」「シート1」等はここに含まれないため自動的に除外される。
 const TARGET_SHEETS = [
-  '第1-2世代',
-  '第3世代',
-  '第4-5世代',
-  '第6-7世代',
-  '第8世代',
-  '第9世代'
+  '世代',
+  'チャンピオンズ'
 ];
 
 // 除外するシート名のパターン
@@ -212,6 +210,16 @@ function formatDate(date) {
  * 特殊フィールドの変換（moves, ribbons, ot）
  */
 function transformSpecialFields(obj) {
+  // game: シート入力の略記をゲーム正式名（カンマ区切り）に展開
+  // スプレッドシート側で略記が再投入されても正規化されるようにするための保険
+  const GAME_ABBREVIATIONS = {
+    'sus': 'サン, ウルトラサン',
+    'mum': 'ムーン, ウルトラムーン'
+  };
+  if (obj.game && typeof obj.game === 'string' && GAME_ABBREVIATIONS[obj.game.trim()]) {
+    obj.game = GAME_ABBREVIATIONS[obj.game.trim()];
+  }
+
   // moves: カンマ区切り文字列 → 配列
   if (obj.moves && typeof obj.moves === 'string') {
     obj.moves = obj.moves.split(',').map(m => m.trim()).filter(m => m);
