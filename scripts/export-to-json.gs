@@ -73,12 +73,18 @@ function exportAllSheetsToJson() {
   Logger.log(`エクスポート完了: ${allData.length}件`);
   Logger.log(`ファイルURL: ${file.getUrl()}`);
 
-  // 完了メッセージ
-  SpreadsheetApp.getUi().alert(
-    'エクスポート完了',
-    `${allData.length}件のデータをエクスポートしました。\n\nファイル: ${file.getUrl()}`,
-    SpreadsheetApp.getUi().ButtonSet.OK
-  );
+  // 完了メッセージ（toastは非ブロッキング。alertはOKが押されるまで実行時間を
+  // 消費し続け、エディタから実行すると Exceeded maximum execution time になるため使わない）
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(
+      `${allData.length}件のデータをエクスポートしました`,
+      'エクスポート完了',
+      10
+    );
+  } catch (e) {
+    // UIが使えないコンテキスト（トリガー実行等）ではログのみ
+    Logger.log('完了通知はスキップ: ' + e);
+  }
 
   return jsonString;
 }
@@ -400,12 +406,20 @@ function validateData() {
     }
   }
 
-  // 結果表示
+  // 結果表示（alertはブロッキングのためtoast+ログに変更）
   if (errors.length === 0) {
-    SpreadsheetApp.getUi().alert('検証完了', 'エラーはありませんでした。', SpreadsheetApp.getUi().ButtonSet.OK);
+    Logger.log('検証完了: エラーはありませんでした。');
+    try {
+      SpreadsheetApp.getActiveSpreadsheet().toast('エラーはありませんでした。', '検証完了', 10);
+    } catch (e) { /* UIなしコンテキストでは何もしない */ }
   } else {
-    const message = errors.slice(0, 20).join('\n') + (errors.length > 20 ? `\n\n...他 ${errors.length - 20}件` : '');
-    SpreadsheetApp.getUi().alert('検証エラー', message, SpreadsheetApp.getUi().ButtonSet.OK);
     Logger.log('検証エラー:\n' + errors.join('\n'));
+    try {
+      SpreadsheetApp.getActiveSpreadsheet().toast(
+        `${errors.length}件のエラーがあります。詳細は実行ログを確認してください。`,
+        '検証エラー',
+        10
+      );
+    } catch (e) { /* UIなしコンテキストでは何もしない */ }
   }
 }
