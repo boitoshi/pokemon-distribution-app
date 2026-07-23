@@ -12,11 +12,11 @@
 - `src/components/SearchBox.astro` — 検索UI
 - `src/components/PokemonCard.astro` — カード表示・モーダル
 - `src/layouts/Layout.astro` — 共通レイアウト・グローバルCSS
-- `public/pokemon.json` — 配信ポケモンデータ（スプレッドシートからGASでエクスポート）
-- `scripts/export-to-json.gs` — GASエクスポートスクリプト
+- `public/pokemon.json` — 配信ポケモンデータ（pokemon-data の build/pokemon.json から同期。688件）
+- `scripts/sync-from-pokemon-data.mjs` — pokemon-data build → public/pokemon.json 同期スクリプト
 
 ## ドキュメント
-- `docs/data-design.md` — データ設計書（カラム定義、GASエクスポート仕様）
+- `docs/data-design.md` — データ設計書（カラム定義。GAS/スプレッドシートは引退・参考）
 - `docs/deploy.md` — デプロイ手順（FTP/SFTP）
 - `docs/features.md` — 機能一覧・実装状況・今後の課題
 - `SECURITY.md` — セキュリティチェック結果（2026-02-06 実施済み）
@@ -61,12 +61,12 @@
 - レスポンシブ: `@media (max-width: 768px)`
 
 ## データ更新フロー
-### FTP直接更新（最速、ビルド不要）
-1. GASでJSONエクスポート → FTP/SFTPで `public_html/distribution/pokemon.json` を上書き
+配信データ正本は pokemon-data（`distributions/*.json`）。`build-distributions.mjs` の成果物 `build/pokemon.json` を同期する。
+1. `cd ../pokemon-data && npm run build`
+2. `node scripts/sync-from-pokemon-data.mjs`（→ `public/pokemon.json`）
+3. `npm run build` でビルド確認 → mainブランチにプッシュ（FTP直接: `public_html/distribution/pokemon.json` 上書きでも可・ビルド不要）
 
-### Gitリポジトリ経由（推奨）
-1. GASでJSONエクスポート → `public/pokemon.json` を置き換え
-2. `npm run build` でビルド確認 → mainブランチにプッシュ
+（旧: スプレッドシート＋GAS `export-to-json.gs`。2026-07 正本一本化で引退・削除。）
 
 ## 実装済み機能（主要）
 - 無限スクロール（IntersectionObserver、24件ずつ）

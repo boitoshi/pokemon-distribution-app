@@ -24,7 +24,7 @@ pokemon-distribution-app/
 │   ├── deploy.md                    # デプロイ手順
 │   └── features.md                  # 機能一覧・実装状況・今後の課題
 ├── scripts/
-│   └── export-to-json.gs            # GASエクスポートスクリプト
+│   └── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
 ├── CLAUDE.md                        # Claude Code開発ガイド
 ├── SECURITY.md                      # セキュリティチェック結果
 ├── astro.config.mjs
@@ -63,45 +63,23 @@ npm run preview
 
 ## データ管理
 
-### 元データ
+### データソース（正本）
 
-Googleスプレッドシートで管理。世代別シートで構成。
+配信データの正本は **pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。`build-distributions.mjs` が app-runtime schema へ前方向生成した `build/pokemon.json`（688件）を、本アプリの `public/pokemon.json` へ **pull only** で同期する。
 
-| シート | 内容 |
-|--------|------|
-| 第1-2世代 | GB/GBC（カントー・ジョウト） |
-| 第3世代 | GBA（ホウエン） |
-| 第4-5世代 | DS（シンオウ・イッシュ） |
-| 第6-7世代 | 3DS（カロス・アローラ）※リージョン対応 |
-| 第8世代 | Switch（ガラル） |
-| 第9世代 | Switch（パルデア） |
+（旧構成〜2026-07: Googleスプレッドシート＋GAS `export-to-json.gs` でエクスポートしていた。正本一本化で引退・削除。世代/ハードの対応やカラム定義は `docs/data-design.md` の参考節に残す。）
 
 ### データ更新手順
 
+1. `cd ../pokemon-data && npm run build`（正本 → `build/pokemon.json` 生成）
+2. 本 repo で `node scripts/sync-from-pokemon-data.mjs`（→ `public/pokemon.json`。件数減少ガード付き）
+3. `npm run build` でビルド確認 → mainブランチにプッシュ
+
 #### FTP直接更新（最速、ビルド不要）
 
-1. Googleスプレッドシートを開く
-2. メニュー「Pokemon Export」→「JSONエクスポート」を実行
-3. 出力された `pokemon.json` をダウンロード
-4. FTP/SFTPで `public_html/distribution/pokemon.json` を上書き
-
-**ビルド不要**：JSONはクライアントサイドでfetchするため、ファイル差し替えのみでOK。
-
-#### Gitリポジトリ経由（推奨）
-
-1. 上記1〜3を実施
-2. `public/pokemon.json` を置き換え
-3. `npm run build` でビルド確認
-4. mainブランチにプッシュ → FTPでdist/を本番にアップロード
+`public/pokemon.json` はクライアントサイドで fetch するため、上記2の後 `public_html/distribution/pokemon.json` をFTP上書きするだけでも反映できる（ビルド不要）。
 
 詳細は [`docs/data-design.md`](docs/data-design.md) を参照。
-
-### GASスクリプトの設定
-
-1. Googleスプレッドシートで「拡張機能」→「Apps Script」
-2. [`scripts/export-to-json.gs`](scripts/export-to-json.gs) の内容を貼り付け
-3. 保存してスプレッドシートを再読み込み
-4. メニューに「Pokemon Export」が追加される
 
 ## デプロイ
 
@@ -180,7 +158,7 @@ pokemon.json をFTPで上書き（ビルド不要）
 |---------|------|
 | [`CLAUDE.md`](CLAUDE.md) | 開発ガイド（Claude Code用） |
 | [`SECURITY.md`](SECURITY.md) | セキュリティチェック結果 |
-| [`docs/data-design.md`](docs/data-design.md) | データ設計書（カラム定義、GASエクスポート仕様） |
+| [`docs/data-design.md`](docs/data-design.md) | データ設計書（カラム定義。GAS/スプレッドシートは引退・参考） |
 | [`docs/deploy.md`](docs/deploy.md) | デプロイ手順 |
 | [`docs/features.md`](docs/features.md) | 機能一覧・実装状況・今後の課題 |
 

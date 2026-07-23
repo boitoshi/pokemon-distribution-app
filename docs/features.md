@@ -65,7 +65,7 @@
 - [x] 比較機能（複数の配信を並べて違いを比較） → `src/pages/index.astro`
 
 ### データ基盤
-- [x] Googleスプレッドシートからの変換スクリプト（OT多言語対応） → `scripts/export-to-json.gs`
+- [x] 配信データ正本を pokemon-data リポジトリへ一本化 → `scripts/sync-from-pokemon-data.mjs`（旧 GAS `export-to-json.gs` は 2026-07 引退・削除）
 - [x] データ設計書 → `docs/data-design.md`
 - [x] デプロイ手順書 → `docs/deploy.md`
 

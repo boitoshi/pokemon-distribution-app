@@ -74,7 +74,7 @@ docs/
 └── features.md                  # 機能一覧・実装状況・今後の課題
 
 scripts/
-└── export-to-json.gs            # GASエクスポートスクリプト
+└── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
 
 nuxt-reference/                  # 参考用Nuxt版（修正不要）
 ```
@@ -145,7 +145,7 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 
 ### データファイル: src/data/gen-guides.json
 
-世代別の解説テキスト。当面は手動管理、将来的にGASエクスポート（スプレッドシートの「世代解説」シート）に統合予定。
+世代別の解説テキスト。手動管理（GAS/スプレッドシート引退により、統合先はなし）。
 
 ```json
 {
