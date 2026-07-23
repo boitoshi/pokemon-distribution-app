@@ -2,17 +2,18 @@
 
 ## 概要
 
-配信ポケモンデータはGoogleスプレッドシートで管理し、Google Apps Script（GAS）でJSON形式にエクスポートする。
+配信ポケモンデータの**正本は pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。pokemon-data の `build-distributions.mjs` が app-runtime schema へ前方向生成した成果物 `build/pokemon.json` を、本アプリの `public/pokemon.json` へ **pull only** で同期する（循環参照なし）。
+
+> **旧構成（〜2026-07）**: 配信データを Google スプレッドシート＋GAS（`scripts/export-to-json.gs`）でエクスポートし、`sync-from-tools.mjs` で pokebros-tools の `pokemon-all.json` を取り込んでいた。2026-07 の正本一本化で **スプレッドシート/GAS は引退**、tools→app→tools 循環も撤去。以下のスプレッドシート/GAS/カラム設計の記述は、値の意味・歴史的経緯の参考として残す。
 
 ### データソースの正本
 
 | データ | 正本 | 反映方法 |
 |---|---|---|
-| 第5〜7世代（整備済み分） | pokebros-tools `tools/summary-pages/src/data/pokemon-all.json` | `node scripts/sync-from-tools.mjs`（managementId単位で上書き。正本に無いエントリは温存） |
-| 第8・9世代・チャンピオンズ・未整備の第7世代分 | スプレッドシート | GASエクスポート（`scripts/export-to-json.gs`） |
+| 全世代（gen5-9）＋チャンピオンズ 688件 | `../pokemon-data/distributions/*.json`（L2 正本） | `node scripts/sync-from-pokemon-data.mjs`（pokemon-data の `build/pokemon.json` を `public/pokemon.json` へコピー・pull only・件数減少ガード付き） |
 
-スプレッドシートのエクスポート結果で `public/pokemon.json` を丸ごと置き換えると
-tools由来の世代が消えるため、置き換え後に必ず `sync-from-tools.mjs` を再実行すること。
+`public/pokemon.json` はコミット対象。CI/本番はコミット済みファイルを使う（pokemon-data の checkout 不要）。
+更新手順: `cd ../pokemon-data && npm run build` → 本 repo で `node scripts/sync-from-pokemon-data.mjs` → 差分を commit。
 
 ## スプレッドシート構成
 
