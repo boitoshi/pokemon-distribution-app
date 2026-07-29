@@ -3,7 +3,7 @@
 ポケモン画像ファイルを日本語ファイル名 → ASCII ファイル名にコピー・リネームするスクリプト。
 出力先: public/images/pokemon_ascii/
 
-戦略: pokemon-names.json から正式な日本語名を引き、
+戦略: pokemon-data/mappings/pokemon_names.json から正式な日本語名を引き、
       ファイル名の日本語部分を「プレフィックス + 正式名 + フォームサフィックス」に分解して変換する。
       これにより「メガニウム」のように正式名が「メガ」始まりでも誤判定しない。
 
@@ -19,18 +19,18 @@ from pathlib import Path
 
 SRC_DIR  = Path(__file__).parent.parent / "public/images/pokemon"
 DST_DIR  = Path(__file__).parent.parent / "public/images/pokemon_ascii"
-NAMES_JSON = Path(__file__).parent.parent.parent / "pokebros-content-hub/reference-data/pokemon-names.json"
+NAMES_JSON = Path(__file__).parent.parent.parent / "pokemon-data/mappings/pokemon_names.json"
 
 # ---- ポケモン名データ読み込み ----
 with open(NAMES_JSON, encoding="utf-8") as f:
-    _names_raw = json.load(f)  # {"1": {"ja": "フシギダネ", "en": "Bulbasaur"}, ...}
+    _names_raw = json.load(f)  # {"bulbasaur": {"en": "Bulbasaur", "ja": "フシギダネ", "dex_no": 1}, ...}
 
 def nfkc(s: str) -> str:
     """全角英数字→半角など、Unicode正規化（NFKC）を適用する。"""
     return unicodedata.normalize("NFKC", s)
 
 # dex番号（int） → 正式日本語名（NFKC正規化済み）
-DEX_TO_JA: dict[int, str] = {int(k): nfkc(v["ja"]) for k, v in _names_raw.items()}
+DEX_TO_JA: dict[int, str] = {int(v["dex_no"]): nfkc(v["ja"]) for v in _names_raw.values()}
 
 # ---- フォームサフィックス（カッコ内文字列 → ASCII） ----
 SUFFIX_MAP: dict[str, str] = {

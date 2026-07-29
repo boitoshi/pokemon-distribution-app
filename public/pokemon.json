@@ -10259,6 +10259,1137 @@
     "ivs": "ランダム"
   },
   {
+    "managementId": "06220",
+    "pokemonName": "セレビィ",
+    "dexNo": 251,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン セレビィ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-03-01",
+    "endDate": "2016-03-24",
+    "ot": "GF",
+    "trainerId": "03016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "しぜんかいふく",
+    "nature": "ランダム",
+    "moves": [
+      "ねんりき",
+      "じこさいせい",
+      "いやしのすず",
+      "しんぴのまもり"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Celebi」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06221",
+    "pokemonName": "ジラーチ",
+    "dexNo": 385,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ジラーチ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-04-01",
+    "endDate": "2016-04-24",
+    "ot": "GF",
+    "trainerId": "04016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "てんのめぐみ",
+    "nature": "ランダム",
+    "heldItem": "カムラのみ",
+    "moves": [
+      "ねがいごと",
+      "ねんりき",
+      "ねむる"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Jirachi」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06222",
+    "pokemonName": "マナフィ",
+    "dexNo": 490,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン マナフィ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-06-01",
+    "endDate": "2016-06-24",
+    "ot": "GF",
+    "trainerId": "06016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "うるおいボディ",
+    "nature": "ランダム",
+    "heldItem": "おうじゃのしるし",
+    "moves": [
+      "ほたるび",
+      "あわ",
+      "みずあそび"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Manaphy」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06223",
+    "pokemonName": "メロエッタ",
+    "dexNo": 648,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン メロエッタ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-12-01",
+    "endDate": "2016-12-24",
+    "ot": "GF",
+    "trainerId": "12016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "てんのめぐみ",
+    "nature": "ランダム",
+    "heldItem": "ポイントマックス",
+    "moves": [
+      "でんこうせっか",
+      "ねんりき",
+      "りんしょう"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Meloetta」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06224",
+    "pokemonName": "ダークライ",
+    "dexNo": 491,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ダークライ（海外配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-09-27",
+    "endDate": "2016-10-31",
+    "ot": "GF",
+    "trainerId": "05016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "ナイトメア",
+    "nature": "ランダム",
+    "heldItem": "ナゾのみ",
+    "moves": [
+      "ダークホール",
+      "あやしいかぜ",
+      "あくむ",
+      "だましうち"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Darkrai」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06225",
+    "pokemonName": "アルセウス",
+    "dexNo": 493,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン アルセウス（海外配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-12-01",
+    "endDate": "2016-12-31",
+    "ot": "GF",
+    "trainerId": "08016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "マルチタイプ",
+    "nature": "ランダム",
+    "moves": [
+      "さばきのつぶて",
+      "じこさいせい",
+      "はかいこうせん",
+      "ほろびのうた"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Arceus」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06226",
+    "pokemonName": "ゲノセクト",
+    "dexNo": 649,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ゲノセクト（海外配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-11-01",
+    "endDate": "2017-02-28",
+    "ot": "GF",
+    "trainerId": "11016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "ダウンロード",
+    "nature": "ランダム",
+    "moves": [
+      "テクノバスター",
+      "マグネットボム",
+      "ソーラービーム",
+      "シグナルビーム"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Genesect」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06227",
+    "pokemonName": "ミュウ",
+    "dexNo": 151,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ミュウ（海外配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-06-10",
+    "endDate": "2016-08-31",
+    "ot": "GF",
+    "trainerId": "02016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "シンクロ",
+    "nature": "ランダム",
+    "moves": [
+      "はたく"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Mew」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06228",
+    "pokemonName": "シェイミ（ランドフォルム）",
+    "dexNo": 492,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン シェイミ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-07-01",
+    "endDate": "2016-07-24",
+    "ot": "GF",
+    "trainerId": "07016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "しぜんかいふく",
+    "nature": "ランダム",
+    "heldItem": "ミクルのみ",
+    "moves": [
+      "シードフレア",
+      "アロマセラピー",
+      "みがわり",
+      "エナジーボール"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Shaymin」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06229",
+    "pokemonName": "ビクティニ",
+    "dexNo": 494,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ビクティニ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-09-01",
+    "endDate": "2016-09-24",
+    "ot": "GF",
+    "trainerId": "09016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "しょうりのほし",
+    "nature": "ランダム",
+    "moves": [
+      "やきつくす",
+      "でんこうせっか",
+      "こらえる",
+      "ねんりき"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Victini」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06230",
+    "pokemonName": "ケルディオ（いつものすがた）",
+    "dexNo": 647,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ポケモン20周年記念 まぼろしのポケモン ケルディオ（海外配信）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2016-10-01",
+    "endDate": "2016-10-24",
+    "ot": "GF",
+    "trainerId": "10016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "せいぎのこころ",
+    "nature": "ランダム",
+    "heldItem": "ポイントマックス",
+    "moves": [
+      "アクアジェット",
+      "にらみつける",
+      "にどげり",
+      "バブルこうせん"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "ポケモン20周年（2016年）記念で北米・欧州にて配信された幻のポケモン。日本国内では未配信。親名(OT)は全言語共通で「GF」。英語版ワンダーカードのタイトルは「The Mythical Pokémon Keldeo」。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06231",
+    "pokemonName": "ディアンシー",
+    "dexNo": 719,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "ディアンシー（海外配信・2015年7月）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2015-07-24",
+    "endDate": "2015-07-27",
+    "ot": "Hope",
+    "trainerId": "07245",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "クリアボディ",
+    "nature": "ランダム",
+    "moves": [
+      "ダイヤストーム",
+      "ムーンフォース",
+      "マジカルシャイン",
+      "まもる"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015年7月24〜27日に北米・欧州でNintendo Networkにより配信されたディアンシー（英名イベント「Get a Dazzling Diancie」／Bulbapedia表記「Hope Diancie」）。親名(OT)=Hope。日本国内では未配信。",
+    "region": "北米,欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06232",
+    "pokemonName": "フーパ（いましめられし）",
+    "dexNo": 720,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "フーパ（北米配信・マクドナルド 2015年）",
+    "distributionMethod": "ニンテンドーゾーン",
+    "startDate": "2015-11-27",
+    "endDate": "2015-12-23",
+    "ot": "Mac",
+    "trainerId": "11275",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "マジシャン",
+    "nature": "ランダム",
+    "heldItem": "きあいのタスキ",
+    "moves": [
+      "いじげんホール",
+      "サイコキネシス",
+      "おどろかす",
+      "わるだくみ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015年11月27日〜12月23日に米国のマクドナルド店舗の Nintendo Zone で配信されたフーパ（いましめられし）。ORAS ハッピーセット連動プロモ（英名「Mac Hoopa」）。親名(OT)=Mac。日本国内では未配信。",
+    "region": "北米",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06233",
+    "pokemonName": "レックウザ",
+    "dexNo": 384,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "色違いレックウザ（北米配信・2015年）",
+    "distributionMethod": "ニンテンドーネットワーク",
+    "startDate": "2015-08-12",
+    "endDate": "2015-09-14",
+    "ot": {
+      "JPN": "Galileo",
+      "ENG": "Galileo",
+      "SPA": "Galileo",
+      "FRE": "Galilée",
+      "GER": "Galileo",
+      "ITA": "Galileo",
+      "KOR": "Galileo"
+    },
+    "trainerId": "08055",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "エアロック",
+    "nature": "ランダム",
+    "heldItem": "りゅうのキバ",
+    "moves": [
+      "ガリョウテンセイ",
+      "ドラゴンクロー",
+      "しんそく",
+      "りゅうのまい"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015年8月12日〜9月14日に北米でNintendo Networkにより配信された色違いレックウザ。トレーディングカードゲーム「Ancient Origins（エメラルドブレイク）」拡張プロモ（英名「Galileo Rayquaza」）。親名(OT)=Galileo。日本国内では未配信。",
+    "region": "北米",
+    "shiny": "あり",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06234",
+    "pokemonName": "ボルケニオン",
+    "dexNo": 721,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ボルケニオン（海外配信・2016年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-10-09",
+    "endDate": "2017-01-31",
+    "ot": "Helen",
+    "trainerId": "10016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "ちょすい",
+    "nature": "ランダム",
+    "heldItem": "とつげきチョッキ",
+    "moves": [
+      "スチームバースト",
+      "かえんほうしゃ",
+      "ハイドロポンプ",
+      "だいばくはつ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年10月〜2017年1月に北米・欧州・豪州でシリアルコード配信されたボルケニオン（英名「Helen Volcanion」／豪NZ EB Games・仏Micromania 等）。親名(OT)=Helen。日本国内では未配信。",
+    "region": "北米,欧州,豪州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06235",
+    "pokemonName": "レックウザ",
+    "dexNo": 384,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "色違いレックウザ（欧州・豪州配信・2015年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-08-10",
+    "endDate": "2016-01-27",
+    "ot": {
+      "JPN": "Galileo",
+      "ENG": "Galileo",
+      "SPA": "Galileo",
+      "FRE": "Galilée",
+      "GER": "Galileo",
+      "ITA": "Galileo",
+      "KOR": "Galileo"
+    },
+    "trainerId": "08055",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "エアロック",
+    "nature": "ランダム",
+    "heldItem": "りゅうのキバ",
+    "moves": [
+      "ガリョウテンセイ",
+      "ドラゴンクロー",
+      "しんそく",
+      "りゅうのまい"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015年8月〜2016年1月に欧州・豪州でシリアルコード配信された色違いレックウザ（豪NZ EB Games／英Smyths／独Müller／仏Paris Games Week）。TCG「Ancient Origins」プロモ（英名「Galileo Rayquaza」）。親名(OT)=Galileo（仏版Galilée）。日本国内では未配信。",
+    "region": "欧州,豪州",
+    "shiny": "あり",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06236",
+    "pokemonName": "ディアンシー",
+    "dexNo": 719,
+    "generation": 6,
+    "game": "X, Y",
+    "eventName": "ディアンシー（北米配信・2014年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2014-10-16",
+    "endDate": "2015-02-28",
+    "ot": {
+      "JPN": "OCT2014",
+      "ENG": "OCT2014",
+      "SPA": "OCTUBRE 2014",
+      "FRE": "OCT2014",
+      "GER": "OCT2014",
+      "ITA": "OCT2014",
+      "KOR": "OCT2014"
+    },
+    "trainerId": "10274",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "クリアボディ",
+    "nature": "ランダム",
+    "heldItem": "ノーマルジュエル",
+    "moves": [
+      "ダイヤストーム",
+      "リフレクター",
+      "おんがえし",
+      "ムーンフォース"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2014年10月〜2015年2月に北米でシリアルコード配信されたディアンシー（北米初のディアンシー配信）。親名(OT)=OCT2014。日本国内では未配信。",
+    "region": "北米",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06237",
+    "pokemonName": "ミュウツー",
+    "dexNo": 150,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "色違いミュウツー（海外配信・2016年 Play! Pokémon）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-07-26",
+    "endDate": "2016-08-21",
+    "ot": "Play! 2016",
+    "trainerId": "07266",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "きんちょうかん",
+    "nature": "ランダム",
+    "heldItem": "ミュウツナイトＹ",
+    "moves": [
+      "サイコブレイク",
+      "サイコキネシス",
+      "じこさいせい",
+      "はどうだん"
+    ],
+    "ribbons": [
+      "イベントリボン"
+    ],
+    "notes": "2016年に Play! Pokémon（公式大会・VGC）参加者へ北米・欧州で配信された色違いミュウツー。親名(OT)=Play! 2016。日本国内では未配信。",
+    "region": "北米,欧州",
+    "shiny": "あり",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06238",
+    "pokemonName": "フーパ（いましめられし）",
+    "dexNo": 720,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "フーパ（北米配信・2016年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-10-03",
+    "endDate": "2016-10-09",
+    "ot": "Alexander",
+    "trainerId": "10036",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "マジシャン",
+    "nature": "ランダム",
+    "heldItem": "けむりだま",
+    "moves": [
+      "いじげんホール",
+      "サイコキネシス",
+      "おどろかす",
+      "わるだくみ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年10月に北米でシリアルコード（共通コード）配信されたフーパ（いましめられし）。親名(OT)=Alexander。日本国内では未配信。",
+    "region": "北米",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06239",
+    "pokemonName": "ディアンシー",
+    "dexNo": 719,
+    "generation": 6,
+    "game": "X, Y",
+    "eventName": "ディアンシー（欧州配信・2014年11月）",
+    "distributionMethod": "ニンテンドーゾーン",
+    "startDate": "2014-11-06",
+    "endDate": "2014-11-28",
+    "ot": {
+      "JPN": "NOV2014",
+      "ENG": "NOV2014",
+      "SPA": "NOV2014",
+      "FRE": "NOV2014",
+      "GER": "NOV. 2014",
+      "ITA": "NOVEMBRE14",
+      "KOR": "NOV2014"
+    },
+    "trainerId": "11064",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "クリアボディ",
+    "nature": "ランダム",
+    "heldItem": "ノーマルジュエル",
+    "moves": [
+      "ダイヤストーム",
+      "リフレクター",
+      "おんがえし",
+      "ムーンフォース"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2014年11月に欧州（スペイン等）で Nintendo Zone 配信されたディアンシー。親名(OT)=NOV2014。日本国内では未配信。",
+    "region": "欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06240",
+    "pokemonName": "ダークライ",
+    "dexNo": 491,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ダークライ（欧州配信・2015年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-02-13",
+    "endDate": "2015-05-05",
+    "ot": "FEB2015",
+    "trainerId": "02135",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "ナイトメア",
+    "nature": "ランダム",
+    "heldItem": "ナゾのみ",
+    "moves": [
+      "ダークホール",
+      "ゆめくい",
+      "あくのはどう",
+      "ゴーストダイブ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015年2〜5月に欧州（英 GAME 等）でシリアルコード配信されたダークライ。親名(OT)=FEB2015。日本国内では未配信。",
+    "region": "欧州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06241",
+    "pokemonName": "フーパ（いましめられし）",
+    "dexNo": 720,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "フーパ（欧州・豪州配信・2016年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-04-06",
+    "endDate": "2016-04-30",
+    "ot": "Harry",
+    "trainerId": "10235",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "マジシャン",
+    "nature": "ランダム",
+    "heldItem": "きあいのタスキ",
+    "moves": [
+      "いじげんホール",
+      "サイコキネシス",
+      "おどろかす",
+      "わるだくみ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年4月に欧州・豪州でシリアルコード配信されたフーパ（いましめられし）。親名(OT)=Harry。日本国内では未配信。",
+    "region": "欧州,豪州",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06242",
+    "pokemonName": "ディアンシー",
+    "dexNo": 719,
+    "generation": 6,
+    "game": "X, Y",
+    "eventName": "ディアンシー（台湾配信・2014年）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2014-08-29",
+    "endDate": "2014-10-15",
+    "ot": "MovieTheater",
+    "trainerId": "08274",
+    "metLocation": "ポケモン映画14",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "クリアボディ",
+    "nature": "ランダム",
+    "heldItem": "ノーマルジュエル",
+    "moves": [
+      "ダイヤストーム",
+      "リフレクター",
+      "おんがえし",
+      "ムーンフォース"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2014年8〜10月に台湾で映画館配信されたディアンシー。親名(OT)=MovieTheater。日本国内では未配信。",
+    "region": "台湾",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06243",
+    "pokemonName": "ケルディオ（いつものすがた）",
+    "dexNo": 647,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "ケルディオ（韓国配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-02-25",
+    "endDate": "2016-01-31",
+    "ot": "속성클리어",
+    "trainerId": "02055",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 15,
+    "ability": "せいぎのこころ",
+    "nature": "ランダム",
+    "moves": [
+      "アクアジェット",
+      "にらみつける",
+      "にどげり",
+      "ハイドロポンプ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015〜2016年に韓国でシリアルコード配信されたケルディオ（いつものすがた）。親名(OT)=속성클리어。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06244",
+    "pokemonName": "シェイミ（ランドフォルム）",
+    "dexNo": 492,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "シェイミ（韓国配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-07-17",
+    "endDate": "2016-01-31",
+    "ot": "완전스토리",
+    "trainerId": "04155",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 15,
+    "ability": "しぜんかいふく",
+    "nature": "ランダム",
+    "moves": [
+      "せいちょう",
+      "マジカルリーフ",
+      "シードフレア",
+      "エアスラッシュ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2015〜2016年に韓国でシリアルコード配信されたシェイミ（ランドフォルム）。親名(OT)=완전스토리。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06245",
+    "pokemonName": "マナフィ",
+    "dexNo": 490,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "マナフィ（韓国配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-07-18",
+    "endDate": "2015-08-31",
+    "ot": "물의일족",
+    "trainerId": "07235",
+    "metLocation": "ポケモンえいが",
+    "ball": "プレシャスボール",
+    "level": 1,
+    "ability": "うるおいボディ",
+    "nature": "ランダム",
+    "moves": [
+      "ほたるび",
+      "あわ",
+      "みずあそび",
+      "ハートスワップ"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2015年に韓国でシリアルコード配信されたマナフィ（Lv.1・タマゴ産）。親名(OT)=물의일족。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06246",
+    "pokemonName": "ギラティナ（オリジンフォルム）",
+    "dexNo": 487,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ギラティナ（韓国配信・デセルシティ）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-11-26",
+    "endDate": "2016-01-31",
+    "ot": "데세르시티",
+    "trainerId": "11265",
+    "metLocation": "ポケモンえいが",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "ふゆう",
+    "nature": "ゆうかん",
+    "heldItem": "はっきんだま",
+    "moves": [
+      "はどうだん",
+      "りゅうせいぐん",
+      "シャドーダイブ",
+      "アイアンヘッド"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2015〜2016年に韓国で配信された映画「光輪の超魔神 フーパ」(デセルシティ)記念のギラティナ（オリジンフォルム）。親名(OT)=데세르시티(Dahara City)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06247",
+    "pokemonName": "フーパ（いましめられし）",
+    "dexNo": 720,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "フーパ（韓国配信・映画館）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-12-15",
+    "endDate": "2016-02-29",
+    "ot": "영화관",
+    "trainerId": "12235",
+    "metLocation": "ポケモンえいが",
+    "ball": "プレシャスボール",
+    "level": 50,
+    "ability": "マジシャン",
+    "nature": "ランダム",
+    "heldItem": "きあいのタスキ",
+    "moves": [
+      "いじげんホール",
+      "サイコキネシス",
+      "おどろかす",
+      "わるだくみ"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2015〜2016年に韓国で映画館配信されたフーパ（いましめられし）。親名(OT)=영화관(映画館)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06248",
+    "pokemonName": "ゼルネアス",
+    "dexNo": 716,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "色違いゼルネアス（韓国配信・アニメXY&Z）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-03-22",
+    "endDate": "2016-06-30",
+    "ot": "XY&Z",
+    "trainerId": "03226",
+    "metLocation": "ポケモンイベント",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "フェアリーオーラ",
+    "nature": "ランダム",
+    "moves": [
+      "ジオコントロール",
+      "ムーンフォース",
+      "アロマセラピー",
+      "きあいだま"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国でアニメ「XY&Z」記念で配信された色違いゼルネアス。親名(OT)=XY&Z。日本国内では未配信。",
+    "region": "韓国",
+    "shiny": "あり",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06249",
+    "pokemonName": "イベルタル",
+    "dexNo": 717,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "色違いイベルタル（韓国配信・アニメXY&Z）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-04-20",
+    "endDate": "2016-06-30",
+    "ot": "XY&Z",
+    "trainerId": "04206",
+    "metLocation": "ポケモンアニメ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "ダークオーラ",
+    "nature": "ランダム",
+    "moves": [
+      "デスウイング",
+      "ふいうち",
+      "あくのはどう",
+      "イカサマ"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国でアニメ「XY&Z」記念で配信された色違いイベルタル。親名(OT)=XY&Z。日本国内では未配信。",
+    "region": "韓国",
+    "shiny": "あり",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06250",
+    "pokemonName": "ジガルデ",
+    "dexNo": 718,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "ジガルデ（韓国配信・アニメXY&Z）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-04-20",
+    "endDate": "2016-06-30",
+    "ot": "XY&Z",
+    "trainerId": "03196",
+    "metLocation": "ポケモンアニメ",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "オーラブレイク",
+    "nature": "ランダム",
+    "moves": [
+      "グランドフォース",
+      "しんそく",
+      "へびにらみ",
+      "げきりん"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国でアニメ「XY&Z」記念でシリアルコード配信されたジガルデ。親名(OT)=XY&Z。日本国内では未配信（日本版06189とは別配信）。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06251",
+    "pokemonName": "ファイヤー",
+    "dexNo": 146,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "ファイヤー（韓国配信・映画記念）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-05-02",
+    "endDate": "2016-07-31",
+    "ot": "포켓몬영화",
+    "trainerId": "04296",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "ほのおのからだ",
+    "nature": "ランダム",
+    "moves": [
+      "ゴッドバード",
+      "ねっぷう",
+      "にほんばれ",
+      "しんぴのまもり"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国で映画記念で配信されたファイヤー。親名(OT)=포켓몬영화(ポケモン映画)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06252",
+    "pokemonName": "サンダー",
+    "dexNo": 145,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "サンダー（韓国配信・映画記念）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-05-02",
+    "endDate": "2016-07-31",
+    "ot": "포켓몬영화",
+    "trainerId": "04296",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "せいでんき",
+    "nature": "ランダム",
+    "moves": [
+      "ほうでん",
+      "でんきショック",
+      "あまごい",
+      "こうそくいどう"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国で映画記念で配信されたサンダー。親名(OT)=포켓몬영화(ポケモン映画)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06253",
+    "pokemonName": "フリーザー",
+    "dexNo": 144,
+    "generation": 6,
+    "game": "オメガルビー, アルファサファイア",
+    "eventName": "フリーザー（韓国配信・映画記念）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-05-02",
+    "endDate": "2016-07-31",
+    "ot": "포켓몬영화",
+    "trainerId": "04296",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 70,
+    "ability": "ゆきがくれ",
+    "nature": "ランダム",
+    "moves": [
+      "フリーズドライ",
+      "れいとうビーム",
+      "あられ",
+      "リフレクター"
+    ],
+    "ribbons": [
+      "クラシックリボン"
+    ],
+    "notes": "2016年に韓国で映画記念で配信されたフリーザー。親名(OT)=포켓몬영화(ポケモン映画)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06254",
+    "pokemonName": "ビクティニ",
+    "dexNo": 494,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "ビクティニ（韓国配信）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2016-10-01",
+    "endDate": "2016-11-30",
+    "ot": "새로운모험자",
+    "trainerId": "10016",
+    "metLocation": "すてきなばしょ",
+    "ball": "プレシャスボール",
+    "level": 15,
+    "ability": "しょうりのほし",
+    "nature": "ランダム",
+    "heldItem": "ナゾのみ",
+    "moves": [
+      "でんこうせっか",
+      "いばる",
+      "Ｖジェネレート"
+    ],
+    "ribbons": [
+      "イベントリボン"
+    ],
+    "notes": "2016年に韓国でシリアルコード配信されたビクティニ。親名(OT)=새로운모험자(新しい冒険者)。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
+    "managementId": "06255",
+    "pokemonName": "アルセウス",
+    "dexNo": 493,
+    "generation": 6,
+    "game": "X, Y, オメガルビー, アルファサファイア",
+    "eventName": "アルセウス（韓国配信・デセルシティ）",
+    "distributionMethod": "シリアルコード",
+    "startDate": "2015-12-15",
+    "endDate": "2016-02-29",
+    "ot": "데세르시티",
+    "trainerId": "12235",
+    "metLocation": "ポケモンえいが",
+    "ball": "プレシャスボール",
+    "level": 100,
+    "ability": "マルチタイプ",
+    "nature": "ランダム",
+    "heldItem": "シルクのスカーフ",
+    "moves": [
+      "さばきのつぶて",
+      "ブラストバーン",
+      "ハイドロカノン",
+      "だいちのちから"
+    ],
+    "ribbons": [
+      "ウィッシュリボン"
+    ],
+    "notes": "2015〜2016年に韓国で配信された映画「光輪の超魔神 フーパ」(デセルシティ)記念のアルセウス。親名(OT)=데세르시티(Dahara City)。既存のシンガポール「Manesh Arceus」(06061)とは別配信。日本国内では未配信。",
+    "region": "韓国",
+    "ivs": "ランダム"
+  },
+  {
     "managementId": "07001",
     "pokemonName": "ゴンベ",
     "dexNo": 446,
@@ -18670,7 +19801,7 @@
   },
   {
     "managementId": "09100",
-    "pokemonName": "バクフーン",
+    "pokemonName": "バクフーン（ヒスイのすがた）",
     "dexNo": 157,
     "generation": 9,
     "game": "スカーレット, バイオレット",
@@ -19198,7 +20329,7 @@
     "eventName": "色違いのさいやくポケモン",
     "distributionMethod": "インターネット",
     "distributionLocation": "インターネット",
-    "startDate": "2025-08-08",
+    "startDate": "2025-08-22",
     "endDate": "2025-09-30",
     "ot": {
       "JPN": "パルデア",
@@ -19250,7 +20381,7 @@
     "eventName": "色違いのさいやくポケモン",
     "distributionMethod": "インターネット",
     "distributionLocation": "インターネット",
-    "startDate": "2025-08-08",
+    "startDate": "2025-09-05",
     "endDate": "2025-09-30",
     "ot": {
       "JPN": "パルデア",
@@ -19302,7 +20433,7 @@
     "eventName": "色違いのさいやくポケモン",
     "distributionMethod": "インターネット",
     "distributionLocation": "インターネット",
-    "startDate": "2025-08-08",
+    "startDate": "2025-09-19",
     "endDate": "2025-09-30",
     "ot": {
       "JPN": "パルデア",
