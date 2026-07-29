@@ -222,14 +222,15 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - サイトURL: https://www.pokebros.net/distribution/
 - ベースパス: `/distribution`（`astro.config.mjs`で設定）
 
+**注**: `/distribution/` 配下の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは UI/UX 改善中で、summary-pages とは別の流入導線を想定。デプロイ先 URL は未確定。
+
 詳細は `docs/deploy.md` を参照。
 
 **データ更新手順:**
 
-1. Googleスプレッドシートを開く
-2. メニュー「Pokemon Export」→「JSONエクスポート」を実行
-3. 出力された `pokemon.json` を `public/pokemon.json` に置き換え
-4. `npm run build` でビルド確認 → mainブランチにプッシュ
+1. （データが変わったときのみ）`cd ../pokemon-data && npm run build`（正本 → `build/pokemon.json` 生成）
+2. `node scripts/sync-from-pokemon-data.mjs`（→ `public/pokemon.json`。件数減少ガード付き）
+3. `public/pokemon.json` をコミット → `npm run build` でビルド確認 → mainブランチにプッシュ
 
 詳細は `docs/data-design.md` を参照。
 

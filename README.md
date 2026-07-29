@@ -4,6 +4,8 @@
 
 **公開URL**: https://www.pokebros.net/distribution/
 
+**注**: `/distribution/` 配下の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは UI/UX 改善中で、summary-pages とは別の流入導線を想定。デプロイ先 URL は未確定。
+
 ## プロジェクト構成
 
 ```
