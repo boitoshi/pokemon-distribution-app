@@ -1,5 +1,7 @@
 # デプロイ手順
 
+**注**: `/distribution/` 配下の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは UI/UX 改善中で、summary-pages とは別の流入導線を想定している。デプロイ先URLは未確定のため、以下の手順は参考情報として読むこと。
+
 ## 概要
 
 配信ポケモン検索サイトをConoHaサーバーにデプロイする手順。
@@ -61,11 +63,15 @@ https://www.pokebros.net/distribution/ にアクセスして確認。
 
 ビルド不要。JSONファイルのみ差し替え。
 
-### 1. JSONエクスポート
+### 1. データ生成
 
-1. Googleスプレッドシートを開く
-2. メニュー「Pokemon Export」→「JSONエクスポート」
-3. `pokemon.json` をダウンロード
+```bash
+cd ../pokemon-data && npm run build
+node scripts/sync-from-pokemon-data.mjs
+```
+
+`pokemon-data` の正本（`distributions/*.json`）から `build/pokemon.json` を生成し、
+`public/pokemon.json` へ pull only で同期する（件数減少ガード付き）。
 
 ### 2. アップロード
 

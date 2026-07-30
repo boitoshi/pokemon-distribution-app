@@ -7,12 +7,16 @@
 - ホスティング: ConoHaサーバー（`public_html/distribution/`）
 
 ## 重要ファイル
-- `src/pages/index.astro` — メインページ。検索・無限スクロール・お気に入り・比較・CSVエクスポート等すべてここ
+- `src/pages/index.astro` — メインページ。検索・無限スクロール・お気に入り・比較等すべてここ
 - `src/pages/pokemon/[id].astro` — 個別ポケモンページ
+- `src/pages/timeline.astro` — 配信タイムラインページ
+- `src/pages/champions.astro` — Championsまとめページ（generation: 0）
+- `src/pages/gen/[generation].astro` — 世代別まとめページ（第1〜7世代・データのある世代のみ生成）
+- `src/data/gen-guides.json` — 世代別まとめページの解説テキスト（手動管理）
 - `src/components/SearchBox.astro` — 検索UI
 - `src/components/PokemonCard.astro` — カード表示・モーダル
 - `src/layouts/Layout.astro` — 共通レイアウト・グローバルCSS
-- `public/pokemon.json` — 配信ポケモンデータ（pokemon-data の build/pokemon.json から同期。688件）
+- `public/pokemon.json` — 配信ポケモンデータ（pokemon-data の build/pokemon.json から同期。724件）
 - `scripts/sync-from-pokemon-data.mjs` — pokemon-data build → public/pokemon.json 同期スクリプト
 
 ## ドキュメント
@@ -33,7 +37,7 @@
 - `ot` は単一文字列または言語別オブジェクト（`{JPN, ENG, FRE, ...}`）
 - `ivs` は文字列パターン（"6V"等）または個別値オブジェクト（`{hp, atk, def, spa, spd, spe}`）
 - あかしは `ribbons` 配列に格納。名前が「あかし」で終わるもので自動判定
-- `managementId` 形式: `[世代2桁][連番3桁]`（例: `06001`）
+- `managementId` 形式: `[世代2桁][連番3桁]`（例: `06001`）。Champions（generation: 0）は専用ID体系 `CH01`〜`CH21` / `CH-BP-M#-##`（バトルパス報酬）を使う
 
 ### ゲーム名略称マッピング
 | 正式名 | 略称 |
@@ -75,22 +79,22 @@
 - コレクション統計（世代別/ゲーム別プログレスバー）
 - メモ機能（保管場所・カスタムメモ）
 - 比較機能（複数の配信を並べて比較）
-- CSVエクスポート（CSVインジェクション対策済み）
 - ダークモード切替
 - URLパラメータ対応（`?shiny=1&game=スカーレット, バイオレット`等）
 - 個別ポケモンページ（`/pokemon/[id]`）
+- 配信タイムライン表示（`/timeline`、`src/pages/timeline.astro`）
+- 世代別まとめページ（`/gen/[generation]`）・Championsページ（`/champions`）
 - OGPメタタグ・Twitterカード
 - PWA対応（manifest.json, Service Worker）
 
 ## 未実装タスク（今後の課題）
 - 本番用ポケモン画像・ボール画像のサーバーアップロード（画像は準備済み）
 - 入手難易度表示
-- 配信タイムライン表示
 - 欲しいものリスト
 - ワンダーカード画像表示
 
 ## セキュリティ（2026-02-06 チェック済み）
 - XSS対策: `escapeHtml()` 関数実装済み
-- CSVインジェクション対策: `sanitizeCsvValue()` 実装済み
+- CSV機能は削除済み（b44f244）のためCSVインジェクション対策は該当なし
 - localStorage: try-catch済み
 - 総合評価: 公開可能

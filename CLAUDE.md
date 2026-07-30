@@ -50,9 +50,13 @@
 ```bash
 npm install     # 依存関係インストール
 npm run dev     # 開発サーバー起動 (http://localhost:4321)
-npm run build   # 本番ビルド (dist/)
+npm run lint    # Lintチェック（scripts/lint-project.mjs）
+npm run smoke   # データ整合性チェック（scripts/validate-data.mjs）
+npm run build   # 本番ビルド (dist/)。scripts/build-safe.mjs 経由（画像ディレクトリ退避ラッパー）
 npm run preview # ビルド結果プレビュー
 ```
+
+CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `npm run build` の順に必須実行する。
 
 ## プロジェクト構造
 
@@ -60,10 +64,15 @@ npm run preview # ビルド結果プレビュー
 src/
 ├── pages/
 │   ├── index.astro              # メインページ（検索・無限スクロール等）
-│   └── pokemon/[id].astro       # 個別ポケモンページ
+│   ├── pokemon/[id].astro       # 個別ポケモンページ
+│   ├── gen/[generation].astro   # 世代別まとめページ（第1〜7世代・データのある世代のみ生成）
+│   ├── champions.astro          # Championsまとめページ（generation: 0）
+│   └── timeline.astro           # 配信タイムラインページ
 ├── components/
 │   ├── SearchBox.astro          # 検索UI（フィルター機能）
 │   └── PokemonCard.astro        # カード表示・モーダルテンプレート
+├── data/
+│   └── gen-guides.json          # 世代別まとめページの解説テキスト（手動管理）
 └── layouts/
     └── Layout.astro             # 共通レイアウト・グローバルCSS
 
@@ -76,7 +85,12 @@ docs/
 └── features.md                  # 機能一覧・実装状況・今後の課題
 
 scripts/
-└── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
+├── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
+├── build-safe.mjs               # npm run build の実体（画像ディレクトリ退避ラッパー）
+├── lint-project.mjs             # npm run lint の実体
+├── validate-data.mjs            # npm run smoke の実体
+├── rename_to_ascii.py           # 画像ファイル名のASCII化
+└── normalize-filenames.sh       # ファイル名正規化
 
 nuxt-reference/                  # 参考用Nuxt版（修正不要）
 ```
@@ -127,7 +141,7 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 | URL | 役割 | データソース |
 |------|------|------------|
 | `/distribution/` | 全世代横断の検索UI | `pokemon.json`（generation 0 を除外） |
-| `/distribution/gen/{1〜7}/` | 第1〜7世代の配信まとめ（解説 + 配信方法別一覧） | `pokemon.json` + `gen-guides.json` |
+| `/distribution/gen/{N}/` | データのある世代のみ生成（現状 gen5/6/7。gen-guides.json には 1〜4 の解説もあるが対応データ0件のため未生成） | `pokemon.json` + `gen-guides.json` |
 | `/distribution/champions/` | Pokémon Champions 配信まとめ | `pokemon.json`（`generation === 0`） |
 | WordPress記事 | 第8・9世代まとめは WP 投稿で運用（例: `/eventpokemon-genviii/`）。**DB側では gen8/gen9 ページを生成しない** |
 
@@ -169,9 +183,9 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - `methods[].name` は `pokemon.json` の `distributionMethod` の値と一致させること（グルーピング表示時に解説を紐付けるため）
 - 解説が未登録の配信方法グループは解説なしで一覧のみ表示
 
-### gen/[generation].astro の仕様
+### gen/[generation].astro の仕様（実装済み・現行仕様）
 
-- `src/pages/gen/[generation].astro` を新規作成
+- `src/pages/gen/[generation].astro` で実装済み
 - `getStaticPaths`: `pokemon.json` に1件以上データが存在する世代 ∩ {1..7} のみ生成（空ページを公開しない。第8・9世代はWP記事があるため対象外）
 - ページ構成（上から順に）:
   1. パンくず（トップ > 第N世代）
@@ -182,9 +196,9 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - SEO: `Layout.astro` の props で title / description / canonicalUrl を世代ごとに設定。description には世代名・ハード名・件数を含める
 - 画像・スタイルは既存の `pokemon/[id].astro` の実装（`getPokemonImageUrl` 等）とCSS変数を踏襲
 
-### champions.astro の仕様
+### champions.astro の仕様（実装済み・現行仕様）
 
-- `src/pages/champions.astro` を新規作成
+- `src/pages/champions.astro` で実装済み
 - 対象: `generation === 0` の全エントリ
 - ページ構成:
   1. パンくず + 見出し
@@ -194,11 +208,11 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - グループ内ソートは `startDate` 降順（現役の配信が重要なため新しい順）
 - 空文字フィールド（`ot`, `ball`, `moves: []` 等）が多いため、すべて条件付き表示にする
 
-### 導線
+### 導線（実装済み・現行仕様）
 
-- 検索UIヘッダー下（または stats バー付近）に世代まとめ・Championsへのリンク帯を追加（最小限のテキストリンクで可。本格的なグローバルナビは nav.json 対応時に実施）
-- 各世代まとめページのフッターに「全配信を検索する → /distribution/」リンク
-- 第8・9世代分のリンクは WP記事URL に向ける（gen-guides.json に `"8": { "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }` 形式で持たせ、リンク帯の生成元を gen-guides.json に一本化する）
+- 検索UIヘッダー下（stats バー付近）に世代まとめ・Championsへのリンク帯を実装済み（最小限のテキストリンク。本格的なグローバルナビは nav.json 対応時に検討）
+- 各世代まとめページのフッターに「全配信を検索する → /distribution/」リンクあり
+- 第8・9世代分のリンクは WP記事URL に向ける（gen-guides.json に `"8": { "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }` 形式で持たせ、リンク帯の生成元を gen-guides.json に一本化している）
 
 ## コーディング規約
 

@@ -13,10 +13,15 @@ pokemon-distribution-app/
 ├── src/
 │   ├── pages/
 │   │   ├── index.astro              # メインページ（検索・無限スクロール等）
-│   │   └── pokemon/[id].astro       # 個別ポケモンページ
+│   │   ├── pokemon/[id].astro       # 個別ポケモンページ
+│   │   ├── gen/[generation].astro   # 世代別まとめページ（第1〜7世代・データのある世代のみ生成）
+│   │   ├── champions.astro          # Championsまとめページ（generation: 0）
+│   │   └── timeline.astro           # 配信タイムラインページ
 │   ├── components/
 │   │   ├── SearchBox.astro          # 検索UI（フィルター機能）
 │   │   └── PokemonCard.astro        # カード表示・モーダル
+│   ├── data/
+│   │   └── gen-guides.json          # 世代別まとめページの解説テキスト（手動管理）
 │   └── layouts/
 │       └── Layout.astro             # 共通レイアウト・グローバルCSS
 ├── public/
@@ -26,7 +31,12 @@ pokemon-distribution-app/
 │   ├── deploy.md                    # デプロイ手順
 │   └── features.md                  # 機能一覧・実装状況・今後の課題
 ├── scripts/
-│   └── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
+│   ├── sync-from-pokemon-data.mjs   # pokemon-data の build/pokemon.json → public/pokemon.json 同期
+│   ├── build-safe.mjs               # npm run build の実体（画像ディレクトリ退避ラッパー）
+│   ├── lint-project.mjs             # npm run lint の実体
+│   ├── validate-data.mjs            # npm run smoke の実体
+│   ├── rename_to_ascii.py           # 画像ファイル名のASCII化
+│   └── normalize-filenames.sh       # ファイル名正規化
 ├── CLAUDE.md                        # Claude Code開発ガイド
 ├── SECURITY.md                      # セキュリティチェック結果
 ├── astro.config.mjs
@@ -43,12 +53,20 @@ npm install
 # 開発サーバー起動（http://localhost:4321）
 npm run dev
 
-# 本番ビルド
+# Lintチェック
+npm run lint
+
+# データ整合性チェック（smokeテスト）
+npm run smoke
+
+# 本番ビルド（scripts/build-safe.mjs 経由。画像ディレクトリを退避してビルド）
 npm run build
 
 # ビルド結果のプレビュー
 npm run preview
 ```
+
+CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `npm run build` の順に必須実行する。
 
 ## 機能
 
@@ -67,9 +85,11 @@ npm run preview
 
 ### データソース（正本）
 
-配信データの正本は **pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。`build-distributions.mjs` が app-runtime schema へ前方向生成した `build/pokemon.json`（688件）を、本アプリの `public/pokemon.json` へ **pull only** で同期する。
+配信データの正本は **pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。`build-distributions.mjs` が app-runtime schema へ前方向生成した `build/pokemon.json`（724件。件数は `build/meta.json` が正）を、本アプリの `public/pokemon.json` へ **pull only** で同期する。
 
 （旧構成〜2026-07: Googleスプレッドシート＋GAS `export-to-json.gs` でエクスポートしていた。正本一本化で引退・削除。世代/ハードの対応やカラム定義は `docs/data-design.md` の参考節に残す。）
+
+配信ポケモン個別記事HTMLの生成は pokebros-content-hub の `scripts/generate_distribution_html.py` の責務（GAS引退済み）。本アプリは記事生成に関与しない。
 
 ### データ更新手順
 
@@ -114,7 +134,7 @@ pokemon.json をFTPで上書き（ビルド不要）
 
 ```json
 {
-  "managementId": "06JP01",
+  "managementId": "06005",
   "pokemonName": "ピカチュウ",
   "dexNo": 25,
   "generation": 6,
@@ -148,7 +168,7 @@ pokemon.json をFTPで上書き（ビルド不要）
 | `region` | 全世代 | 配布地域（日本/北米/欧州/韓国/台湾/全世界） |
 | `gigantamax` | 8世代 | キョダイマックス |
 | `teraType` | 9世代 | テラスタイプ |
-| `isAlpha` | LA/Z-A | オヤブン |
+| `alpha` | LA/Z-A | オヤブン |
 
 **regionについて**: 第6-7世代は3DSのリージョンロック、第8世代以降は各国法人ごとのイベント区別に使用。Switchはリージョンフリーだが、海外限定シリアル（例: ロックスターストリンダー）などの区別に必要。
 

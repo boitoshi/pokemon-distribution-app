@@ -58,7 +58,6 @@
 - [x] 無限スクロール（24件ずつ追加読み込み、IntersectionObserver使用） → `src/pages/index.astro`
 - [x] ソート機能（日付順、図鑑No順、名前順） → `src/pages/index.astro`
 - [x] お気に入り機能（localStorage使用） → `src/pages/index.astro`
-- [x] CSVエクスポート機能 → `src/pages/index.astro`
 - [x] ダークモード切替 → `src/pages/index.astro`
 - [x] 統計ダッシュボード → `src/pages/index.astro`
 - [x] 一番上に戻るボタン → `src/pages/index.astro`
