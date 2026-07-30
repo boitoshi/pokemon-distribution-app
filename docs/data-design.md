@@ -10,7 +10,7 @@
 
 | データ | 正本 | 反映方法 |
 |---|---|---|
-| 全世代（gen5-9）＋チャンピオンズ 688件 | `../pokemon-data/distributions/*.json`（L2 正本） | `node scripts/sync-from-pokemon-data.mjs`（pokemon-data の `build/pokemon.json` を `public/pokemon.json` へコピー・pull only・件数減少ガード付き） |
+| 全世代（gen5-9）＋チャンピオンズ 724件（内訳: gen0:21 / gen5:118 / gen6:255 / gen7:152 / gen8:96 / gen9:82） | `../pokemon-data/distributions/*.json`（L2 正本） | `node scripts/sync-from-pokemon-data.mjs`（pokemon-data の `build/pokemon.json` を `public/pokemon.json` へコピー・pull only・件数減少ガード付き） |
 
 `public/pokemon.json` はコミット対象。CI/本番はコミット済みファイルを使う（pokemon-data の checkout 不要）。
 更新手順: `cd ../pokemon-data && npm run build` → 本 repo で `node scripts/sync-from-pokemon-data.mjs` → 差分を commit。
@@ -52,7 +52,7 @@ pokemon-distribution（スプレッドシート）
 
 | カラム名 | 型 | 必須 | 説明 | 例 |
 |---------|-----|------|------|-----|
-| managementId | string | ✓ | 管理ID | `06JP01` |
+| managementId | string | ✓ | 管理ID | `06005` |
 | pokemonName | string | ✓ | ポケモン名 | `ピカチュウ` |
 | dexNo | number | ✓ | 全国図鑑No | `25` |
 | generation | number | ✓ | 世代（1-9） | `6` |
@@ -87,6 +87,12 @@ pokemon-distribution（スプレッドシート）
 | gigantamax | 8世代（剣盾） | キョダイマックス | `キョダイマックス` |
 | teraType | 9世代（SV） | テラスタイプ | `でんき` |
 | alpha | LA/Z-A | オヤブン | `オヤブン` |
+| tournamentType | Champions（generation: 0） | 大会・配信区分 | `Champions` |
+| tournamentYear | Champions（generation: 0） | 開催年 | `2026` |
+| tournamentSchedule | Champions（generation: 0） | 配信期間の表記 | `2026-04-08〜2026-08-31` |
+| winner | Champions（generation: 0） | 大会優勝者（該当時のみ） | - |
+
+**Champions（generation: 0）の注意**: `level` が文字列になる場合がある（例: `"Lv.50相当(非表示)"`）ため、数値前提の処理をしないこと。managementId の命名規則は後述の「Champions用ID体系」を参照。
 
 ---
 
@@ -159,6 +165,18 @@ Switchはリージョンフリーだが、各国のポケモン法人が独自�
 - `06005` → 第6世代・5番目
 - `08012` → 第8世代・12番目
 
+### Champions用ID体系（generation: 0）
+
+Championsのデータは通常の `[世代2桁][連番3桁]` 形式ではなく、専用のID体系を使う。
+
+```
+CH##             → 通常配信（例: CH01〜CH21）
+CH-BP-M#-##      → バトルパス報酬（例: CH-BP-M1-01。M#はマイルストーン番号）
+```
+
+- `CH01`〜`CH21`: メールボックス配布・大会参加賞などの個別配信
+- `CH-BP-M1-01` など: バトルパスのマイルストーン報酬。`M1`〜`M4` がマイルストーン、末尾2桁が連番
+
 ---
 
 ## 画像パス構成
@@ -179,6 +197,13 @@ pokemon-assets/
 | あかし | `.../pokemon-assets/marks/` | `/distribution/images/marks/` |
 
 画像がない場合は自動的に絵文字フォールバック（⚪/🎀/🏅）で表示。
+
+### ファイル名の正規化
+
+画像ファイル名を日本語からASCII（`{4桁dexNo}_{英語名}.png` 等）へ変換するスクリプトが2つある。
+
+- `uv run python scripts/rename_to_ascii.py`: dexNo をキーに日本語名→英語名の対応表（`DEX_TO_JA`）を構築してリネームする。参照元は `../pokemon-data/mappings/pokemon_names.json`（2026-07-29 修正 33809d8）
+- `scripts/normalize-filenames.sh`: 上記でカバーしきれない残りのファイル名表記ゆれ（全角/半角・空白等）を正規化するシェルスクリプト
 
 ### あかしの管理
 
@@ -238,7 +263,7 @@ ot: サトシ
 | ot_SPA_EU | 欧州スペイン語 | Z-A〜 |
 | ot_SPA_LA | ラテンアメリカスペイン語 | Z-A〜 |
 
-GASエクスポート時にオブジェクトに変換:
+build-distributions.mjs がオブジェクトに変換:
 
 ```json
 {
@@ -281,7 +306,7 @@ GASエクスポート時にオブジェクトに変換:
 | ivs_spd | とくぼう |
 | ivs_spe | すばやさ |
 
-GASエクスポート時にオブジェクトに変換:
+build-distributions.mjs がオブジェクトに変換:
 
 ```json
 { "ivs": { "hp": 31, "atk": 0, "def": 31, "spa": 31, "spd": 31, "spe": 31 } }
@@ -302,6 +327,32 @@ GASエクスポート時にオブジェクトに変換:
 ---
 
 ## エクスポートの流れ
+
+現行フロー:
+
+```
+┌──────────────────────────────────────┐
+│  pokemon-data/distributions/*.json    │
+│  （gen5..gen9.json + champions.json）  │
+└───────────────┬────────────────────────┘
+                │
+                │ node scripts/build-distributions.mjs
+                ▼
+┌──────────────────────────────────────┐
+│  pokemon-data/build/pokemon.json      │
+│  （app-runtime schema へ変換）          │
+└───────────────┬────────────────────────┘
+                │
+                │ node scripts/sync-from-pokemon-data.mjs
+                │ （pull only・件数減少ガード付き）
+                ▼
+┌──────────────────────────────────────┐
+│  public/pokemon.json                  │
+│  （本アプリのリポジトリ）                │
+└──────────────────────────────────────┘
+```
+
+### （旧・GAS時代）
 
 ```
 ┌─────────────────────────┐
@@ -350,7 +401,7 @@ GASエクスポート時にオブジェクトに変換:
 ### 技・リボンの入力
 
 - カンマ区切りで入力: `ボルテッカー, でんこうせっか, アイアンテール`
-- GASで配列に変換される
+- build-distributions.mjs で配列に変換される
 
 ### 後方互換性
 

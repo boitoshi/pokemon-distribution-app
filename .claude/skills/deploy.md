@@ -6,6 +6,8 @@ user_invocable: true
 
 # デプロイ手順
 
+**注**: `/distribution/` の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは summary-pages とは別の流入導線を想定した UI/UX 改善中で、以下は参考手順（デプロイ先URLは未確定）。
+
 ## 前提条件
 `dist/` が最新のビルド結果を持っていること（`/build` 実行済み）。
 
@@ -19,19 +21,17 @@ user_invocable: true
 ## ディレクトリ構成（出力）
 ```
 dist/
-└── pokemon-distribution-app/
-    ├── index.html
-    ├── pokemon.json
-    └── _astro/
-        └── (CSS/JSファイル)
+├── index.html
+├── pokemon.json
+└── _astro/
+    └── (CSS/JSファイル)
 ```
 
 ## 設定確認
-`astro.config.mjs` のベースパス:
+`astro.config.mjs` のベースパス（サブディレクトリ `/distribution/` 配置用）:
 ```javascript
-base: '/pokemon-distribution-app',  // サブディレクトリ配置の場合
+base: '/distribution',
 ```
-ルート配置に変更する場合は `base: '/'` に修正すること。
 
 ## 次のステップ
 デプロイ完了後 → 本番URLで動作確認 → 問題なければ `/data-update` でデータ更新サイクルへ
