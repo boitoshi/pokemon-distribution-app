@@ -8,6 +8,6 @@
   "6": { "title": "第6世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen6/" },
   "7": { "title": "第7世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen7/" },
   "8": { "title": "第8世代", "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" },
-  "9": { "title": "第9世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen9/" },
+  "9": { "title": "第9世代", "externalUrl": "https://www.pokebros.net/eventpokemon-gen9/" },
   "champions": { "title": "Champions", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/champions-eventpokemon/" }
 }

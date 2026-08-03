@@ -26,7 +26,7 @@
 
 ### 世代リンク帯の運用状況（2026-08-03時点）
 
-summary-pages（`pokebros.net/distribution/` 配下のまとめページ）は**まだ本番FTPデプロイされていない**。存在しないURLにリンクすると WordPress が似たスラッグの個別記事へ勝手にリダイレクトしてしまうため、現状リンク帯に表示できるのは第8世代（WP記事）のみ。第1〜7・9世代とChampionsは `src/data/gen-guides.json` の `externalUrl` を空にして非表示にしてある。
+summary-pages（`pokebros.net/distribution/` 配下のまとめページ）は**まだ本番FTPデプロイされていない**。存在しないURLにリンクすると WordPress が似たスラッグの個別記事へ勝手にリダイレクトしてしまうため、現状リンク帯に表示できるのは第8世代（WP記事 `/eventpokemon-genviii/`）と第9世代（WP記事 `/eventpokemon-gen9/`）のみ。第1〜7世代とChampionsは `src/data/gen-guides.json` の `externalUrl` を空にして非表示にしてある。
 
 summary-pages を pokebros-tools の `deploy-ftp.yml` でFTPデプロイした後、`gen-guides.json` の該当エントリの `plannedUrl` を `externalUrl` にコピーしてリンクを有効化すること。
 
