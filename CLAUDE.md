@@ -43,20 +43,21 @@
 
 ## プロジェクト概要
 
-配信ポケモン情報を検索できる日本語の静的Webサイト。Astroで構築し、ConoHaサーバー（pokebros.net）でホスティング。
+配信ポケモン情報を検索できる日本語の静的Webサイト。Astroで構築。デプロイは二段構え（①ベータ: GitHub Pages → ②本番: ConoHaサーバー pokebros.net）。詳細は「デプロイ・データ更新」節を参照。
 
 ## クイックスタート
 
 ```bash
-npm install     # 依存関係インストール
-npm run dev     # 開発サーバー起動 (http://localhost:4321)
-npm run lint    # Lintチェック（scripts/lint-project.mjs）
-npm run smoke   # データ整合性チェック（scripts/validate-data.mjs）
-npm run build   # 本番ビルド (dist/)。scripts/build-safe.mjs 経由（画像ディレクトリ退避ラッパー）
-npm run preview # ビルド結果プレビュー
+npm install       # 依存関係インストール
+npm run dev       # 開発サーバー起動 (http://localhost:4321)
+npm run lint      # Lintチェック（scripts/lint-project.mjs）
+npm run smoke     # データ整合性チェック（scripts/validate-data.mjs）
+npm run build     # ①ベータ（GitHub Pages）ターゲットでビルド (dist/)。scripts/build-safe.mjs 経由（画像ディレクトリ退避ラッパー）
+npm run build:prod # ②本番（ConoHa）ターゲットでビルド (dist/)。DEPLOY_TARGET=production
+npm run preview   # ビルド結果プレビュー
 ```
 
-CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `npm run build` の順に必須実行する。
+CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `npm run build` の順に必須実行する。デプロイは `.github/workflows/deploy-pages.yml`（ベータ、main push で自動）を参照。詳細は `docs/deploy.md`。
 
 ## プロジェクト構造
 
@@ -64,15 +65,13 @@ CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `np
 src/
 ├── pages/
 │   ├── index.astro              # メインページ（検索・無限スクロール等）
-│   ├── pokemon/[id].astro       # 個別ポケモンページ
-│   ├── gen/[generation].astro   # 世代別まとめページ（第1〜7世代・データのある世代のみ生成）
-│   ├── champions.astro          # Championsまとめページ（generation: 0）
+│   ├── pokemon/[id].astro       # 個別ポケモンページ（常時noindex）
 │   └── timeline.astro           # 配信タイムラインページ
 ├── components/
 │   ├── SearchBox.astro          # 検索UI（フィルター機能）
 │   └── PokemonCard.astro        # カード表示・モーダルテンプレート
 ├── data/
-│   └── gen-guides.json          # 世代別まとめページの解説テキスト（手動管理）
+│   └── gen-guides.json          # 世代リンク帯の外部URL管理（summary-pages / WP記事へのリンク）
 └── layouts/
     └── Layout.astro             # 共通レイアウト・グローバルCSS
 
@@ -129,90 +128,57 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 ### 画像アセット
 
 - 本番: `https://www.pokebros.net/wp-content/uploads/pokemon-assets/` 配下
-- ローカル: `/distribution/images/` 配下
+- ローカル: `{BASE_URL}images/` 配下（`BASE_URL` は `import.meta.env.BASE_URL`。`DEPLOY_TARGET` によりベータ/本番で値が変わる）
 - `getPokemonImageUrl()`, `getBallImageUrl()`, `getRibbonImageUrl()` で切り替え
 - 画像がない場合は絵文字（⚪/🎀/🏅）にフォールバック
 - あかしはリボンと同じ `ribbons` 配列に格納。名前が「あかし」で終わるもので自動判定
 
-## 世代別まとめページ・Championsページ
+## 役割分担と導線（2026-08-03 決定）
+
+`/distribution/` 配下の本番デプロイ正本は pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは検索・タイムライン・コレクション管理ツールに純化し、世代まとめ・Championsまとめの役割は summary-pages 側に移管した。
 
 ### ページ構成と役割分担
 
-| URL | 役割 | データソース |
-|------|------|------------|
-| `/distribution/` | 全世代横断の検索UI | `pokemon.json`（generation 0 を除外） |
-| `/distribution/gen/{N}/` | データのある世代のみ生成（現状 gen5/6/7。gen-guides.json には 1〜4 の解説もあるが対応データ0件のため未生成） | `pokemon.json` + `gen-guides.json` |
-| `/distribution/champions/` | Pokémon Champions 配信まとめ | `pokemon.json`（`generation === 0`） |
-| WordPress記事 | 第8・9世代まとめは WP 投稿で運用（例: `/eventpokemon-genviii/`）。**DB側では gen8/gen9 ページを生成しない** |
+| 層 | 役割 | URL |
+|------|------|-----|
+| 本アプリ `/`（トップ） | 全世代横断の検索UI | `pokemon.json`（generation 0 を除外） |
+| 本アプリ `/timeline` | 配信タイムライン | `pokemon.json`（generation 0 を除外） |
+| 本アプリ `/pokemon/[id]` | 個別ポケモンページ（Champions含む全エントリで生成、常時 `noindex`） | `pokemon.json` |
+| summary-pages（pokebros-tools） | 世代・大会・special-forms・type-stats・個別詳細ページの SEO 正本 | `https://www.pokebros.net/distribution/gen1-2/` 〜 `/gen9/`、`/champions-eventpokemon/` など |
+| WordPress記事 | 読み物・解説・SEO着地点（第8世代まとめは `/eventpokemon-genviii/` などWP投稿で運用） | `pokebros.net` 配下の個別記事 |
 
 役割分担の原則:
-- WP記事 = 読み物・解説・SEO着地点（第8・9世代）
-- 世代まとめページ = 第7世代以前の読み物 + 一覧（記事の代替、自動生成）
-- 検索UI = 全世代の網羅的検索ツール
-- Championsページ = 本編と性質が異なる配信（HOME転送不可等）の専用まとめ
+- WP記事・summary-pages = 読み物・解説・一覧の SEO 正本
+- 本アプリ = 全世代横断の検索・タイムライン・比較・お気に入り・所持チェックリストなどのツール層
+- 本アプリ内に世代まとめ・Championsまとめページは持たない（旧 `gen/[generation].astro`・`champions.astro` は 2026-08-03 に削除）。リンク帯から外部（summary-pages / WP記事）へ誘導する
 
-### Championsデータの扱い
+### Championsデータの扱い（変更なし）
 
 - 識別: `generation: 0` かつ `tournamentType: "Champions"`
 - **検索UI（index.astro）とタイムライン（timeline.astro）の対象から除外する**。データ読み込み直後に `data.filter(p => p.generation !== 0)` でフィルタ
-- 個別ページ（`/pokemon/[id]`）は Champions 含む全エントリで生成を継続（championsページからのリンク先として必要）
+- 個別ページ（`/pokemon/[id]`）は Champions 含む全エントリで生成を継続（summary-pages のChampionsまとめからのリンク先として必要）
 - Champions固有フィールド: `tournamentType`, `tournamentYear`, `tournamentSchedule`, `winner` など。`level` は文字列の場合がある（例: `"Lv.50相当(非表示)"`）ため数値前提の処理をしない
-- HOME転送不可である旨の注記をページ冒頭に固定表示する
 
 ### データファイル: src/data/gen-guides.json
 
-世代別の解説テキスト。手動管理（GAS/スプレッドシート引退により、統合先はなし）。
+世代リンク帯用の外部URL管理ファイルに純化（旧: 世代別まとめページの解説テキスト）。手動管理。
 
 ```json
 {
-  "7": {
-    "title": "第7世代（サン・ムーン / ウルトラサン・ウルトラムーン）",
-    "hardware": "3DS",
-    "intro": "第7世代の配信の特徴の説明。リージョンロックの話など。",
-    "methods": [
-      {
-        "name": "シリアルコード",
-        "description": "この世代におけるシリアルコード配信の解説"
-      }
-    ],
-    "notes": "補足事項（任意）"
-  }
+  "1": { "title": "第1世代", "externalUrl": "https://www.pokebros.net/distribution/gen1-2/" },
+  "8": { "title": "第8世代", "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }
 }
 ```
 
-- `methods[].name` は `pokemon.json` の `distributionMethod` の値と一致させること（グルーピング表示時に解説を紐付けるため）
-- 解説が未登録の配信方法グループは解説なしで一覧のみ表示
-
-### gen/[generation].astro の仕様（実装済み・現行仕様）
-
-- `src/pages/gen/[generation].astro` で実装済み
-- `getStaticPaths`: `pokemon.json` に1件以上データが存在する世代 ∩ {1..7} のみ生成（空ページを公開しない。第8・9世代はWP記事があるため対象外）
-- ページ構成（上から順に）:
-  1. パンくず（トップ > 第N世代）
-  2. 見出し + `gen-guides.json` の `intro`（解説セクション）
-  3. 配信方法別グルーピング。各グループ見出しの直下に `methods[]` の該当解説を表示
-  4. 各ポケモンは カード形式（画像・名前・色違い等バッジ・イベント名・配信期間・地域）で、`/pokemon/[id]` への詳細リンク
-- **グループ内ソートは `startDate` 昇順（古い順）**。検索UIのデフォルト（新しい順）と逆だが、まとめページは歴史を追う読み物のため
-- SEO: `Layout.astro` の props で title / description / canonicalUrl を世代ごとに設定。description には世代名・ハード名・件数を含める
-- 画像・スタイルは既存の `pokemon/[id].astro` の実装（`getPokemonImageUrl` 等）とCSS変数を踏襲
-
-### champions.astro の仕様（実装済み・現行仕様）
-
-- `src/pages/champions.astro` で実装済み
-- 対象: `generation === 0` の全エントリ
-- ページ構成:
-  1. パンくず + 見出し
-  2. 注意書きセクション（固定文）: Pokémon Champions の配信は HOME 転送不可・ゲーム内受取である旨
-  3. `distributionMethod` 別グルーピング（バトルパス報酬 / 大会参加賞 / あいことば / メールボックス 等）
-  4. 各エントリ: 画像・名前・イベント名・期間・配信中/終了バッジ・`/pokemon/[id]` への詳細リンク
-- グループ内ソートは `startDate` 降順（現役の配信が重要なため新しい順）
-- 空文字フィールド（`ot`, `ball`, `moves: []` 等）が多いため、すべて条件付き表示にする
+- `title` はリンクラベルの元情報（現状ラベルは `第${n}世代` 固定生成で使用していないが、将来の表示用に保持）
+- `externalUrl` が設定されている世代のみリンク帯に表示する（`src/pages/index.astro` の navLinks 構築ロジック参照）
+- summary-pages の世代ページは gen1-2 が第1・2世代合同
 
 ### 導線（実装済み・現行仕様）
 
-- 検索UIヘッダー下（stats バー付近）に世代まとめ・Championsへのリンク帯を実装済み（最小限のテキストリンク。本格的なグローバルナビは nav.json 対応時に検討）
-- 各世代まとめページのフッターに「全配信を検索する → /distribution/」リンクあり
-- 第8・9世代分のリンクは WP記事URL に向ける（gen-guides.json に `"8": { "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }` 形式で持たせ、リンク帯の生成元を gen-guides.json に一本化している）
+- 検索UIヘッダー下（stats バー付近）に世代（第1〜9）・Championsへのリンク帯を実装済み。すべて `target="_blank"` の外部リンク（summary-pages または WP記事）
+- Championsリンクは `https://www.pokebros.net/distribution/champions-eventpokemon/` 固定
+- 本アプリ内フッターからの「まとめページへ」の導線は無し（まとめ役割は summary-pages 側のため）
 
 ## コーディング規約
 
@@ -235,10 +201,10 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 
 ## デプロイ・データ更新
 
-- サイトURL: https://www.pokebros.net/distribution/
-- ベースパス: `/distribution`（`astro.config.mjs`で設定）
+デプロイは二段構え（2026-08-03 決定）。`base` は `DEPLOY_TARGET` 環境変数で切替わる（`astro.config.mjs`）:
 
-**注**: `/distribution/` 配下の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは UI/UX 改善中で、summary-pages とは別の流入導線を想定。デプロイ先 URL は未確定。
+- **①ベータ**: GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/`（`base: '/pokemon-distribution-app'`）。main への push で `.github/workflows/deploy-pages.yml` が自動デプロイ。**全ページ noindex**
+- **②本番**（ベータ確認後）: ConoHa FTP `https://www.pokebros.net/distribution/search/`（`base: '/distribution/search'`）。`npm run build:prod`（`DEPLOY_TARGET=production`）でビルドし手動FTPアップロード。`pokemon/[id]` のみ noindex
 
 詳細は `docs/deploy.md` を参照。
 

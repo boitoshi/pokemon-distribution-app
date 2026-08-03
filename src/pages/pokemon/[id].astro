@@ -87,7 +87,7 @@ const sameRegionDistributions = pokemon.region
 // 画像URL
 const isDev = import.meta.env.DEV;
 const assetBase = isDev
-    ? '/distribution/images'
+    ? `${normalizedBaseUrl}images`
     : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
 const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
 const ballImageBaseUrl = `${assetBase}/balls`;
@@ -224,7 +224,8 @@ const statusText = isActive ? '配信中' : '終了';
 const pageTitle = `${pokemon.pokemonName} - ${pokemon.eventName} | 配信ポケモン検索`;
 const pageDescription = `${pokemon.pokemonName}の配信情報。${pokemon.eventName}（${formatDate(pokemon.startDate)}〜${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}）。配信方法: ${pokemon.distributionMethod}`;
 const ogImage = getPokemonImageUrl(pokemon);
-const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.managementId}`;
+const siteUrl = new URL(normalizedBaseUrl, Astro.site).href;
+const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
 ---
 
 <Layout
@@ -233,6 +234,7 @@ const canonicalUrl = `https://www.pokebros.net/distribution/pokemon/${pokemon.ma
     ogImage={ogImage}
     ogType="article"
     canonicalUrl={canonicalUrl}
+    noindex={true}
 >
     <header>
         <div class="header-content">

@@ -8,19 +8,11 @@ import { join } from 'path';
 const baseUrl = import.meta.env.BASE_URL;
 const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 
-// gen-guides.json を読む
+// gen-guides.json を読む（世代リンク帯の外部URL管理。summary-pages / WP記事へのリンク）
 const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
-const guides: Record<string, { title?: string; hardware?: string; intro?: string; methods?: { name: string; description: string }[]; notes?: string; externalUrl?: string }> = JSON.parse(readFileSync(guidesPath, 'utf-8'));
+const guides: Record<string, { title?: string; externalUrl?: string }> = JSON.parse(readFileSync(guidesPath, 'utf-8'));
 
-// pokemon.json を読んで世代別件数を集計
-const pokemonPath = join(process.cwd(), 'public', 'pokemon.json');
-const allPokemon: { generation: number }[] = JSON.parse(readFileSync(pokemonPath, 'utf-8'));
-const genCount: Record<number, number> = {};
-for (const p of allPokemon) {
-    genCount[p.generation] = (genCount[p.generation] ?? 0) + 1;
-}
-
-// リンク帯の項目配列 navLinks を構築（404回避ルール厳守）
+// リンク帯の項目配列 navLinks を構築（全て summary-pages / WP記事への外部リンク）
 interface NavLink {
     label: string;
     href: string;
@@ -28,33 +20,10 @@ interface NavLink {
 }
 const navLinks: NavLink[] = [];
 for (let n = 1; n <= 9; n++) {
-    const guide = guides[String(n)];
-    if (!guide) {
-        // guideが無く、データも無い → スキップ
-        if (!genCount[n] || genCount[n] < 1) continue;
-        // guideが無いがデータがある（想定外だが安全側）
-        navLinks.push({ label: `第${n}世代`, href: `${normalizedBaseUrl}gen/${n}/`, external: false });
-        continue;
-    }
-    if (guide.externalUrl !== undefined) {
-        if (guide.externalUrl === '') {
-            // externalUrl キーありで空文字 → スキップ
-            continue;
-        }
-        // externalUrl 非空 → 外部リンク
-        navLinks.push({ label: `第${n}世代`, href: guide.externalUrl, external: true });
-    } else {
-        // externalUrl キー無し → 内部ページ（データがある場合のみ）
-        if (genCount[n] && genCount[n] >= 1) {
-            navLinks.push({ label: `第${n}世代`, href: `${normalizedBaseUrl}gen/${n}/`, external: false });
-        }
-        // データ無し → スキップ
-    }
+    const url = guides[String(n)]?.externalUrl;
+    if (url) navLinks.push({ label: `第${n}世代`, href: url, external: true });
 }
-// Champions（gen0）がある場合
-if (genCount[0] && genCount[0] >= 1) {
-    navLinks.push({ label: 'Champions', href: `${normalizedBaseUrl}champions/`, external: false });
-}
+navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution/champions-eventpokemon/', external: true });
 ---
 
 <Layout title="配信ポケモン検索データベース">
@@ -374,7 +343,7 @@ if (genCount[0] && genCount[0] >= 1) {
     // 画像URL生成関数
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const assetBase = isLocal
-        ? '/distribution/images'
+        ? `${(baseUrl.endsWith('/') ? baseUrl : baseUrl + '/')}images`
         : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
     const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
     const ballImageBaseUrl = `${assetBase}/balls`;

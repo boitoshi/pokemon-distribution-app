@@ -1,6 +1,6 @@
 // Service Worker for 配信ポケモン検索データベース
-const CACHE_NAME = 'pokemon-distribution-v1';
-const BASE_PATH = '/distribution';
+const CACHE_NAME = 'pokemon-distribution-v2';
+const BASE_PATH = new URL('.', self.location).pathname.replace(/\/$/, '');
 
 // キャッシュするファイル
 const STATIC_ASSETS = [
