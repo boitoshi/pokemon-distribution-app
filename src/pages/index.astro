@@ -159,6 +159,13 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
     // リボン複数選択
     let selectedRibbons = [];
+
+    // specialMoves = 通常プレイでは覚えられない特別な技（技名の配列）。旧形式の文字列フラグも許容
+    function hasSpecialMoves(p) {
+        return Array.isArray(p.specialMoves)
+            ? p.specialMoves.length > 0
+            : Boolean(p.specialMoves && p.specialMoves !== '');
+    }
     let ribbonFilterMode = 'OR';
 
     // かな正規化検索用: NFKC正規化 → 小文字化 → ひらがな→カタカナ変換
@@ -862,7 +869,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
         // Filter by special moves flag
         if (filterSpecialMoves) {
-            filtered = filtered.filter(p => p.specialMoves && p.specialMoves !== '');
+            filtered = filtered.filter(hasSpecialMoves);
         }
 
         // Filter by ribbons (複数選択・AND/OR)
@@ -949,12 +956,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
                     filtered = filtered.filter(p => p.alpha && p.alpha !== '');
                     break;
                 case 'moves':
-                    filtered = filtered.filter(p => {
-                        const moves = p.moves && Array.isArray(p.moves)
-                            ? p.moves.filter(m => m && m !== '')
-                            : [p.move1, p.move2, p.move3, p.move4].filter(m => m && m !== '');
-                        return moves.length > 0;
-                    });
+                    filtered = filtered.filter(hasSpecialMoves);
                     break;
                 case 'item':
                     filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
