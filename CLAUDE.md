@@ -141,8 +141,8 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 
 | 層 | 役割 | URL |
 |------|------|-----|
-| 本アプリ `/`（トップ） | 全世代横断の検索UI | `pokemon.json`（generation 0 を除外） |
-| 本アプリ `/timeline` | 配信タイムライン | `pokemon.json`（generation 0 を除外） |
+| 本アプリ `/`（トップ） | 全世代横断の検索UI | `pokemon.json`（Champions 含む全件） |
+| 本アプリ `/timeline` | 配信タイムライン | `pokemon.json`（Champions 含む全件） |
 | 本アプリ `/pokemon/[id]` | 個別ポケモンページ（Champions含む全エントリで生成、常時 `noindex`） | `pokemon.json` |
 | summary-pages（pokebros-tools） | 世代・大会・special-forms・type-stats・個別詳細ページの SEO 正本 | `https://www.pokebros.net/distribution/gen1-2/` 〜 `/gen9/`、`/champions-eventpokemon/` など |
 | WordPress記事 | 読み物・解説・SEO着地点（第8世代まとめは `/eventpokemon-genviii/` などWP投稿で運用） | `pokebros.net` 配下の個別記事 |
@@ -152,10 +152,10 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - 本アプリ = 全世代横断の検索・タイムライン・比較・お気に入り・所持チェックリストなどのツール層
 - 本アプリ内に世代まとめ・Championsまとめページは持たない（旧 `gen/[generation].astro`・`champions.astro` は 2026-08-03 に削除）。リンク帯から外部（summary-pages / WP記事）へ誘導する
 
-### Championsデータの扱い（変更なし）
+### Championsデータの扱い（2026-08-03 改定: 検索・タイムラインに含める）
 
 - 識別: `generation: 0` かつ `tournamentType: "Champions"`
-- **検索UI（index.astro）とタイムライン（timeline.astro）の対象から除外する**。データ読み込み直後に `data.filter(p => p.generation !== 0)` でフィルタ
+- **検索UI（index.astro）とタイムライン（timeline.astro）の対象に含める（世代フィルタでは「Champions」として選択可能）**。「全世代横断の検索ツール」としての価値を優先し、除外フィルタは撤去済み
 - 個別ページ（`/pokemon/[id]`）は Champions 含む全エントリで生成を継続（summary-pages のChampionsまとめからのリンク先として必要）
 - Champions固有フィールド: `tournamentType`, `tournamentYear`, `tournamentSchedule`, `winner` など。`level` は文字列の場合がある（例: `"Lv.50相当(非表示)"`）ため数値前提の処理をしない
 

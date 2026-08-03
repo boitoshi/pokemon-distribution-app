@@ -116,7 +116,9 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     "サン, ムーン, ウルトラサン, ウルトラムーン": "SM/USUM",
     "ピカブイ": "ピカブイ",
     "ピカチュウ（Let's Go）": "ピカブイ",
-    "イーブイ（Let's Go）": "ピカブイ"
+    "イーブイ（Let's Go）": "ピカブイ",
+    // Champions（generation:0）
+    "Pokémon Champions": "チャンピオンズ"
   };
   // 補足: game は「,」区切りで個別名に分割してから1件ずつ変換するため、
   // 上記の複合キー（例:「ソード, シールド」）はこの変換経路では実質使われない。
@@ -134,7 +136,9 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     // 第7世代（オレンジ系・紫系）
     "SM": "#ef6c00", "USUM": "#7b1fa2", "SM/USUM": "#e65100",
     "サン": "#ef6c00", "ムーン": "#ef6c00", "ウルトラサン": "#7b1fa2", "ウルトラムーン": "#7b1fa2",
-    "ピカブイ": "#a67c00"
+    "ピカブイ": "#a67c00",
+    // Champions
+    "チャンピオンズ": "#b8860b"
   };
   function getGameShortName(g) { return gameShortNames[g] || g; }
   function getGameColor(g) {
@@ -311,7 +315,7 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     .then(data => {
       document.getElementById('tl-loading').style.display = 'none';
       document.getElementById('tl-content').style.display = '';
-      renderTimeline(data.filter(p => p.generation !== 0));
+      renderTimeline(data);
     })
     .catch(() => {
       document.getElementById('tl-loading').textContent = 'データの読み込みに失敗しました';
