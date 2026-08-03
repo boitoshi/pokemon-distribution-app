@@ -190,17 +190,20 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
     }
 
     function removeRibbon(value) {
-        selectedRibbons = selectedRibbons.filter(r => r !== value);
+        const v = String(value).trim();
+        selectedRibbons = selectedRibbons.filter(r => r !== v);
         renderRibbonTags();
         searchPokemon();
     }
 
     // リボン/あかしボタンのクリック処理（addRibbon/removeRibbonを共通利用してトグル）
+    // 比較は add/remove と同じく trim ベースに統一（URL/プリセット由来の空白ズレ対策）
     function toggleRibbonSelection(value) {
-        if (selectedRibbons.includes(value)) {
-            removeRibbon(value);
+        const v = String(value).trim();
+        if (selectedRibbons.includes(v)) {
+            removeRibbon(v);
         } else {
-            addRibbon(value);
+            addRibbon(v);
         }
     }
 
@@ -226,7 +229,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         }
         // リボン/あかしボタン一覧の選択状態を同期（タグ×削除・クリア・URL復元など全経路で反映される）
         document.querySelectorAll('.ribbon-toggle-btn').forEach(btn => {
-            const isSelected = selectedRibbons.includes(btn.dataset.ribbon);
+            const isSelected = selectedRibbons.includes(String(btn.dataset.ribbon || '').trim());
             btn.classList.toggle('is-active', isSelected);
             btn.setAttribute('aria-pressed', String(isSelected));
         });
@@ -424,7 +427,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
         const ribbonParams = params.getAll('ribbon');
         if (ribbonParams.length > 0) {
-            selectedRibbons = ribbonParams;
+            selectedRibbons = ribbonParams.map(r => String(r).trim()).filter(Boolean);
             renderRibbonTags();
             hasFilters = true;
         }
@@ -482,7 +485,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = filters.sortOrder || 'date-desc';
 
         // リボン
-        selectedRibbons = filters.ribbons || [];
+        selectedRibbons = (filters.ribbons || []).map(r => String(r).trim()).filter(Boolean);
         ribbonFilterMode = filters.ribbonMode || 'OR';
         renderRibbonTags();
 
