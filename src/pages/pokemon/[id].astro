@@ -285,7 +285,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                 <div class="info-row">
                     <div class="info-label">世代:</div>
                     <div class="info-value">
-                        <span class={`generation-badge gen-${pokemon.generation}`}>第{pokemon.generation}世代</span>
+                        <span class={`generation-badge gen-${pokemon.generation}`}>{pokemon.generation === 0 ? 'Champions' : `第${pokemon.generation}世代`}</span>
                     </div>
                 </div>
                 <div class="info-row">

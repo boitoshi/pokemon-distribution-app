@@ -5,7 +5,7 @@
 ### 検索機能
 
 - **基本検索**: ポケモン名・イベント名のテキスト検索
-- **セレクトボックス**: 世代、配信方法で絞り込み
+- **セレクトボックス**: 世代（Championsも「Champions」として選択可）、配信方法で絞り込み
 - **タグボタン複数選択**: ゲーム（複数同時選択可）
 - **詳細条件（開閉式）**:
   - ✨ 色違い
@@ -82,7 +82,8 @@
 
 ### データ関連（pokemon-data 側の作業）
 - [ ] **第5〜7世代の specialMoves（特別な技）入力** — 2026-08-03 の正本復元は旧appデータ由来の第8・9世代19件のみ。第7世代以前は未記録のため、notes・配信情報から洗い出して `distributions/gen5〜7.json` に追加する
-- [ ] **HOME配信・Championsの検索アプリでの扱い決定** — 現状: Champions(generation:0)は検索・タイムライン対象外（リンク帯から summary-pages へ誘導予定）。HOME経由の配信の扱いも合わせて要検討
+- [x] Championsの検索対象への追加 — 対応済み(2026-08-03)。Champions(generation:0・21件)を検索UI・タイムラインの対象に含める（世代フィルタで「Champions」として選択可能）。個別ページ・summary-pagesへのリンク帯は従来通り
+- [ ] **HOME配信のpokemon-data未収載** — HOME受取の配信（色違いゼラオラ等）が pokemon-data に未収載。summary-pages では HOME 区分で掲載済み。pokemon-data に HOME 配信エントリ（game を HOME とするか要設計）を追加するのが残タスク
 
 ### パフォーマンス改善（優先度：低）
 - [ ] 画像の遅延読み込み（lazy loading）実装

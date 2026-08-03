@@ -431,6 +431,14 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             if (regionSelect) regionSelect.value = region;
         }
 
+        // 世代パラメータ（?generation=0 でChampionsのみ表示。"0"は空文字と区別するためnullチェック）
+        const generationParam = params.get('generation');
+        if (generationParam !== null) {
+            hasFilters = true;
+            const generationSelect = document.getElementById('filterGeneration');
+            if (generationSelect) generationSelect.value = generationParam;
+        }
+
         // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
         const ribbonParams = params.getAll('ribbon');
         if (ribbonParams.length > 0) {
@@ -552,8 +560,8 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
                 throw new Error('Invalid data format: expected array');
             }
 
-            // Champions(generation:0)は検索UI対象外
-            allData = data.filter(p => p.generation !== 0);
+            // Champions(generation:0)も検索UI対象（2026-08-03 改定。世代フィルタでは「Champions」として選択可能）
+            allData = data;
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('stats').style.display = 'flex';
@@ -564,7 +572,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             applyUrlParameters();
 
             const params = new URLSearchParams(window.location.search);
-            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active'].includes(key))) {
+            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active', 'generation'].includes(key))) {
                 const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
                 searchResults = sortData(allData, sortOrder);
                 displayResults(searchResults);
@@ -712,16 +720,19 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             regionSelect.appendChild(option);
         });
 
-        // 世代の選択肢をデータから動的生成（降順。Championsのgeneration:0は対象外）
+        // 世代の選択肢をデータから動的生成（降順。Championsのgeneration:0は最後尾に「Champions」として表示）
         const generations = [...new Set(allData.map(p => p.generation))]
-            .filter(g => g !== 0)
             .sort((a, b) => b - a);
         const generationSelect = document.getElementById('filterGeneration');
         generations.forEach(gen => {
             const option = document.createElement('option');
             option.value = String(gen);
-            const short = GENERATION_SHORT_NAMES[gen];
-            option.textContent = short ? `第${gen}世代 (${short})` : `第${gen}世代`;
+            if (gen === 0) {
+                option.textContent = 'Champions';
+            } else {
+                const short = GENERATION_SHORT_NAMES[gen];
+                option.textContent = short ? `第${gen}世代 (${short})` : `第${gen}世代`;
+            }
             generationSelect.appendChild(option);
         });
     }
@@ -825,9 +836,10 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             });
         }
 
-        // Filter by generation
-        if (filterGeneration) {
-            filtered = filtered.filter(p => p.generation === parseInt(filterGeneration));
+        // Filter by generation（value="0"はChampions。truthy判定だと"0"文字列自体は真だが、
+        // 明示的に !== '' へ統一して未選択(空文字)との区別を堅牢にする）
+        if (filterGeneration !== '') {
+            filtered = filtered.filter(p => p.generation === parseInt(filterGeneration, 10));
         }
 
         // Filter by distribution method
@@ -1045,8 +1057,15 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         "サン": "サン",
         "ムーン": "ムーン",
         "ウルトラサン": "ウルトラサン",
-        "ウルトラムーン": "ウルトラムーン"
+        "ウルトラムーン": "ウルトラムーン",
+        // Champions（generation:0）
+        "Pokémon Champions": "チャンピオンズ"
     };
+
+    // 世代表示ラベル（Champions=generation:0は「第0世代」ではなく「Champions」と表示する）
+    function getGenerationLabel(generation) {
+        return generation === 0 ? 'Champions' : `第${generation}世代`;
+    }
     function getGameShortName(game) {
         if (gameShortNames[game]) return gameShortNames[game];
         // 複数ソフト対応（5ソフト同時配信等）
@@ -1073,6 +1092,8 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
     function getGameColorClass(game) {
         if (!game) return '';
+        // Champions
+        if (game.includes('Champions')) return 'game-champions';
         // 複合版（両方含む）
         const hasScarlet = game.includes('スカーレット');
         const hasViolet = game.includes('バイオレット');
@@ -1153,7 +1174,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
         // Generation badge
         const genBadge = cardEl.querySelector('.generation-badge');
-        genBadge.textContent = `第${pokemon.generation}世代`;
+        genBadge.textContent = getGenerationLabel(pokemon.generation);
         genBadge.classList.add(`gen-${pokemon.generation}`);
 
         // Game name badge
@@ -1295,7 +1316,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
         // Generation badge
         const genBadge = modalEl.querySelector('.modal-generation-badge');
-        genBadge.textContent = `第${pokemon.generation}世代`;
+        genBadge.textContent = getGenerationLabel(pokemon.generation);
         genBadge.classList.add(`gen-${pokemon.generation}`);
 
         // Basic info
@@ -1899,13 +1920,13 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
                         <div class="compare-dex">No.${String(pokemon.dexNo).padStart(3, '0')}</div>
                     </div>
                     <div class="compare-details">
-                        <div class="compare-row"><strong>世代:</strong> 第${pokemon.generation}世代</div>
+                        <div class="compare-row"><strong>世代:</strong> ${getGenerationLabel(pokemon.generation)}</div>
                         <div class="compare-row"><strong>イベント:</strong> ${escapeHtml(pokemon.eventName)}</div>
                         <div class="compare-row"><strong>配信期間:</strong> ${formatDate(pokemon.startDate)} 〜 ${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}</div>
                         <div class="compare-row"><strong>配信方法:</strong> ${escapeHtml(pokemon.distributionMethod)}</div>
                         ${pokemon.region ? `<div class="compare-row"><strong>地域:</strong> ${escapeHtml(pokemon.region)}</div>` : ''}
                         <div class="compare-row"><strong>ゲーム:</strong> ${escapeHtml(getGameShortName(pokemon.game))}</div>
-                        <div class="compare-row"><strong>レベル:</strong> ${escapeHtml(String(pokemon.level)) || '?'}</div>
+                        <div class="compare-row"><strong>レベル:</strong> ${pokemon.level ? escapeHtml(String(pokemon.level)) : '?'}</div>
                         <div class="compare-row"><strong>親名:</strong> ${otDisplay}</div>
                         ${pokemon.trainerId ? `<div class="compare-row"><strong>ID:</strong> ${escapeHtml(String(pokemon.trainerId))}</div>` : ''}
                         ${pokemon.nature ? `<div class="compare-row"><strong>性格:</strong> ${escapeHtml(pokemon.nature)}</div>` : ''}
@@ -1994,7 +2015,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         // 世代別集計
         const genGroups = {};
         allData.forEach(p => {
-            const g = `第${p.generation}世代`;
+            const g = getGenerationLabel(p.generation);
             if (!genGroups[g]) genGroups[g] = { total: 0, owned: 0 };
             genGroups[g].total++;
             if (owned.includes(p.managementId)) genGroups[g].owned++;
