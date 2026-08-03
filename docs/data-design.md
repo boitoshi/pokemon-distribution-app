@@ -73,7 +73,7 @@ pokemon-distribution（スプレッドシート）
 | nature | string | | 性格 | `ようき` |
 | heldItem | string | | 持ち物 | `でんきだま` |
 | moves | string | | 技（カンマ区切り） | `ボルテッカー, でんこうせっか` |
-| specialMoves | string | | 特別な技フラグ（通常覚えない技がある場合） | `あり` |
+| specialMoves | string[] | | 特別な技（通常プレイでは覚えられない技名の配列。旧: `"あり"` 文字列フラグ→2026-08-03 に技名配列として正本復元） | `["おいわい"]` |
 | ribbons | string | | リボン（カンマ区切り） | `クラシックリボン` |
 | password | string | | あいことば（配信方法が「あいことば」の場合） | `PRESENT2024` |
 | notes | string | | 備考 | `抽選配布` |
