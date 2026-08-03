@@ -5,18 +5,24 @@ interface Props {
   ogImage?: string;
   ogType?: string;
   canonicalUrl?: string;
+  noindex?: boolean;
 }
 
 const {
   title,
   description = '配信ポケモンを検索できます',
-  ogImage = 'https://www.pokebros.net/distribution/ogp-default.png',
+  ogImage,
   ogType = 'website',
-  canonicalUrl
+  canonicalUrl,
+  noindex = false
 } = Astro.props;
 
-const siteUrl = 'https://www.pokebros.net/distribution';
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const isProdDeploy = process.env.DEPLOY_TARGET === 'production';
+const siteUrl = new URL(base, Astro.site).href;
 const fullCanonicalUrl = canonicalUrl || siteUrl;
+const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
 ---
 
 <!DOCTYPE html>
@@ -29,13 +35,14 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
 
     <!-- Canonical URL -->
     <link rel="canonical" href={fullCanonicalUrl}>
+    {(noindex || !isProdDeploy) && <meta name="robots" content="noindex">}
 
     <!-- OGP Meta Tags -->
     <meta property="og:title" content={title}>
     <meta property="og:description" content={description}>
     <meta property="og:type" content={ogType}>
     <meta property="og:url" content={fullCanonicalUrl}>
-    <meta property="og:image" content={ogImage}>
+    <meta property="og:image" content={fullOgImage}>
     <meta property="og:site_name" content="配信ポケモン検索データベース">
     <meta property="og:locale" content="ja_JP">
 
@@ -43,12 +50,12 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content={title}>
     <meta name="twitter:description" content={description}>
-    <meta name="twitter:image" content={ogImage}>
+    <meta name="twitter:image" content={fullOgImage}>
 
     <!-- PWA -->
-    <link rel="manifest" href="/distribution/manifest.json">
+    <link rel="manifest" href={`${base}manifest.json`}>
     <meta name="theme-color" content="#ffbd59">
-    <link rel="apple-touch-icon" href="/distribution/icons/icon-192.png">
+    <link rel="apple-touch-icon" href={`${base}icons/icon-192.png`}>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="配信ポケモン検索">
@@ -59,10 +66,10 @@ const fullCanonicalUrl = canonicalUrl || siteUrl;
     </div>
 
     <!-- Service Worker Registration -->
-    <script>
+    <script define:vars={{ swPath: `${base}sw.js` }}>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/distribution/sw.js')
+                navigator.serviceWorker.register(swPath)
                     .then((registration) => {
                         console.log('SW registered:', registration.scope);
                     })

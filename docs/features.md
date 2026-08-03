@@ -50,9 +50,9 @@
 - [x] PWA対応（manifest.json, Service Worker） → `public/manifest.json`, `public/sw.js`
 - [x] 関連ポケモンリンク（同ポケモン/同イベント/同地域） → `src/pages/pokemon/[id].astro`
 - [x] regionフィールド全世代対応 → `docs/data-design.md`
-- [x] 世代別まとめページ生成（`/gen/[generation]`、第1〜7世代・データのある世代のみ生成、配信方法別グルーピング＋解説） → `src/pages/gen/[generation].astro` / `src/data/gen-guides.json`
-- [x] Championsページ（`/champions`、`generation:0` 専用・HOME転送不可の注記付き） → `src/pages/champions.astro`
-- [x] 世代・Championsへの導線リンク帯（検索UIヘッダー下、外部WP記事URL対応・404回避） → `src/pages/index.astro`
+- [x] 2026-08-03 削除: 世代別まとめページ（旧 `/gen/[generation]`）・Championsページ（旧 `/champions`）。役割を pokebros-tools の summary-pages へ移管し、本アプリはリンク帯から外部誘導する純粋なツール層に純化
+- [x] 世代・Championsへの導線リンク帯（検索UIヘッダー下、`src/data/gen-guides.json` の `externalUrl` を使った summary-pages / WP記事への外部リンク） → `src/pages/index.astro`
+- [x] 個別ポケモンページは常時 `noindex`（SEOは summary-pages に一本化） → `src/pages/pokemon/[id].astro`
 
 ### UI機能
 - [x] 無限スクロール（24件ずつ追加読み込み、IntersectionObserver使用） → `src/pages/index.astro`
@@ -67,6 +67,7 @@
 - [x] 配信データ正本を pokemon-data リポジトリへ一本化 → `scripts/sync-from-pokemon-data.mjs`（旧 GAS `export-to-json.gs` は 2026-07 引退・削除）
 - [x] データ設計書 → `docs/data-design.md`
 - [x] デプロイ手順書 → `docs/deploy.md`
+- [x] デプロイ二段構え（① ベータ = GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/` 自動デプロイ・全ページ noindex → ② 本番 = ConoHa FTP `https://www.pokebros.net/distribution/search/`、`npm run build:prod`）→ `astro.config.mjs`, `.github/workflows/deploy-pages.yml`, `docs/deploy.md`
 
 ---
 

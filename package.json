@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "node scripts/build-safe.mjs",
+    "build:prod": "DEPLOY_TARGET=production node scripts/build-safe.mjs",
     "preview": "astro preview",
     "lint": "node scripts/lint-project.mjs",
     "smoke": "node scripts/validate-data.mjs"
