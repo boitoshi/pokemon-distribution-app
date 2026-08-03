@@ -9,8 +9,9 @@ const baseUrl = import.meta.env.BASE_URL;
 const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 
 // gen-guides.json を読む（世代リンク帯の外部URL管理。summary-pages / WP記事へのリンク）
+// externalUrl が空の世代は summary-pages 未公開のためリンク帯に表示しない（plannedUrl は公開後に externalUrl へ移す予定のURL）
 const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
-const guides: Record<string, { title?: string; externalUrl?: string }> = JSON.parse(readFileSync(guidesPath, 'utf-8'));
+const guides: Record<string, { title?: string; externalUrl?: string; plannedUrl?: string }> = JSON.parse(readFileSync(guidesPath, 'utf-8'));
 
 // リンク帯の項目配列 navLinks を構築（全て summary-pages / WP記事への外部リンク）
 interface NavLink {
@@ -23,7 +24,8 @@ for (let n = 1; n <= 9; n++) {
     const url = guides[String(n)]?.externalUrl;
     if (url) navLinks.push({ label: `第${n}世代`, href: url, external: true });
 }
-navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution/champions-eventpokemon/', external: true });
+const championsUrl = guides['champions']?.externalUrl;
+if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, external: true });
 ---
 
 <Layout title="配信ポケモン検索データベース">
@@ -34,7 +36,7 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
                 <p>配信ポケモンを検索できます</p>
             </div>
             <div class="header-right">
-                <a href={`${baseUrl}timeline`} class="timeline-link-btn" aria-label="タイムライン">
+                <a href={`${normalizedBaseUrl}timeline/`} class="timeline-link-btn" aria-label="タイムライン">
                     <span aria-hidden="true">📅</span>
                     <span class="timeline-link-label">タイムライン</span>
                 </a>
@@ -45,6 +47,7 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
 
     {navLinks.length > 0 && (
         <nav class="gen-nav" aria-label="世代別ページ">
+            <span class="gen-nav-label">📚 世代別まとめ（外部サイト）:</span>
             {navLinks.map((link) => (
                 link.external
                     ? <a class="gen-nav-link" href={link.href} target="_blank" rel="noopener">{link.label}</a>
@@ -143,11 +146,11 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
     <PokemonCard />
 </Layout>
 
-<script define:vars={{ baseUrl }}>
+<script define:vars={{ baseUrl: normalizedBaseUrl }}>
     let allData = [];
     let displayedCount = 0;
     const ITEMS_PER_PAGE = 24;
-    const JSON_URL = `${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`;
+    const JSON_URL = `${baseUrl}pokemon.json`;
 
     // 無限スクロール用の状態管理
     let currentDisplayData = [];
@@ -187,9 +190,21 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
     }
 
     function removeRibbon(value) {
-        selectedRibbons = selectedRibbons.filter(r => r !== value);
+        const v = String(value).trim();
+        selectedRibbons = selectedRibbons.filter(r => r !== v);
         renderRibbonTags();
         searchPokemon();
+    }
+
+    // リボン/あかしボタンのクリック処理（addRibbon/removeRibbonを共通利用してトグル）
+    // 比較は add/remove と同じく trim ベースに統一（URL/プリセット由来の空白ズレ対策）
+    function toggleRibbonSelection(value) {
+        const v = String(value).trim();
+        if (selectedRibbons.includes(v)) {
+            removeRibbon(v);
+        } else {
+            addRibbon(v);
+        }
     }
 
     function renderRibbonTags() {
@@ -212,6 +227,12 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
                 radio.checked = radio.value === ribbonFilterMode;
             });
         }
+        // リボン/あかしボタン一覧の選択状態を同期（タグ×削除・クリア・URL復元など全経路で反映される）
+        document.querySelectorAll('.ribbon-toggle-btn').forEach(btn => {
+            const isSelected = selectedRibbons.includes(String(btn.dataset.ribbon || '').trim());
+            btn.classList.toggle('is-active', isSelected);
+            btn.setAttribute('aria-pressed', String(isSelected));
+        });
         // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
         if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
     }
@@ -343,7 +364,7 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
     // 画像URL生成関数
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const assetBase = isLocal
-        ? `${(baseUrl.endsWith('/') ? baseUrl : baseUrl + '/')}images`
+        ? `${baseUrl}images`
         : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
     const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
     const ballImageBaseUrl = `${assetBase}/balls`;
@@ -406,7 +427,7 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
         // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
         const ribbonParams = params.getAll('ribbon');
         if (ribbonParams.length > 0) {
-            selectedRibbons = ribbonParams;
+            selectedRibbons = ribbonParams.map(r => String(r).trim()).filter(Boolean);
             renderRibbonTags();
             hasFilters = true;
         }
@@ -464,7 +485,7 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
         if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = filters.sortOrder || 'date-desc';
 
         // リボン
-        selectedRibbons = filters.ribbons || [];
+        selectedRibbons = (filters.ribbons || []).map(r => String(r).trim()).filter(Boolean);
         ribbonFilterMode = filters.ribbonMode || 'OR';
         renderRibbonTags();
 
@@ -635,6 +656,37 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
             option.value = ribbon;
             ribbonList.appendChild(option);
         });
+
+        // リボン/あかしのボタン一覧を生成（データの一覧性向上。あかしは名前が「あかし」で終わるもので判定）
+        function createRibbonToggleButton(name) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ribbon-toggle-btn';
+            btn.dataset.ribbon = name;
+            btn.textContent = name;
+            btn.setAttribute('aria-pressed', 'false');
+            btn.addEventListener('click', () => toggleRibbonSelection(name));
+            return btn;
+        }
+
+        const ribbonButtonsContainer = document.getElementById('ribbonButtons');
+        const markButtonsContainer = document.getElementById('markButtons');
+        const markButtonGroup = document.getElementById('markButtonGroup');
+        const ribbonNames = ribbons.filter(r => !isMarkName(r));
+        const markNames = ribbons.filter(r => isMarkName(r));
+
+        if (ribbonButtonsContainer) {
+            ribbonNames.forEach(name => ribbonButtonsContainer.appendChild(createRibbonToggleButton(name)));
+        }
+        if (markButtonsContainer) {
+            markNames.forEach(name => markButtonsContainer.appendChild(createRibbonToggleButton(name)));
+        }
+        // あかしが0件の場合はグループごと非表示（将来データが変わっても安全に）
+        if (markButtonGroup) {
+            markButtonGroup.style.display = markNames.length > 0 ? '' : 'none';
+        }
+        // 初期状態（selectedRibbonsがあれば）をボタンに反映
+        renderRibbonTags();
 
         // 地域の選択肢をデータから動的生成（カンマ区切りの複合値は分割して個別値を候補にする）
         const regionSet = new Set();
@@ -2052,10 +2104,19 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
 .gen-nav {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     padding: 10px 12px;
     background: var(--color-bg-section);
     border-bottom: 1px solid var(--color-border);
+}
+
+.gen-nav-label {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--color-text-muted, #666);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .gen-nav-link {
@@ -2090,6 +2151,10 @@ navLinks.push({ label: 'Champions', href: 'https://www.pokebros.net/distribution
         font-size: 12px;
         padding: 4px 10px;
         flex-shrink: 0;
+    }
+
+    .gen-nav-label {
+        font-size: 12px;
     }
 }
 

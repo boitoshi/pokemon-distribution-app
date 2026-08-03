@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 const baseUrl = import.meta.env.BASE_URL;
+const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 ---
 
 <Layout title="配信タイムライン | 配信ポケモン検索データベース">
   <header>
     <div class="tl-header">
-      <a href={baseUrl} class="tl-back-btn">← 一覧</a>
+      <a href={normalizedBaseUrl} class="tl-back-btn">← 一覧</a>
       <h1 class="tl-title">📅 配信タイムライン</h1>
       <button id="toggleDarkMode" class="dark-mode-btn">🌙</button>
     </div>
@@ -40,7 +41,7 @@ const baseUrl = import.meta.env.BASE_URL;
   </main>
 </Layout>
 
-<script define:vars={{ baseUrl }}>
+<script define:vars={{ baseUrl: normalizedBaseUrl }}>
   // HTMLエスケープ
   function escapeHtml(str) {
     if (str == null) return '';
@@ -86,7 +87,7 @@ const baseUrl = import.meta.env.BASE_URL;
   // 画像URL
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const assetBase = isLocal
-    ? `${(baseUrl.endsWith('/') ? baseUrl : baseUrl + '/')}images`
+    ? `${baseUrl}images`
     : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
   function getPokemonImageUrl(pokemon) {
     const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -285,7 +286,7 @@ const baseUrl = import.meta.env.BASE_URL;
       }
       if (card) {
         const id = card.dataset.id;
-        window.location.href = `${baseUrl}pokemon/${id}`;
+        window.location.href = `${baseUrl}pokemon/${id}/`;
       }
     });
   }
@@ -305,7 +306,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
   // 初期化
   initDarkMode();
-  fetch(`${baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'}pokemon.json`)
+  fetch(`${baseUrl}pokemon.json`)
     .then(r => r.json())
     .then(data => {
       document.getElementById('tl-loading').style.display = 'none';
