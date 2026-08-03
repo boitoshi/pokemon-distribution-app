@@ -118,6 +118,7 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 | Pokémon LEGENDS アルセウス | LA |
 | スカーレット, バイオレット | SV |
 | Pokémon LEGENDS Z-A | ZA |
+| Pokémon Champions | ポケチャン |
 
 ### ゲーム固有の表示ロジック
 

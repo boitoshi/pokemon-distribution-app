@@ -1059,7 +1059,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         "ウルトラサン": "ウルトラサン",
         "ウルトラムーン": "ウルトラムーン",
         // Champions（generation:0）
-        "Pokémon Champions": "チャンピオンズ"
+        "Pokémon Champions": "ポケチャン"
     };
 
     // 世代表示ラベル（Champions=generation:0は「第0世代」ではなく「Champions」と表示する）
@@ -1172,17 +1172,30 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
 
-        // Generation badge
+        // Generation badge / Game name badge
+        // Champions（generation:0）は世代が存在せずソフトも「ポケチャン」固定のため、
+        // 検索結果カードのみ世代バッジ+ゲームバッジを統合し「ポケチャン」1バッジ表示にする
+        // （モーダル・比較・個別ページは対象外）
         const genBadge = cardEl.querySelector('.generation-badge');
-        genBadge.textContent = getGenerationLabel(pokemon.generation);
-        genBadge.classList.add(`gen-${pokemon.generation}`);
-
-        // Game name badge
         const gameBadge = cardEl.querySelector('.game-name-badge');
-        if (gameBadge) {
-            gameBadge.textContent = getGameShortName(pokemon.game);
-            const gameClass = getGameColorClass(pokemon.game);
-            if (gameClass) gameBadge.classList.add(gameClass);
+        if (pokemon.generation === 0) {
+            const genRow = genBadge.closest('.info-row');
+            if (genRow) {
+                const genLabel = genRow.querySelector('.info-label');
+                if (genLabel) genLabel.textContent = '世代/ソフト:';
+            }
+            genBadge.textContent = getGameShortName(pokemon.game);
+            genBadge.classList.add('gen-0');
+            if (gameBadge) gameBadge.style.display = 'none';
+        } else {
+            genBadge.textContent = getGenerationLabel(pokemon.generation);
+            genBadge.classList.add(`gen-${pokemon.generation}`);
+
+            if (gameBadge) {
+                gameBadge.textContent = getGameShortName(pokemon.game);
+                const gameClass = getGameColorClass(pokemon.game);
+                if (gameClass) gameBadge.classList.add(gameClass);
+            }
         }
 
         // Basic info
