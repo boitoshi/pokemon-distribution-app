@@ -172,7 +172,7 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 
 - `title` はリンクラベルの元情報（現状ラベルは `第${n}世代` 固定生成で使用していないが、将来の表示用に保持）
 - `externalUrl` が設定されている世代のみリンク帯に表示する（`src/pages/index.astro` の navLinks 構築ロジック参照）
-- `plannedUrl` は summary-pages 本番公開後に `externalUrl` へ移す予定のURL。summary-pages が未デプロイの間は該当世代の `externalUrl` を空文字にしてリンク帯から隠しておく運用（2026-08-03時点は第8世代のWP記事のみ `externalUrl` が非空）
+- `plannedUrl` は summary-pages 本番公開後に `externalUrl` へ移す予定のURL。summary-pages が未デプロイの間は該当世代の `externalUrl` を空文字にしてリンク帯から隠しておく運用（2026-08-03時点は第8世代 `/eventpokemon-genviii/`・第9世代 `/eventpokemon-gen9/` のWP記事のみ `externalUrl` が非空）
 - summary-pages の世代ページは gen1-2 が第1・2世代合同
 
 ### 導線（実装済み・現行仕様）
