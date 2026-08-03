@@ -246,7 +246,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
     </header>
 
     <div class="breadcrumb">
-        <a href={baseUrl}>トップ</a> &gt; <span>{pokemon.pokemonName}</span>
+        <a href={normalizedBaseUrl}>トップ</a> &gt; <span>{pokemon.pokemonName}</span>
     </div>
 
     <div class="pokemon-detail">
@@ -448,7 +448,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                         <h4>🔄 {pokemon.pokemonName}の他の配信</h4>
                         <div class="related-list">
                             {samePokemonDistributions.map((p: PokemonData) => (
-                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}/`} class="related-card">
                                     <img
                                         class="related-image"
                                         src={getPokemonImageUrl(p)}
@@ -474,7 +474,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                         <h4>🎪 「{pokemon.eventName}」の他のポケモン</h4>
                         <div class="related-list">
                             {sameEventPokemon.map((p: PokemonData) => (
-                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}/`} class="related-card">
                                     <img
                                         class="related-image"
                                         src={getPokemonImageUrl(p)}
@@ -499,7 +499,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                         <h4>🌏 {pokemon.region}の他の配信</h4>
                         <div class="related-list">
                             {sameRegionDistributions.map((p: PokemonData) => (
-                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}`} class="related-card">
+                                <a href={`${normalizedBaseUrl}pokemon/${p.managementId}/`} class="related-card">
                                     <img
                                         class="related-image"
                                         src={getPokemonImageUrl(p)}
@@ -523,7 +523,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
         )}
 
         <div class="back-link">
-            <a href={baseUrl} class="back-button">← 検索に戻る</a>
+            <a href={normalizedBaseUrl} class="back-button">← 検索に戻る</a>
         </div>
     </div>
 </Layout>

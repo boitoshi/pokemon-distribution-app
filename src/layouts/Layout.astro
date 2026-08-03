@@ -441,6 +441,58 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
         color: #333;
     }
 
+    /* リボン/あかし ボタン一覧（サジェストと併用。名前を思い出せなくても選べるように） */
+    .ribbon-buttons-area {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ribbon-button-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ribbon-group-label {
+        font-size: 12px;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .ribbon-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .ribbon-toggle-btn {
+        padding: 4px 10px;
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        font-size: 12px;
+        color: var(--color-text-primary);
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.15s ease;
+    }
+
+    .ribbon-toggle-btn:hover {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+    }
+
+    .ribbon-toggle-btn.is-active {
+        background: #1976d2;
+        border-color: #1976d2;
+        color: #fff;
+        font-weight: 600;
+    }
+
     /* プリセットエリア */
     .preset-area {
         max-width: 1200px;
@@ -1570,6 +1622,11 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
             font-size: 16px;
         }
 
+        .ribbon-toggle-btn {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+
         .search-buttons {
             flex-wrap: wrap;
             gap: 8px;
@@ -2070,6 +2127,23 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
     body.dark-mode .condition-checkbox:has(input:checked) {
         background: #3d3526;
         border-color: var(--color-primary-dark);
+    }
+
+    body.dark-mode .ribbon-toggle-btn {
+        background: #2a2a2a;
+        border-color: #444;
+        color: var(--color-text-primary);
+    }
+
+    body.dark-mode .ribbon-toggle-btn:hover {
+        background: #3d3d3d;
+        border-color: var(--color-accent);
+    }
+
+    body.dark-mode .ribbon-toggle-btn.is-active {
+        background: #1976d2;
+        border-color: #1976d2;
+        color: #fff;
     }
 
     body.dark-mode .search-button {
