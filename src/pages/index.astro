@@ -867,7 +867,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             filtered = filtered.filter(p => p.alpha && p.alpha !== '');
         }
 
-        // Filter by special moves flag
+        // Filter by specialMoves（特別な技の配列。旧形式の文字列も許容 — hasSpecialMoves 参照）
         if (filterSpecialMoves) {
             filtered = filtered.filter(hasSpecialMoves);
         }
