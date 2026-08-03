@@ -83,7 +83,7 @@
 ### データ関連（pokemon-data 側の作業）
 - [ ] **第5〜7世代の specialMoves（特別な技）入力** — 2026-08-03 の正本復元は旧appデータ由来の第8・9世代19件のみ。第7世代以前は未記録のため、notes・配信情報から洗い出して `distributions/gen5〜7.json` に追加する
 - [x] Championsの検索対象への追加 — 対応済み(2026-08-03)。Champions(generation:0・21件)を検索UI・タイムラインの対象に含める（世代フィルタで「Champions」として選択可能）。個別ページ・summary-pagesへのリンク帯は従来通り
-- [ ] **HOME配信のpokemon-data未収載** — HOME受取の配信（色違いゼラオラ等）が pokemon-data に未収載。summary-pages では HOME 区分で掲載済み。pokemon-data に HOME 配信エントリ（game を HOME とするか要設計）を追加するのが残タスク
+- [ ] **HOME配信のpokemon-data未収載** — HOME受取の配信（色違いゼラオラ等）が pokemon-data に未収載（同じデータを使う summary-pages・本アプリのどちらにも出ない。WP記事の第8世代まとめには記載あり）。**設計決定(2026-08-03): `distributions/home.json` を新設**（HOME配信は世代横断・今後増えるため独立ファイル。Champions の CH prefix にならい ID は HM 系を想定）。配信データの取得・入力はユーザーが別途実施予定。入力後に games 正本への `home` スラッグ追加・build スクリプトの DATASETS 追加・UI表示（ゲーム略称/配色）をあわせて対応する
 
 ### パフォーマンス改善（優先度：低）
 - [ ] 画像の遅延読み込み（lazy loading）実装
