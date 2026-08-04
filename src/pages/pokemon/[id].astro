@@ -170,18 +170,11 @@ function getGameDisplayName(game: string) {
     return short ? `${short}（${game}）` : game;
 }
 
-// ゲームタイプ判定
-function isSwSh(game: string) {
-    return game && (game.includes('ソード') || game.includes('シールド'));
-}
-
-function isSV(game: string) {
-    return game && (game.includes('スカーレット') || game.includes('バイオレット'));
-}
-
-function isLegendsGame(game: string) {
-    return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
-}
+// ⚠ かつて isSwSh / isSV / isLegendsGame でバッジの出し分けをしていたが削除した。
+// キョダイマックス・テラスタイプ・オヤブンは gigantamax / teraType / alpha の各
+// フィールドが持つ情報で、受け取り先ソフト名で二重にチェックする必要がない。
+// むしろ HOME 受け取りの個体（game が "HOME" になる）が全部この網から漏れ、
+// データを持っているのにバッジが出ていなかった（キョダイ3件・オヤブン3件・テラ5件）。
 
 // OT表示用
 function formatOT(ot?: string | { JPN?: string; ENG?: string; SPA?: string; FRE?: string; GER?: string; ITA?: string; KOR?: string; CHS?: string; CHT?: string; SPA_EU?: string; SPA_LA?: string }) {
@@ -277,16 +270,16 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                 </h2>
                 <div class="detail-dex-number">No.{String(pokemon.dexNo).padStart(3, '0')}</div>
                 <div class="detail-badges">
-                    {pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game) && (
+                    {pokemon.gigantamax && pokemon.gigantamax !== '' && (
                         <span class="text-badge">キョダイマックス可</span>
                     )}
-                    {pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game) && (
+                    {pokemon.teraType && pokemon.teraType !== '' && (
                         <span class={`tera-type-badge tera-${pokemon.teraType}`} title={`テラスタイプ: ${pokemon.teraType}`}>
                             {teraIconUrl(pokemon.teraType) && <img class="tera-icon" src={teraIconUrl(pokemon.teraType)} alt="" />}
                             {pokemon.teraType}
                         </span>
                     )}
-                    {pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game) && (
+                    {pokemon.alpha && pokemon.alpha !== '' && (
                         <span class="text-badge">オヤブン</span>
                     )}
                 </div>
@@ -361,7 +354,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                     <div class="info-label">ボール:</div>
                     <div class="info-value">{pokemon.ball ? <Fragment><img src={getBallImageUrl(pokemon.ball)} alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" /><span style="display:none">⚪</span> {pokemon.ball}</Fragment> : '?'}</div>
                 </div>
-                {pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game) && (
+                {pokemon.teraType && pokemon.teraType !== '' && (
                     <div class="info-row">
                         <div class="info-label">テラスタイプ:</div>
                         <div class="info-value">{pokemon.teraType}</div>

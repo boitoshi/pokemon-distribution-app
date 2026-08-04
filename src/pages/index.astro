@@ -1098,18 +1098,11 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         return game;
     }
 
-    // Game type detection helpers
-    function isSwSh(game) {
-        return game && (game.includes('ソード') || game.includes('シールド'));
-    }
-
-    function isSV(game) {
-        return game && (game.includes('スカーレット') || game.includes('バイオレット'));
-    }
-
-    function isLegendsGame(game) {
-        return game && (game.includes('アルセウス') || game.includes('Z-A') || game === 'ZA');
-    }
+    // ⚠ かつて isSwSh / isSV / isLegendsGame でバッジの出し分けをしていたが削除した。
+    // キョダイマックス・テラスタイプ・オヤブンは gigantamax / teraType / alpha の各
+    // フィールドが持つ情報で、受け取り先ソフト名で二重にチェックする必要がない。
+    // むしろ HOME 受け取りの個体（game が "HOME" になる）が全部この網から漏れ、
+    // データを持っているのにバッジが出ていなかった（キョダイ3件・オヤブン3件・テラ5件）。
 
     function getGameColorClass(game) {
         if (!game) return '';
@@ -1182,13 +1175,13 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         if (pokemon.shiny && pokemon.shiny !== '') {
             badgesHtml += `<span class="icon-badge" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>`;
         }
-        if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
+        if (pokemon.gigantamax && pokemon.gigantamax !== '') {
             badgesHtml += `<span class="icon-badge" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
         }
-        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
+        if (pokemon.teraType && pokemon.teraType !== '') {
             badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">${teraIconHtml(pokemon.teraType)}${pokemon.teraType}</span>`;
         }
-        if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
+        if (pokemon.alpha && pokemon.alpha !== '') {
             badgesHtml += `<span class="icon-badge" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
@@ -1338,11 +1331,11 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
         // Badges
         let badgesHtml = '';
-        if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
+        if (pokemon.gigantamax && pokemon.gigantamax !== '') {
             badgesHtml += `<span class="icon-badge mobile-only" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
             badgesHtml += '<span class="text-badge pc-only">キョダイマックス可</span>';
         }
-        if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
+        if (pokemon.alpha && pokemon.alpha !== '') {
             badgesHtml += `<span class="icon-badge mobile-only" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
             badgesHtml += '<span class="text-badge pc-only">オヤブン</span>';
         }
@@ -1415,7 +1408,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         }
 
         // Tera Type
-        if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
+        if (pokemon.teraType && pokemon.teraType !== '') {
             const teraTypeRow = modalEl.querySelector('.modal-tera-type-row');
             teraTypeRow.style.display = 'flex';
             const teraEl = modalEl.querySelector('.modal-tera-type');
