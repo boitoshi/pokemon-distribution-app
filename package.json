@@ -3,9 +3,11 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "dev": "astro dev",
+    "sync-data": "node scripts/sync-from-pokemon-data.mjs",
+    "dev": "node scripts/sync-from-pokemon-data.mjs && astro dev",
+    "prebuild": "node scripts/sync-from-pokemon-data.mjs",
     "build": "node scripts/build-safe.mjs",
-    "build:prod": "DEPLOY_TARGET=production node scripts/build-safe.mjs",
+    "build:prod": "node scripts/sync-from-pokemon-data.mjs && DEPLOY_TARGET=production node scripts/build-safe.mjs",
     "preview": "astro preview",
     "lint": "node scripts/lint-project.mjs",
     "smoke": "node scripts/validate-data.mjs"
