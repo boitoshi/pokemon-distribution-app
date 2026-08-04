@@ -1,5 +1,9 @@
 ---
 // SearchBox component - handles search and filter UI
+const assetBase = import.meta.env.DEV
+    ? `${import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/'}images`
+    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+const statusImageBaseUrl = `${assetBase}/status`;
 ---
 
 <div class="search-box">
@@ -60,15 +64,15 @@
             <div class="conditions-grid">
                 <label class="condition-checkbox">
                     <input type="checkbox" id="filterShiny">
-                    <span>✨ 色違い</span>
+                    <span><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" />{' '}色違い</span>
                 </label>
                 <label class="condition-checkbox">
                     <input type="checkbox" id="filterGigantamax">
-                    <span>🔷 キョダイマックス</span>
+                    <span><img class="status-icon" src={`${statusImageBaseUrl}/gigantamax.png`} alt="キョダイマックス" />{' '}キョダイマックス</span>
                 </label>
                 <label class="condition-checkbox">
                     <input type="checkbox" id="filterAlpha">
-                    <span>👑 オヤブン</span>
+                    <span><img class="status-icon" src={`${statusImageBaseUrl}/alpha.png`} alt="オヤブン" />{' '}オヤブン</span>
                 </label>
                 <label class="condition-checkbox">
                     <input type="checkbox" id="filterSpecialMoves">

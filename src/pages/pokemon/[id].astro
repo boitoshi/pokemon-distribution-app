@@ -93,6 +93,7 @@ const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
 const ballImageBaseUrl = `${assetBase}/balls`;
 const ribbonImageBaseUrl = `${assetBase}/ribbons`;
 const markImageBaseUrl = `${assetBase}/marks`;
+const statusImageBaseUrl = `${assetBase}/status`;
 
 function getPokemonImageUrl(pokemon: PokemonData) {
     const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -262,7 +263,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
             <div class="detail-header-content">
                 <h2>
                     <span class="detail-pokemon-name">{pokemon.pokemonName}</span>
-                    {pokemon.shiny && pokemon.shiny !== '' && <span class="shiny-indicator" title="色違い">✨</span>}
+                    {pokemon.shiny && pokemon.shiny !== '' && <span class="shiny-indicator" title="色違い"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>}
                 </h2>
                 <div class="detail-dex-number">No.{String(pokemon.dexNo).padStart(3, '0')}</div>
                 <div class="detail-badges">
@@ -458,7 +459,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                                     <div class="related-info">
                                         <div class="related-name">
                                             {p.pokemonName}
-                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>}
                                         </div>
                                         <div class="related-event">{p.eventName}</div>
                                         <div class="related-date">{formatDate(p.startDate)}</div>
@@ -484,7 +485,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                                     <div class="related-info">
                                         <div class="related-name">
                                             {p.pokemonName}
-                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>}
                                         </div>
                                         <div class="related-dex">No.{String(p.dexNo).padStart(3, '0')}</div>
                                     </div>
@@ -509,7 +510,7 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                                     <div class="related-info">
                                         <div class="related-name">
                                             {p.pokemonName}
-                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark">✨</span>}
+                                            {p.shiny && p.shiny !== '' && <span class="shiny-mark"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>}
                                         </div>
                                         <div class="related-event">{p.eventName}</div>
                                         <div class="related-date">{formatDate(p.startDate)}</div>

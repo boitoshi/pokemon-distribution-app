@@ -89,6 +89,7 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
   const assetBase = isLocal
     ? `${baseUrl}images`
     : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+  const statusImageBaseUrl = `${assetBase}/status`;
   function getPokemonImageUrl(pokemon) {
     const dexNo = String(pokemon.dexNo).padStart(4, '0');
     const name = pokemon.gigantamax ? `キョダイマックス${pokemon.pokemonName}` : pokemon.pokemonName;
@@ -165,9 +166,9 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
       return `<span class="tl-game-badge" style="background:${color}">${short}</span>`;
     }).join('');
 
-    const shinyBadge = (pokemon.shiny && pokemon.shiny !== '') ? '<span class="tl-icon-badge" title="色違い">✨</span>' : '';
-    const gigaBadge = (pokemon.gigantamax && pokemon.gigantamax !== '') ? '<span class="tl-icon-badge" title="キョダイマックス">🔷</span>' : '';
-    const alphaBadge = (pokemon.alpha) ? '<span class="tl-icon-badge" title="オヤブン">👑</span>' : '';
+    const shinyBadge = (pokemon.shiny && pokemon.shiny !== '') ? `<span class="tl-icon-badge" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>` : '';
+    const gigaBadge = (pokemon.gigantamax && pokemon.gigantamax !== '') ? `<span class="tl-icon-badge" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>` : '';
+    const alphaBadge = (pokemon.alpha) ? `<span class="tl-icon-badge" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>` : '';
 
     const startStr = pokemon.startDate ? formatDate(pokemon.startDate) : '?';
     const endStr = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';

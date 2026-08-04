@@ -8,6 +8,12 @@ import { join } from 'path';
 const baseUrl = import.meta.env.BASE_URL;
 const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 
+// 色違い・キョダイマックス・オヤブンの状態アイコン画像URL（静的HTML側で使用）
+const assetBase = import.meta.env.DEV
+    ? `${normalizedBaseUrl}images`
+    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+const statusImageBaseUrl = `${assetBase}/status`;
+
 // gen-guides.json を読む（世代リンク帯の外部URL管理。summary-pages / WP記事へのリンク）
 // externalUrl が空の世代は summary-pages 未公開のためリンク帯に表示しない（plannedUrl は公開後に externalUrl へ移す予定のURL）
 const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
@@ -107,15 +113,15 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         <span id="resultCount" class="stats-result-count"></span>
         <div class="quick-filters" id="quickFilters" style="display:none">
             <button class="quick-filter-btn" data-filter="shiny">
-                <span class="quick-icon">✨</span>
+                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>
                 <span class="quick-text">色違い</span>
             </button>
             <button class="quick-filter-btn" data-filter="gigantamax">
-                <span class="quick-icon">🔷</span>
+                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/gigantamax.png`} alt="キョダイマックス" /></span>
                 <span class="quick-text">キョダイ</span>
             </button>
             <button class="quick-filter-btn" data-filter="alpha">
-                <span class="quick-icon">👑</span>
+                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/alpha.png`} alt="オヤブン" /></span>
                 <span class="quick-text">オヤブン</span>
             </button>
             <button class="quick-filter-btn" data-filter="moves">
@@ -377,6 +383,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
     const ballImageBaseUrl = `${assetBase}/balls`;
     const ribbonImageBaseUrl = `${assetBase}/ribbons`;
     const markImageBaseUrl = `${assetBase}/marks`;
+    const statusImageBaseUrl = `${assetBase}/status`;
 
     function getPokemonImageUrl(pokemon) {
         const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -1159,16 +1166,16 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
 
         let badgesHtml = '';
         if (pokemon.shiny && pokemon.shiny !== '') {
-            badgesHtml += '<span class="icon-badge" title="色違い">✨</span>';
+            badgesHtml += `<span class="icon-badge" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>`;
         }
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
-            badgesHtml += '<span class="icon-badge" title="キョダイマックス">🔷</span>';
+            badgesHtml += `<span class="icon-badge" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
         }
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
             badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">💎 ${pokemon.teraType}</span>`;
         }
         if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
-            badgesHtml += '<span class="icon-badge" title="オヤブン">👑</span>';
+            badgesHtml += `<span class="icon-badge" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
         }
         cardEl.querySelector('.badges').innerHTML = badgesHtml;
 
@@ -1309,7 +1316,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         const pokemonNameEl = modalEl.querySelector('.modal-pokemon-name');
         pokemonNameEl.textContent = pokemon.pokemonName;
         if (pokemon.shiny && pokemon.shiny !== '') {
-            pokemonNameEl.innerHTML = escapeHtml(pokemon.pokemonName) + ' <span class="modal-shiny-indicator" title="色違い">✨</span>';
+            pokemonNameEl.innerHTML = `${escapeHtml(pokemon.pokemonName)} <span class="modal-shiny-indicator" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>`;
         }
 
         // Dex Number
@@ -1318,11 +1325,11 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         // Badges
         let badgesHtml = '';
         if (pokemon.gigantamax && pokemon.gigantamax !== '' && isSwSh(pokemon.game)) {
-            badgesHtml += '<span class="icon-badge mobile-only" title="キョダイマックス">🔷</span>';
+            badgesHtml += `<span class="icon-badge mobile-only" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
             badgesHtml += '<span class="text-badge pc-only">キョダイマックス可</span>';
         }
         if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
-            badgesHtml += '<span class="icon-badge mobile-only" title="オヤブン">👑</span>';
+            badgesHtml += `<span class="icon-badge mobile-only" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
             badgesHtml += '<span class="text-badge pc-only">オヤブン</span>';
         }
         modalEl.querySelector('.modal-badges').innerHTML = badgesHtml;
@@ -1929,7 +1936,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
                 <div class="compare-column">
                     <div class="compare-header">
                         <img src="${getPokemonImageUrl(pokemon)}" alt="${escapeHtml(pokemon.pokemonName)}" class="compare-image">
-                        <h3>${escapeHtml(pokemon.pokemonName)} ${pokemon.shiny ? '✨' : ''}</h3>
+                        <h3>${escapeHtml(pokemon.pokemonName)} ${pokemon.shiny ? '<img class="status-icon" src="' + statusImageBaseUrl + '/shiny.png" alt="色違い">' : ''}</h3>
                         <div class="compare-dex">No.${String(pokemon.dexNo).padStart(3, '0')}</div>
                     </div>
                     <div class="compare-details">

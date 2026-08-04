@@ -772,6 +772,28 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
         line-height: 1;
     }
 
+    /* 色違い・キョダイマックス・オヤブンの状態アイコン。
+       実体は pokemon-assets/status/{shiny,gigantamax,alpha}.png。
+       元画像は 44 / 185 / 128px とサイズがまちまちなので、必ずここで大きさを揃える。
+       em 指定なので、親要素の font-size（.quick-icon 16px、.shiny-mark 12px など）に追従する。 */
+    .status-icon {
+        display: inline-block;
+        width: 1.15em;
+        height: 1.15em;
+        object-fit: contain;
+        vertical-align: -0.2em;
+    }
+
+    /* 詳細検索のチェックボックスは同じ列に絵文字ラベル（🎯 🎁 🟢）が並ぶので、
+       アイコンだけ大きく見えないよう絵文字と同じ 1em に詰める。
+       ⚠ 「キョダイマックス」が2行に折り返すのは .conditions-grid の
+       minmax(160px, 1fr) に対して文字数が多いためで、絵文字だった頃から同じ。
+       アイコンを縮めても直らないので、直すなら列幅のほうを見ること。 */
+    .condition-checkbox .status-icon {
+        width: 1em;
+        height: 1em;
+    }
+
     .quick-text {
         font-size: 12px;
         font-weight: 600;
