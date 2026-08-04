@@ -2,6 +2,9 @@
 import Layout from '../../layouts/Layout.astro';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+// アイコン対応表（日本語名 → ファイル名スラッグ）。正本は content-hub の
+// reference-data/distribution-assets.json で、sync-from-pokemon-data.mjs がコピーする。
+import assets from '../../data/distribution-assets.json';
 
 export async function getStaticPaths() {
     const jsonPath = join(process.cwd(), 'public', 'pokemon.json');
@@ -94,6 +97,13 @@ const ballImageBaseUrl = `${assetBase}/balls`;
 const ribbonImageBaseUrl = `${assetBase}/ribbons`;
 const markImageBaseUrl = `${assetBase}/marks`;
 const statusImageBaseUrl = `${assetBase}/status`;
+const teraImageBaseUrl = `${assetBase}/tera`;
+/** テラスタイプのアイコンURL。対応表に無い値（"ランダム"など）は null。 */
+const teraSlugs: Record<string, string> = assets.slugs.tera;
+function teraIconUrl(teraType: string | undefined) {
+    const slug = teraType ? teraSlugs[teraType] : undefined;
+    return slug ? `${teraImageBaseUrl}/${slug}.png` : null;
+}
 
 function getPokemonImageUrl(pokemon: PokemonData) {
     const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -271,7 +281,10 @@ const canonicalUrl = new URL(`pokemon/${pokemon.managementId}/`, siteUrl).href;
                         <span class="text-badge">キョダイマックス可</span>
                     )}
                     {pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game) && (
-                        <span class="tera-type-badge">テラスタイプ: {pokemon.teraType}</span>
+                        <span class={`tera-type-badge tera-${pokemon.teraType}`} title={`テラスタイプ: ${pokemon.teraType}`}>
+                            {teraIconUrl(pokemon.teraType) && <img class="tera-icon" src={teraIconUrl(pokemon.teraType)} alt="" />}
+                            {pokemon.teraType}
+                        </span>
                     )}
                     {pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game) && (
                         <span class="text-badge">オヤブン</span>

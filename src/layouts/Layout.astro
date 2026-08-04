@@ -1266,6 +1266,17 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
         cursor: help;
     }
 
+    /* テラスタイプの結晶アイコン。実体は pokemon-assets/tera/<英語スラッグ>.png。
+       日本語名 → スラッグの対応は src/data/distribution-assets.json（正本は content-hub）。
+       バッジの font-size が 11px と小さく、結晶は形が細かいので少し大きめに取る。
+       タイプ名テキストが隣に出るので alt は空（装飾扱い）。 */
+    .tera-icon {
+        width: 1.35em;
+        height: 1.35em;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
     /* テラスタイプ別カラー */
     .tera-ノーマル { background: #e8e8e0; color: #6d6d4e; }
     .tera-ほのお { background: #fde8e0; color: #c62828; }

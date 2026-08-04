@@ -55,3 +55,28 @@ if (source.length < prevCount && process.env.ALLOW_SHRINK !== "1") {
 
 fs.writeFileSync(DEST, JSON.stringify(source, null, 2) + "\n", "utf8");
 console.log(`✅ ${DEST} に ${source.length}件を同期しました（source: ${SOURCE} / 前回 ${prevCount}件）。`);
+
+// ---- アイコン対応表（ボール / テラスタイプ / リボン / あかし / 状態）----
+// 正本は content-hub の reference-data/distribution-assets.json
+// （scripts/fetch_distribution_assets.py が Bulbapedia から集めて生成する）。
+// 日本語名 → ファイル名スラッグの対応が入っており、summary-pages も同じものを
+// pull-only でコピーしている。ここでべた書きの変換表を持たないこと（二重管理になる）。
+const ASSETS_SOURCE = "../pokebros-content-hub/reference-data/distribution-assets.json";
+const ASSETS_DEST = "src/data/distribution-assets.json";
+
+try {
+  const assets = JSON.parse(fs.readFileSync(ASSETS_SOURCE, "utf8"));
+  const kinds = Object.keys(assets.slugs ?? {});
+  const total = kinds.reduce((n, k) => n + Object.keys(assets.slugs[k]).length, 0);
+  fs.writeFileSync(ASSETS_DEST, JSON.stringify(assets, null, 2) + "\n", "utf8");
+  console.log(`✅ ${ASSETS_DEST} に ${total}件を同期しました（${kinds.join(" / ")}）。`);
+} catch (err) {
+  if (err.code === "ENOENT") {
+    console.warn(
+      `⚠️  ${ASSETS_SOURCE} が見つかりません（content-hub 未 checkout）。既存の ${ASSETS_DEST} を保持します。`,
+    );
+  } else {
+    console.error(`❌ ${ASSETS_DEST} の同期エラー:`, err.message);
+    process.exit(1);
+  }
+}

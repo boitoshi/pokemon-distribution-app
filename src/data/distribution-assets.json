@@ -1,0 +1,63 @@
+{
+  "base": "https://www.pokebros.net/wp-content/uploads/pokemon-assets",
+  "slugs": {
+    "balls": {
+      "ゴージャスボール": "luxury",
+      "ダークボール": "dusk",
+      "ドリームボール": "dream",
+      "ハイパーボール": "ultra",
+      "ヒールボール": "heal",
+      "フレンドボール": "friend",
+      "プレシャスボール": "cherish",
+      "ムーンボール": "moon",
+      "モンスターボール": "poke",
+      "モンスターボール（ヒスイ）": "poke_hisui"
+    },
+    "tera": {
+      "あく": "dark",
+      "いわ": "rock",
+      "かくとう": "fighting",
+      "くさ": "grass",
+      "こおり": "ice",
+      "じめん": "ground",
+      "でんき": "electric",
+      "どく": "poison",
+      "はがね": "steel",
+      "ひこう": "flying",
+      "ほのお": "fire",
+      "みず": "water",
+      "むし": "bug",
+      "エスパー": "psychic",
+      "ゴースト": "ghost",
+      "ドラゴン": "dragon",
+      "ノーマル": "normal",
+      "フェアリー": "fairy"
+    },
+    "ribbons": {
+      "アローラチャンプリボン": "alola_champion",
+      "イベントリボン": "event",
+      "ウィッシュリボン": "wishing",
+      "クラシックリボン": "classic",
+      "スペシャルリボン": "special",
+      "バトルチャンプリボン": "battle_champion",
+      "バースデーリボン": "birthday",
+      "パートナーリボン": "partner",
+      "プレミアリボン": "premier",
+      "メモリアルリボン": "souvenir"
+    },
+    "marks": {
+      "かいちょうのあかし": "upbeat",
+      "きたいのあかし": "excited",
+      "げんきのあかし": "vigor",
+      "ときどきみるあかし": "uncommon",
+      "ふんぬのあかし": "angry",
+      "ほんのうのあかし": "ferocious",
+      "カリスマのあかし": "charismatic"
+    },
+    "status": {
+      "オヤブン": "alpha",
+      "キョダイマックス": "gigantamax",
+      "色違い": "shiny"
+    }
+  }
+}

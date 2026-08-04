@@ -4,6 +4,9 @@ import SearchBox from '../components/SearchBox.astro';
 import PokemonCard from '../components/PokemonCard.astro';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+// アイコン対応表（日本語名 → ファイル名スラッグ）。正本は content-hub の
+// reference-data/distribution-assets.json で、sync-from-pokemon-data.mjs がコピーする。
+import assets from '../data/distribution-assets.json';
 
 const baseUrl = import.meta.env.BASE_URL;
 const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
@@ -13,6 +16,8 @@ const assetBase = import.meta.env.DEV
     ? `${normalizedBaseUrl}images`
     : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
 const statusImageBaseUrl = `${assetBase}/status`;
+// テラスタイプは日本語名からスラッグを引く必要があるので、対応表ごとクライアントへ渡す
+const teraSlugs: Record<string, string> = assets.slugs.tera;
 
 // gen-guides.json を読む（世代リンク帯の外部URL管理。summary-pages / WP記事へのリンク）
 // externalUrl が空の世代は summary-pages 未公開のためリンク帯に表示しない（plannedUrl は公開後に externalUrl へ移す予定のURL）
@@ -152,7 +157,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
     <PokemonCard />
 </Layout>
 
-<script define:vars={{ baseUrl: normalizedBaseUrl }}>
+<script define:vars={{ baseUrl: normalizedBaseUrl, teraSlugs }}>
     let allData = [];
     let displayedCount = 0;
     const ITEMS_PER_PAGE = 24;
@@ -384,6 +389,15 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
     const ribbonImageBaseUrl = `${assetBase}/ribbons`;
     const markImageBaseUrl = `${assetBase}/marks`;
     const statusImageBaseUrl = `${assetBase}/status`;
+    const teraImageBaseUrl = `${assetBase}/tera`;
+
+    /** テラスタイプのアイコンHTML。対応表に無い値（"ランダム"など）は空文字を返す。 */
+    function teraIconHtml(teraType) {
+        const slug = teraSlugs[teraType];
+        return slug
+            ? `<img class="tera-icon" src="${teraImageBaseUrl}/${slug}.png" alt="">`
+            : '';
+    }
 
     function getPokemonImageUrl(pokemon) {
         const dexNo = String(pokemon.dexNo).padStart(4, '0');
@@ -1172,7 +1186,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             badgesHtml += `<span class="icon-badge" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
         }
         if (pokemon.teraType && pokemon.teraType !== '' && isSV(pokemon.game)) {
-            badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">💎 ${pokemon.teraType}</span>`;
+            badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">${teraIconHtml(pokemon.teraType)}${pokemon.teraType}</span>`;
         }
         if (pokemon.alpha && pokemon.alpha !== '' && isLegendsGame(pokemon.game)) {
             badgesHtml += `<span class="icon-badge" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
@@ -1405,7 +1419,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
             const teraTypeRow = modalEl.querySelector('.modal-tera-type-row');
             teraTypeRow.style.display = 'flex';
             const teraEl = modalEl.querySelector('.modal-tera-type');
-            teraEl.innerHTML = `<span class="tera-type-badge tera-${pokemon.teraType}">💎 ${pokemon.teraType}</span>`;
+            teraEl.innerHTML = `<span class="tera-type-badge tera-${pokemon.teraType}">${teraIconHtml(pokemon.teraType)}${pokemon.teraType}</span>`;
         }
 
         // Held item
