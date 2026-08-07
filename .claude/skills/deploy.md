@@ -6,17 +6,30 @@ user_invocable: true
 
 # デプロイ手順
 
-**注**: `/distribution/` の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは summary-pages とは別の流入導線を想定した UI/UX 改善中で、以下は参考手順（デプロイ先URLは未確定）。
+デプロイは二段構え（2026-08-03 決定。詳細は CLAUDE.md「デプロイ・データ更新」節）。`/distribution/` 配下の世代・大会まとめ等の本番デプロイ正本は pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは検索・タイムライン・比較・お気に入り・所持チェックリストのツール層。
 
-## 前提条件
-`dist/` が最新のビルド結果を持っていること（`/build` 実行済み）。
+- **①ベータ**: GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/`（`base: '/pokemon-distribution-app'`）。main への push で `.github/workflows/deploy-pages.yml` が自動デプロイ。全ページ noindex
+- **②本番**（ベータ確認後）: ConoHa FTP `https://www.pokebros.net/distribution/search/`（`base: '/distribution/search'`）。`npm run build:prod`（`DEPLOY_TARGET=production`）でビルドし手動FTPアップロード。`pokemon/[id]` のみ noindex
 
-## 手順
-1. `dist/` の存在と最終更新日時を確認
-2. 古いビルドの場合は `/build` を先に実行するよう案内
+## ①ベータへのデプロイ
+
+main ブランチへ push すれば `.github/workflows/deploy-pages.yml` が自動デプロイする。手動操作は不要。
+
+1. 変更を main へ push
+2. Actions の `deploy-pages.yml` の実行結果を確認
+3. `https://boitoshi.github.io/pokemon-distribution-app/` で動作確認
+
+## ②本番へのデプロイ（ベータ確認後・手動FTP）
+
+### 前提条件
+`dist/` が `npm run build:prod` の最新ビルド結果を持っていること。
+
+### 手順
+1. `npm run build:prod` を実行し `dist/` を生成（未実行なら案内）
+2. `dist/` の存在と最終更新日時を確認
 3. デプロイ方法をユーザーに確認（FTP/SFTP/rsync 等）
-4. 選択されたデプロイ方法で `dist/` の内容を本番サーバーにアップロード
-5. デプロイ完了後、URLで動作確認をユーザーに促す
+4. 選択されたデプロイ方法で `dist/` の内容を ConoHa の `/distribution/search/` 配下へアップロード
+5. デプロイ完了後、`https://www.pokebros.net/distribution/search/` で動作確認をユーザーに促す
 
 ## ディレクトリ構成（出力）
 ```
@@ -28,9 +41,10 @@ dist/
 ```
 
 ## 設定確認
-`astro.config.mjs` のベースパス（サブディレクトリ `/distribution/` 配置用）:
+`astro.config.mjs` のベースパスは `DEPLOY_TARGET` 環境変数で切り替わる:
 ```javascript
-base: '/distribution',
+const isProd = process.env.DEPLOY_TARGET === 'production';
+base: isProd ? '/distribution/search' : '/pokemon-distribution-app',
 ```
 
 ## 次のステップ

@@ -9,12 +9,12 @@ user_invocable: true
 ## 手順
 1. `npm run dev` を実行
 2. サーバー起動後、URLをユーザーに報告
-   - `http://localhost:4321/distribution/`
+   - `http://localhost:4321/pokemon-distribution-app/`（`DEPLOY_TARGET` 未設定時の既定ベースパス。ベータ = GitHub Pages 側の base と同じ）
 3. ポートが使用中の場合は `npx astro dev --port 4322` で起動
 
 ## 確認事項
 - ホットリロード有効（ファイル変更が即座に反映される）
-- ベースパス付き: `/distribution/`
+- ベースパス付き: `/pokemon-distribution-app/`。本番（ConoHa）向けの `/distribution/search/` は `DEPLOY_TARGET=production` 時のみ（`astro.config.mjs` 参照。dev では使わない）
 
 ## 次のステップ
 確認完了後 → `/build` で本番ビルド
