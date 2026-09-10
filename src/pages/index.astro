@@ -157,7 +157,7 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
     <PokemonCard />
 </Layout>
 
-<script define:vars={{ baseUrl: normalizedBaseUrl, teraSlugs }}>
+<script is:inline define:vars={{ baseUrl: normalizedBaseUrl, teraSlugs }}>
     let allData = [];
     let displayedCount = 0;
     const ITEMS_PER_PAGE = 24;
