@@ -8,7 +8,7 @@
    main ブランチへの push で `.github/workflows/deploy-pages.yml` が自動デプロイする。`DEPLOY_TARGET` 未設定＝このターゲットで、`astro.config.mjs` の `base` は `/pokemon-distribution-app`。**全ページ `noindex`**（`Layout.astro` が `DEPLOY_TARGET !== 'production'` を検知して自動付与）。
 2. **②本番（ベータ確認後）: ConoHa FTP**
    配置先 `public_html/distribution/search/` → 公開URL `https://www.pokebros.net/distribution/search/`。
-   `npm run build:prod`（`DEPLOY_TARGET=production` でビルド、`base` は `/distribution/search`）＋ 手動FTPアップロード。将来的には summary-pages と同様に `deploy-ftp.yml` で自動化予定（未実装）。
+   `.github/workflows/deploy-ftp.yml` を手動起動し、`npm run build:prod`（`DEPLOY_TARGET=production`、`base` は `/distribution/search`）の成果物をFTPデプロイする。最初に `dry_run: true` で転送対象を確認し、問題がなければ `dry_run: false` で本番反映する。
 
 `base` は `DEPLOY_TARGET` 環境変数で切り替わる（`astro.config.mjs` 参照）。ローカル開発・ベータビルドではデフォルト値、本番ビルドのみ `DEPLOY_TARGET=production` を明示する。
 
@@ -45,9 +45,9 @@ summary-pages を pokebros-tools の `deploy-ftp.yml` でFTPデプロイした�
 
 ---
 
-## ②本番: ConoHa FTP（案A・現行の参考手順）
+## ②本番: ConoHa FTP（GitHub Actions）
 
-将来的に summary-pages と同様の `deploy-ftp.yml`（GitHub Actions による自動デプロイ）を導入予定だが、現状は以下の手動手順で運用する。
+`.github/workflows/deploy-ftp.yml` を `workflow_dispatch` で手動起動する。FTP資格情報はリポジトリのActions Secretsで管理し、ローカル環境へ配布しない。
 
 ### サイト情報
 
@@ -76,25 +76,31 @@ ConoHaサーバー
             └── _astro/
 ```
 
-### 初回デプロイ
+### GitHub Actions設定
 
-#### 1. ビルド
+リポジトリの Settings → Secrets and variables → Actions に以下を設定する。
+
+- Secrets（必須）: `FTP_SERVER`、`FTP_USERNAME`、`FTP_PASSWORD`
+- Variables（任意）: `FTP_PROTOCOL`（既定: `ftps`）、`FTP_SERVER_DIR`（既定: `./distribution/search/`）
+
+### デプロイ手順
+
+#### 1. dry-run
+
+GitHubの Actions → Deploy search app to pokebros.net (FTP) → Run workflow で `dry_run` を有効にして起動する。CLIからは次のとおり。
 
 ```bash
-npm run build:prod
+gh workflow run deploy-ftp.yml --ref main -f dry_run=true
 ```
 
-`DEPLOY_TARGET=production` で `dist/` フォルダが生成される（`base` は `/distribution/search`）。
+Secrets確認、依存インストール、lint、型チェック、smoke、production buildを実行し、FTPの転送対象だけを表示する。ファイルはアップロードしない。
 
-#### 2. アップロード
+#### 2. 本番反映
 
-FTP/SFTP で `dist/` の **中身** を `public_html/distribution/search/` にアップロード。
+dry-runが成功し、転送対象に問題がなければ `dry_run` を無効にして再実行する。
 
-```
-dist/
-├── index.html       → public_html/distribution/search/index.html
-├── pokemon.json     → public_html/distribution/search/pokemon.json
-└── _astro/          → public_html/distribution/search/_astro/
+```bash
+gh workflow run deploy-ftp.yml --ref main -f dry_run=false
 ```
 
 #### 3. 動作確認
@@ -117,9 +123,9 @@ node scripts/sync-from-pokemon-data.mjs
 `pokemon-data` の正本（`distributions/*.json`）から `build/pokemon.json` を生成し、
 `public/pokemon.json` へ pull only で同期する（件数減少ガード付き）。
 
-### 2. アップロード
+### 2. デプロイ
 
-FTP/SFTP で `pokemon.json` を `public_html/distribution/search/` にアップロード（上書き）。
+`deploy-ftp.yml` を起動するとproduction buildを含む全成果物が同期される。JSONだけを手作業で差し替える場合は、アップロード先を `public_html/distribution/search/pokemon.json` とする。
 
 ### 3. キャッシュクリア
 
@@ -140,9 +146,9 @@ npm run build:prod  # 本番（ConoHa）ターゲットでビルド確認
 npm run preview     # ビルド結果確認
 ```
 
-### 2. アップロード（本番）
+### 2. GitHub Actionsからデプロイ（本番）
 
-`npm run build:prod` の `dist/` の中身を `public_html/distribution/search/` にアップロード（上書き）。
+変更を `main` に反映してベータ確認後、`deploy-ftp.yml` を `dry_run: true` で確認し、続いて `dry_run: false` で本番反映する。
 
 ---
 
