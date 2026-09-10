@@ -136,14 +136,16 @@ const statusImageBaseUrl = `${assetBase}/status`;
 
 <script>
     // 条件追加ボタンの開閉
-    const toggleBtn = document.getElementById('toggleConditions');
-    const conditionsArea = document.getElementById('searchConditions');
+    const toggleBtn = document.querySelector<HTMLButtonElement>('#toggleConditions');
+    const conditionsArea = document.querySelector<HTMLElement>('#searchConditions');
 
-    toggleBtn.addEventListener('click', () => {
-        const isHidden = conditionsArea.style.display === 'none';
-        conditionsArea.style.display = isHidden ? 'block' : 'none';
-        toggleBtn.textContent = isHidden ? '− 条件を閉じる' : '＋ 条件を追加';
-    });
+    if (toggleBtn && conditionsArea) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = conditionsArea.style.display === 'none';
+            conditionsArea.style.display = isHidden ? 'block' : 'none';
+            toggleBtn.textContent = isHidden ? '− 条件を閉じる' : '＋ 条件を追加';
+        });
+    }
 
     // 詳細フィルターの開閉（モバイルは初期折りたたみ、デスクトップは初期展開）
     // 初期表示状態は CSS のメディアクエリ側で決めており、ここではそれに追従して
@@ -159,7 +161,7 @@ const statusImageBaseUrl = `${assetBase}/status`;
         return window.getComputedStyle(advancedFiltersEl).display !== 'none';
     }
 
-    function setAdvancedFiltersState(isOpen) {
+    function setAdvancedFiltersState(isOpen: boolean) {
         if (!advancedFiltersEl || !advancedToggleBtn) return;
         advancedFiltersEl.style.display = isOpen ? 'block' : 'none';
         advancedToggleBtn.classList.toggle('is-open', isOpen);
@@ -178,22 +180,22 @@ const statusImageBaseUrl = `${assetBase}/status`;
         let count = 0;
 
         ['filterGeneration', 'filterMethod', 'filterRegion'].forEach((id) => {
-            const el = document.getElementById(id);
+            const el = document.getElementById(id) as HTMLSelectElement | null;
             if (el && el.value) count++;
         });
 
         ['filterShiny', 'filterGigantamax', 'filterAlpha', 'filterSpecialMoves', 'filterHeldItem', 'filterActive'].forEach((id) => {
-            const el = document.getElementById(id);
+            const el = document.getElementById(id) as HTMLInputElement | null;
             if (el && el.checked) count++;
         });
 
-        const dateFrom = document.getElementById('filterDateFrom');
-        const dateTo = document.getElementById('filterDateTo');
+        const dateFrom = document.getElementById('filterDateFrom') as HTMLInputElement | null;
+        const dateTo = document.getElementById('filterDateTo') as HTMLInputElement | null;
         if (dateFrom && dateFrom.value) count++;
         if (dateTo && dateTo.value) count++;
 
-        const otEl = document.getElementById('filterOT');
-        const trainerIdEl = document.getElementById('filterTrainerId');
+        const otEl = document.getElementById('filterOT') as HTMLInputElement | null;
+        const trainerIdEl = document.getElementById('filterTrainerId') as HTMLInputElement | null;
         if (otEl && otEl.value.trim()) count++;
         if (trainerIdEl && trainerIdEl.value.trim()) count++;
 
@@ -215,7 +217,7 @@ const statusImageBaseUrl = `${assetBase}/status`;
         }
     }
     // index.astro側（検索処理）からも呼べるようにグローバルへ公開
-    window.updateAdvancedFiltersBadge = updateAdvancedFiltersBadge;
+    (window as Window & { updateAdvancedFiltersBadge?: () => void }).updateAdvancedFiltersBadge = updateAdvancedFiltersBadge;
 
     // 詳細フィルター内の各項目が変更された時点でバッジを即時更新
     // （検索の実行自体は index.astro 側のイベントリスナーが担当）
@@ -234,27 +236,20 @@ const statusImageBaseUrl = `${assetBase}/status`;
     updateAdvancedFiltersBadge();
 
     // 条件クリアボタン
-    document.getElementById('clearConditions').addEventListener('click', () => {
+    document.getElementById('clearConditions')?.addEventListener('click', () => {
         // テキスト入力とセレクトをクリア
-        document.getElementById('searchName').value = '';
-        document.getElementById('filterGeneration').value = '';
-        document.getElementById('filterMethod').value = '';
-        document.getElementById('filterRegion').value = '';
-        document.getElementById('sortOrder').value = 'date-desc';
-        document.getElementById('filterDateFrom').value = '';
-        document.getElementById('filterDateTo').value = '';
+        ['searchName', 'filterGeneration', 'filterMethod', 'filterRegion', 'filterDateFrom', 'filterDateTo', 'filterOT', 'filterTrainerId'].forEach((id) => {
+            const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
+            if (el) el.value = '';
+        });
+        const sortOrder = document.getElementById('sortOrder') as HTMLSelectElement | null;
+        if (sortOrder) sortOrder.value = 'date-desc';
 
         // チェックボックスをクリア
-        document.getElementById('filterShiny').checked = false;
-        document.getElementById('filterGigantamax').checked = false;
-        document.getElementById('filterAlpha').checked = false;
-        document.getElementById('filterSpecialMoves').checked = false;
-        document.getElementById('filterHeldItem').checked = false;
-        document.getElementById('filterActive').checked = false;
-
-        // 逆引き検索フィールドをクリア
-        document.getElementById('filterOT').value = '';
-        document.getElementById('filterTrainerId').value = '';
+        ['filterShiny', 'filterGigantamax', 'filterAlpha', 'filterSpecialMoves', 'filterHeldItem', 'filterActive'].forEach((id) => {
+            const el = document.getElementById(id) as HTMLInputElement | null;
+            if (el) el.checked = false;
+        });
 
         // 素早い絞り込みボタンをリセット
         document.querySelectorAll('.quick-filter-btn').forEach(btn => {

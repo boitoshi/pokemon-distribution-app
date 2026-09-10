@@ -41,7 +41,7 @@ const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
   </main>
 </Layout>
 
-<script define:vars={{ baseUrl: normalizedBaseUrl }}>
+<script is:inline define:vars={{ baseUrl: normalizedBaseUrl }}>
   // HTMLエスケープ
   function escapeHtml(str) {
     if (str == null) return '';

@@ -66,7 +66,7 @@ const fullOgImage = ogImage || new URL('ogp-default.png', siteUrl).href;
     </div>
 
     <!-- Service Worker Registration -->
-    <script define:vars={{ swPath: `${base}sw.js` }}>
+    <script is:inline define:vars={{ swPath: `${base}sw.js` }}>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register(swPath)

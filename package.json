@@ -2,6 +2,9 @@
   "name": "pokemon-distribution-app",
   "type": "module",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "sync-data": "node scripts/sync-from-pokemon-data.mjs",
     "dev": "node scripts/sync-from-pokemon-data.mjs && astro dev",
@@ -10,11 +13,15 @@
     "build:prod": "node scripts/sync-from-pokemon-data.mjs && DEPLOY_TARGET=production node scripts/build-safe.mjs",
     "preview": "astro preview",
     "lint": "node scripts/lint-project.mjs",
+    "check": "astro check",
     "smoke": "node scripts/validate-data.mjs"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.8",
-    "astro": "^4.0.0",
+    "@astrojs/check": "^0.9.10",
+    "astro": "^7.3.2",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2"
   }
 }
