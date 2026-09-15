@@ -48,8 +48,18 @@ JSONだけの差し替えでは個別ページのHTMLが古いままになる。
 3. 差分を確認し、対象ファイルをcommit・pushする。mainのpushでベータが更新される。
 4. ベータ確認後、本番反映が承認された範囲を下記手順で反映する。
 
-summary-pagesへの同期は別作業。検索アプリの同期だけで両方更新したとは扱わない。
-両方の更新をどうまとめるかは作業入口の未決事項を参照。
+検索アプリの同期だけで両方更新したとは扱わない。
+summary-pagesと一度に同期・検証するときは、content-hubの実行スクリプトを使う。
+pokemon-dataの検証・ビルドから、両アプリの同期・正本との照合・検証・production buildまで順に通す。
+
+```bash
+# pokebros-content-hub リポジトリで実行
+uv run scripts/sync-distribution-apps.py          # 同期・検証・production build
+uv run scripts/sync-distribution-apps.py --check  # コマンドを実行せず、コピーと正本の一致だけ確認
+```
+
+片側が失敗しても、もう片側は続けてから非0で終わり、工程ごとの結果と更新されたパスを表示する。
+巻き戻しはしないので、原因を直して再実行する。commit・push・公開はしない。
 
 ## ベータのデプロイ
 
