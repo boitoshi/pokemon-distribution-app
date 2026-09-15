@@ -71,7 +71,7 @@ src/
 │   ├── SearchBox.astro          # 検索UI（フィルター機能）
 │   └── PokemonCard.astro        # カード表示・モーダルテンプレート
 ├── data/
-│   └── gen-guides.json          # 世代リンク帯の外部URL管理（summary-pages / WP記事へのリンク）
+│   └── gen-guides.json          # まとめページへの導線（ページ・URL・対応世代。収録の有無は pokemon.json から判定）
 └── layouts/
     └── Layout.astro             # 共通レイアウト・グローバルCSS
 
@@ -134,53 +134,14 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 - 画像がない場合は絵文字（⚪/🎀/🏅）にフォールバック
 - あかしはリボンと同じ `ribbons` 配列に格納。名前が「あかし」で終わるもので自動判定
 
-## 役割分担と導線（2026-08-03 決定）
+## 役割分担・継続作業の入口
 
-`/distribution/` 配下の本番デプロイ正本は pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは検索・タイムライン・コレクション管理ツールに純化し、世代まとめ・Championsまとめの役割は summary-pages 側に移管した。
+- WP・summary-pages・検索アプリの役割と掲載範囲: [ADR 0010](../pokebros-content-hub/docs/adr/0010-distribution-deploy-canonical.md)
+- 配置・導線・同期運用を検討するとき: [配信まわりの現状と未決事項](../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)
+- ビルド・データ同期・公開手順: [docs/deploy.md](docs/deploy.md)
+- フィールド仕様: [docs/data-design.md](docs/data-design.md)
 
-### ページ構成と役割分担
-
-| 層 | 役割 | URL |
-|------|------|-----|
-| 本アプリ `/`（トップ） | 全世代横断の検索UI | `pokemon.json`（Champions 含む全件） |
-| 本アプリ `/timeline` | 配信タイムライン | `pokemon.json`（Champions 含む全件） |
-| 本アプリ `/pokemon/[id]` | 個別ポケモンページ（Champions含む全エントリで生成、常時 `noindex`） | `pokemon.json` |
-| summary-pages（pokebros-tools） | 世代・大会・special-forms・type-stats・個別詳細ページの SEO 正本 | `https://www.pokebros.net/distribution/gen1-2/` 〜 `/gen9/`、`/champions-eventpokemon/` など |
-| WordPress記事 | 読み物・解説・SEO着地点（第8世代まとめは `/eventpokemon-genviii/` などWP投稿で運用） | `pokebros.net` 配下の個別記事 |
-
-役割分担の原則:
-- WP記事・summary-pages = 読み物・解説・一覧の SEO 正本
-- 本アプリ = 全世代横断の検索・タイムライン・比較・お気に入り・所持チェックリストなどのツール層
-- 本アプリ内に世代まとめ・Championsまとめページは持たない（旧 `gen/[generation].astro`・`champions.astro` は 2026-08-03 に削除）。リンク帯から外部（summary-pages / WP記事）へ誘導する
-
-### Championsデータの扱い（2026-08-03 改定: 検索・タイムラインに含める）
-
-- 識別: `generation: 0` かつ `tournamentType: "Champions"`
-- **検索UI（index.astro）とタイムライン（timeline.astro）の対象に含める（世代フィルタでは「Champions」として選択可能）**。「全世代横断の検索ツール」としての価値を優先し、除外フィルタは撤去済み
-- 個別ページ（`/pokemon/[id]`）は Champions 含む全エントリで生成を継続（summary-pages のChampionsまとめからのリンク先として必要）
-- Champions固有フィールド: `tournamentType`, `tournamentYear`, `tournamentSchedule`, `winner` など。`level` は文字列の場合がある（例: `"Lv.50相当(非表示)"`）ため数値前提の処理をしない
-
-### データファイル: src/data/gen-guides.json
-
-世代リンク帯用の外部URL管理ファイルに純化（旧: 世代別まとめページの解説テキスト）。手動管理。
-
-```json
-{
-  "1": { "title": "第1世代", "externalUrl": "https://www.pokebros.net/distribution/gen1-2/" },
-  "8": { "title": "第8世代", "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" }
-}
-```
-
-- `title` はリンクラベルの元情報（現状ラベルは `第${n}世代` 固定生成で使用していないが、将来の表示用に保持）
-- `externalUrl` が設定されている世代のみリンク帯に表示する（`src/pages/index.astro` の navLinks 構築ロジック参照）
-- `plannedUrl` は summary-pages 本番公開後に `externalUrl` へ移す予定のURL。summary-pages が未デプロイの間は該当世代の `externalUrl` を空文字にしてリンク帯から隠しておく運用（2026-08-03時点は第8世代 `/eventpokemon-genviii/`・第9世代 `/eventpokemon-gen9/` のWP記事のみ `externalUrl` が非空）
-- summary-pages の世代ページは gen1-2 が第1・2世代合同
-
-### 導線（実装済み・現行仕様）
-
-- 検索UIヘッダー下（stats バー付近）に世代（第1〜9）・Championsへのリンク帯を実装済み。すべて `target="_blank"` の外部リンク（summary-pages または WP記事）
-- Championsリンクは `https://www.pokebros.net/distribution/champions-eventpokemon/` 固定
-- 本アプリ内フッターからの「まとめページへ」の導線は無し（まとめ役割は summary-pages 側のため）
+個別ページの生成範囲やWPとの分業を変える前にADRを確認する。意図的に生成しないページを取りこぼしと扱わない。
 
 ## コーディング規約
 
@@ -203,20 +164,8 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 
 ## デプロイ・データ更新
 
-デプロイは二段構え（2026-08-03 決定）。`base` は `DEPLOY_TARGET` 環境変数で切替わる（`astro.config.mjs`）:
-
-- **①ベータ**: GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/`（`base: '/pokemon-distribution-app'`）。main への push で `.github/workflows/deploy-pages.yml` が自動デプロイ。**全ページ noindex**
-- **②本番**（ベータ確認後）: ConoHa FTP `https://www.pokebros.net/distribution/search/`（`base: '/distribution/search'`）。`npm run build:prod`（`DEPLOY_TARGET=production`）でビルドし手動FTPアップロード。`pokemon/[id]` のみ noindex
-
-詳細は `docs/deploy.md` を参照。
-
-**データ更新手順:**
-
-1. （データが変わったときのみ）`cd ../pokemon-data && npm run build`（正本 → `build/pokemon.json` 生成）
-2. `node scripts/sync-from-pokemon-data.mjs`（→ `public/pokemon.json`。件数減少ガード付き）
-3. `public/pokemon.json` をコミット → `npm run build` でビルド確認 → mainブランチにプッシュ
-
-詳細は `docs/data-design.md` を参照。
+実行手順は [docs/deploy.md](docs/deploy.md) に集約する。
+データ更新でも個別HTMLの再ビルドが必要。公開状態・未決事項は上の作業入口を確認する。
 
 ## 注意事項
 

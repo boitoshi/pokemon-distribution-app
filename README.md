@@ -2,9 +2,9 @@
 
 過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。Astroで構築されています。
 
-**公開URL**: https://www.pokebros.net/distribution/
-
-**注**: `/distribution/` 配下の本番デプロイ正本は現在 pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは UI/UX 改善中で、summary-pages とは別の流入導線を想定。デプロイ先 URL は未確定。
+ベータ・本番のURLと実行手順は [docs/deploy.md](docs/deploy.md)、
+公開状態と未決事項は [配信まわりの作業入口](../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)を参照してください。
+本アプリは検索・タイムライン・コレクション管理を担当します。
 
 ## プロジェクト構成
 
@@ -14,14 +14,12 @@ pokemon-distribution-app/
 │   ├── pages/
 │   │   ├── index.astro              # メインページ（検索・無限スクロール等）
 │   │   ├── pokemon/[id].astro       # 個別ポケモンページ
-│   │   ├── gen/[generation].astro   # 世代別まとめページ（第1〜7世代・データのある世代のみ生成）
-│   │   ├── champions.astro          # Championsまとめページ（generation: 0）
 │   │   └── timeline.astro           # 配信タイムラインページ
 │   ├── components/
 │   │   ├── SearchBox.astro          # 検索UI（フィルター機能）
 │   │   └── PokemonCard.astro        # カード表示・モーダル
 │   ├── data/
-│   │   └── gen-guides.json          # 世代別まとめページの解説テキスト（手動管理）
+│   │   └── gen-guides.json          # まとめページへの導線（収録の有無は pokemon.json から判定）
 │   └── layouts/
 │       └── Layout.astro             # 共通レイアウト・グローバルCSS
 ├── public/
@@ -59,7 +57,7 @@ npm run lint
 # データ整合性チェック（smokeテスト）
 npm run smoke
 
-# 本番ビルド（scripts/build-safe.mjs 経由。画像ディレクトリを退避してビルド）
+# ベータ向けビルド（scripts/build-safe.mjs 経由）
 npm run build
 
 # ビルド結果のプレビュー
@@ -85,48 +83,17 @@ CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `np
 
 ### データソース（正本）
 
-配信データの正本は **pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。`build-distributions.mjs` が app-runtime schema へ前方向生成した `build/pokemon.json`（724件。件数は `build/meta.json` が正）を、本アプリの `public/pokemon.json` へ **pull only** で同期する。
+配信データの正本は **pokemon-data リポジトリ**（`distributions/gen5..gen9.json` + `champions.json`、`distributions/schema.json` 準拠）。`build-distributions.mjs` が app-runtime schema へ前方向生成した `build/pokemon.json`（件数は `build/meta.json` を参照）を、本アプリの `public/pokemon.json` へ **pull only** で同期する。
 
 （旧構成〜2026-07: Googleスプレッドシート＋GAS `export-to-json.gs` でエクスポートしていた。正本一本化で引退・削除。世代/ハードの対応やカラム定義は `docs/data-design.md` の参考節に残す。）
 
 配信ポケモン個別記事HTMLの生成は pokebros-content-hub の `scripts/generate_distribution_html.py` の責務（GAS引退済み）。本アプリは記事生成に関与しない。
 
-### データ更新手順
+### データ更新・デプロイ
 
-1. `cd ../pokemon-data && npm run build`（正本 → `build/pokemon.json` 生成）
-2. 本 repo で `node scripts/sync-from-pokemon-data.mjs`（→ `public/pokemon.json`。件数減少ガード付き）
-3. `npm run build` でビルド確認 → mainブランチにプッシュ
-
-#### FTP直接更新（最速、ビルド不要）
-
-`public/pokemon.json` はクライアントサイドで fetch するため、上記2の後 `public_html/distribution/pokemon.json` をFTP上書きするだけでも反映できる（ビルド不要）。
-
-詳細は [`docs/data-design.md`](docs/data-design.md) を参照。
-
-## デプロイ
-
-### 本番環境
-
-| 項目 | 値 |
-|------|-----|
-| サーバー | ConoHa |
-| URL | https://www.pokebros.net/distribution/ |
-| 配置先 | `public_html/distribution/` |
-
-### デプロイ手順
-
-**初回・UI変更時**:
-```bash
-npm run build
-# dist/ の中身を public_html/distribution/ にFTPアップロード
-```
-
-**データ更新のみ**:
-```
-pokemon.json をFTPで上書き（ビルド不要）
-```
-
-詳細は [`docs/deploy.md`](docs/deploy.md) を参照。
+[docs/deploy.md](docs/deploy.md) に手順を集約しています。
+正本を生成し、本アプリへ同期した後、個別HTMLを含めてビルド・反映します。
+JSONだけのFTP差し替えは、検索UIと個別ページの内容がずれるため更新手順に使いません。
 
 ## データ形式
 

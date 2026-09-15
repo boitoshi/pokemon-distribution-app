@@ -19,24 +19,28 @@ const statusImageBaseUrl = `${assetBase}/status`;
 // テラスタイプは日本語名からスラッグを引く必要があるので、対応表ごとクライアントへ渡す
 const teraSlugs: Record<string, string> = assets.slugs.tera;
 
-// gen-guides.json を読む（世代リンク帯の外部URL管理。summary-pages / WP記事へのリンク）
-// externalUrl が空の世代は summary-pages 未公開のためリンク帯に表示しない（plannedUrl は公開後に externalUrl へ移す予定のURL）
-const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
-const guides: Record<string, { title?: string; externalUrl?: string; plannedUrl?: string }> = JSON.parse(readFileSync(guidesPath, 'utf-8'));
-
-// リンク帯の項目配列 navLinks を構築（全て summary-pages / WP記事への外部リンク）
-interface NavLink {
+// gen-guides.json: 検索トップから案内するまとめページ（summary-pages / WP記事）と対応世代の表。
+// 収録の有無は手で書かず、同じビルドの public/pokemon.json に対応世代の配信データがあるかで決める。
+// データが無いページはリンクせず「未収録」と表示する（配信が無かったという意味ではない）。
+interface GuidePage {
     label: string;
-    href: string;
-    external: boolean;
+    generations: number[];
+    url: string;
 }
-const navLinks: NavLink[] = [];
-for (let n = 1; n <= 9; n++) {
-    const url = guides[String(n)]?.externalUrl;
-    if (url) navLinks.push({ label: `第${n}世代`, href: url, external: true });
+interface Guides {
+    summaryTop: { label: string; url: string };
+    pages: GuidePage[];
 }
-const championsUrl = guides['champions']?.externalUrl;
-if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, external: true });
+const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
+const guides: Guides = JSON.parse(readFileSync(guidesPath, 'utf-8'));
+
+const pokemonPath = join(process.cwd(), 'public', 'pokemon.json');
+const pokemonEntries: Array<{ generation: number }> = JSON.parse(readFileSync(pokemonPath, 'utf-8'));
+const collectedGenerations = new Set<number>(pokemonEntries.map((entry) => entry.generation));
+const isCollected = (page: GuidePage): boolean =>
+    page.generations.some((generation) => collectedGenerations.has(generation));
+const collectedPages = guides.pages.filter(isCollected);
+const uncollectedPages = guides.pages.filter((page) => !isCollected(page));
 ---
 
 <Layout title="配信ポケモン検索データベース">
@@ -56,15 +60,18 @@ if (championsUrl) navLinks.push({ label: 'Champions', href: championsUrl, extern
         </div>
     </header>
 
-    {navLinks.length > 0 && (
-        <nav class="gen-nav" aria-label="世代別ページ">
-            <span class="gen-nav-label">📚 世代別まとめ（外部サイト）:</span>
-            {navLinks.map((link) => (
-                link.external
-                    ? <a class="gen-nav-link" href={link.href} target="_blank" rel="noopener">{link.label}</a>
-                    : <a class="gen-nav-link" href={link.href}>{link.label}</a>
-            ))}
-        </nav>
+    <nav class:list={['gen-nav', { 'gen-nav--with-note': uncollectedPages.length > 0 }]} aria-label="まとめページ">
+        <span class="gen-nav-label">まとめページ:</span>
+        <a class="gen-nav-link" href={guides.summaryTop.url} target="_blank" rel="noopener">{guides.summaryTop.label}</a>
+        {collectedPages.map((page) => (
+            <a class="gen-nav-link" href={page.url} target="_blank" rel="noopener">{page.label}</a>
+        ))}
+    </nav>
+    {uncollectedPages.length > 0 && (
+        <p class="gen-nav-note">
+            未収録: {uncollectedPages.map((page) => page.label).join('・')}
+            （配信データをまだ収録していないため、検索結果にも出ません。配信が無かったという意味ではありません）
+        </p>
     )}
 
     <SearchBox />
@@ -2222,6 +2229,27 @@ body.dark-mode .gen-nav-link {
 body.dark-mode .gen-nav-link:hover {
     background: var(--color-accent);
     color: #fff;
+}
+
+/* 未収録のまとめページ（リンク帯の直下に一行で示す） */
+.gen-nav--with-note {
+    border-bottom: none;
+}
+
+.gen-nav-note {
+    margin: 0;
+    padding: 0 12px 10px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-text-muted, #666);
+    background: var(--color-bg-section);
+    border-bottom: 1px solid var(--color-border);
+}
+
+body.dark-mode .gen-nav-note {
+    background: #1a1a1a;
+    border-color: #333;
+    color: #aaa;
 }
 
 /* 統計タイル（色違い・配信中）クリックでフィルタートグル */
