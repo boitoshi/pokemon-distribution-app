@@ -9,14 +9,34 @@ name: Deploy search app to pokebros.net (FTP)
 #
 # 配置先は /distribution/search/ で、summary-pages（/distribution/ 直下）とは
 # ディレクトリが分かれている。互いの sync state file も混ざらない。
+#
+# ビルドするのは入力 source_sha のコミット。workflow 定義は起動 ref（main）のものが使われる。
+# run-name の src= / wf= / dry_run= / req= は ftp-deploy.sh が自分の run を照合する目印なので、
+# 書式を変えるときは hub 側も直す（pokebros-content-hub の tests/test_ftp_deploy.py が突き合わせる）。
+
+run-name: Deploy search app src=${{ inputs.source_sha }} wf=${{ inputs.workflow_blob }} dry_run=${{ inputs.dry_run }} req=${{ inputs.request_id }}
 
 on:
   workflow_dispatch:
     inputs:
+      source_sha:
+        description: 'ビルドするコミットの40桁SHA（本番には dry-run で確認したものを指定）'
+        type: string
+        required: true
+      workflow_blob:
+        description: 'dry-run で確認した workflow 定義の blob SHA（本番は必須。実際に動く定義と転送前に照合する）'
+        type: string
+        required: false
+        default: ''
       dry_run:
         description: 'dry-run（アップロードせず転送内容のみ表示）'
         type: boolean
         default: false
+      request_id:
+        description: '起動元が自分の run を識別するID（手動起動では空でよい）'
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -29,6 +49,78 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      # 転送先と対象コミットは、何も取ってくる前に確かめる。Actions UI から直接起動しても効くようにここに置く。
+      # FTP_SERVER_DIR に fallback は置かない（FTP のログインルートはホームなので、相対パスは公開先と別の場所になる）。
+      - name: Validate deploy target and source
+        id: target
+        env:
+          EXPECTED_SERVER_DIR: /public_html/pokebros.net/distribution/search/
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::source_sha は40桁の小文字16進SHAで指定してください（受け取った値: '$SOURCE_SHA'）"
+            exit 1
+          fi
+          if [ -z "$FTP_SERVER_DIR" ]; then
+            echo "::error::Variables の FTP_SERVER_DIR が未設定です。$EXPECTED_SERVER_DIR を設定してください"
+            exit 1
+          fi
+          if [ "$FTP_SERVER_DIR" != "$EXPECTED_SERVER_DIR" ]; then
+            echo "::error::FTP_SERVER_DIR が許可した配置先と違うので転送しません（設定値: '$FTP_SERVER_DIR' / 許可: '$EXPECTED_SERVER_DIR'）"
+            exit 1
+          fi
+          echo "server_dir=$FTP_SERVER_DIR" >> "$GITHUB_OUTPUT"
+          {
+            echo "### デプロイ対象"
+            echo "- source SHA: \`$SOURCE_SHA\`"
+            echo "- workflow: \`$WORKFLOW_REF\` @ \`$WORKFLOW_SHA\`"
+            echo "- dry-run: $DRY_RUN"
+            echo "- 転送先: \`$FTP_SERVER_DIR\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # 実際に動いている workflow 定義の版を、起動元が確認した版と照合する（checkout・転送の前）。
+      # 起動元の事前確認から dispatch までの間に main が変わると、確認していない定義で動きうるため。
+      # 手動起動の dry-run で workflow_blob が空のときだけ照合を省き、実際の版を summary に残す。
+      - name: Verify workflow definition
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          EXPECTED_WORKFLOW_BLOB: ${{ inputs.workflow_blob }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ -n "$EXPECTED_WORKFLOW_BLOB" ] && [[ ! "$EXPECTED_WORKFLOW_BLOB" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::workflow_blob は40桁の16進で指定してください（受け取った値: '$EXPECTED_WORKFLOW_BLOB'）"
+            exit 1
+          fi
+          if [ "$DRY_RUN" != true ] && [ -z "$EXPECTED_WORKFLOW_BLOB" ]; then
+            echo "::error::本番反映には workflow_blob（dry-run で確認した workflow 定義の版）が必須です"
+            exit 1
+          fi
+          workflow_path="${WORKFLOW_REF%@*}"
+          workflow_path="${workflow_path#"$REPO"/}"
+          if [[ "$workflow_path" != .github/workflows/* ]]; then
+            echo "::error::workflow_ref から定義ファイルのパスを取り出せません: '$WORKFLOW_REF'"
+            exit 1
+          fi
+          if ! actual=$(gh api "repos/$REPO/contents/$workflow_path?ref=$WORKFLOW_SHA" --jq '.sha') \
+              || [[ ! "$actual" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::実行中の workflow 定義の版を取得できません（${workflow_path} @ ${WORKFLOW_SHA}）"
+            exit 1
+          fi
+          echo "- workflow 定義 blob: \`$actual\`（期待: \`${EXPECTED_WORKFLOW_BLOB:-未指定}\`）" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$EXPECTED_WORKFLOW_BLOB" ] && [ "$actual" != "$EXPECTED_WORKFLOW_BLOB" ]; then
+            echo "::error::実行中の workflow 定義（${actual}）が確認済みの版（${EXPECTED_WORKFLOW_BLOB}）と違うので転送しません。dry-run からやり直してください"
+            exit 1
+          fi
+
       - name: Check FTP secrets
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -45,6 +137,29 @@ jobs:
           fi
 
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+
+      # 依存は lockfile で固定（npm ci）。どの lockfile でビルドしたかを summary に残す
+      - name: Verify checked-out commit
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          LOCKFILE: package-lock.json
+        run: |
+          set -euo pipefail
+          head=$(git rev-parse HEAD)
+          if [ "$head" != "$SOURCE_SHA" ]; then
+            echo "::error::checkout したコミット ($head) が指定 ($SOURCE_SHA) と一致しません"
+            exit 1
+          fi
+          if ! lock_blob=$(git rev-parse --verify --quiet "HEAD:$LOCKFILE"); then
+            echo "::error::$LOCKFILE がコミットに含まれていません"
+            exit 1
+          fi
+          {
+            echo "- checkout HEAD: \`$head\`"
+            echo "- $LOCKFILE blob: \`$lock_blob\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/setup-node@v4
         with:
@@ -71,5 +186,5 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
           local-dir: dist/
-          server-dir: ${{ vars.FTP_SERVER_DIR || './distribution/search/' }}
+          server-dir: ${{ steps.target.outputs.server_dir }}
           dry-run: ${{ inputs.dry_run }}
