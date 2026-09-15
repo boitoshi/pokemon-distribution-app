@@ -52,8 +52,8 @@
 - [x] 関連ポケモンリンク（同ポケモン/同イベント/同地域） → `src/pages/pokemon/[id].astro`
 - [x] regionフィールド全世代対応 → `docs/data-design.md`
 - [x] 2026-08-03 削除: 世代別まとめページ（旧 `/gen/[generation]`）・Championsページ（旧 `/champions`）。役割を pokebros-tools の summary-pages へ移管し、本アプリはリンク帯から外部誘導する純粋なツール層に純化
-- [x] 世代・Championsへの導線リンク帯（検索UIヘッダー下、`src/data/gen-guides.json` の `externalUrl` を使った summary-pages / WP記事への外部リンク） → `src/pages/index.astro`
-- [x] 個別ポケモンページは常時 `noindex`（SEOは summary-pages に一本化） → `src/pages/pokemon/[id].astro`
+- [x] まとめページへの導線リンク帯（検索UIヘッダー下。`src/data/gen-guides.json` の対応世代に配信データがあるページだけ summary-pages / WP記事へリンクし、無いページは「未収録」と表示） → `src/pages/index.astro`
+- [x] 個別ポケモンページは常時 `noindex` → `src/pages/pokemon/[id].astro`。WP・summary-pagesとの分担は [ADR 0010](../../pokebros-content-hub/docs/adr/0010-distribution-deploy-canonical.md)
 
 ### UI機能
 - [x] 無限スクロール（24件ずつ追加読み込み、IntersectionObserver使用） → `src/pages/index.astro`
@@ -68,11 +68,13 @@
 - [x] 配信データ正本を pokemon-data リポジトリへ一本化 → `scripts/sync-from-pokemon-data.mjs`（旧 GAS `export-to-json.gs` は 2026-07 引退・削除）
 - [x] データ設計書 → `docs/data-design.md`
 - [x] デプロイ手順書 → `docs/deploy.md`
-- [x] デプロイ二段構え（① ベータ = GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/` 自動デプロイ・全ページ noindex → ② 本番 = ConoHa FTP `https://www.pokebros.net/distribution/search/`、`npm run build:prod`）→ `astro.config.mjs`, `.github/workflows/deploy-pages.yml`, `docs/deploy.md`
+- [x] ベータ・本番のビルド切替 → `astro.config.mjs`。実行手順は [deploy.md](deploy.md)。本番反映の完了とは区別する。
 
 ---
 
 ## 今後の課題
+
+配信まわりの配置・導線・同期運用の未決事項は [作業入口](../../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)で扱う。以下は機能別の残項目。
 
 ### 画像・アイコン関連（優先度：中、FTP作業はアップロード可能時にまとめて実施）
 - [ ] 本番用ポケモン画像の配置（画像は準備済み、サーバーアップロード待ち）
@@ -90,7 +92,7 @@
   - 表示設計(2026-08-03、有効): HOME受取でも受け取り先ソフトが特定できる配信（SV/剣盾等に着地）はそのソフト・世代で表示。HOME内のみ（どのソフトにも移動していない/HOMEアイコンの個体）は Champions と同様に世代兼ソフト「HOME」の1行表示とする
 
 ### パフォーマンス改善（優先度：低）
-- [ ] 画像の遅延読み込み（lazy loading）実装
+- [x] カード・モーダル画像の `loading="lazy"` → `src/components/PokemonCard.astro`（他の画像の適用範囲・実効性は未監査）
 - [ ] 大量データ時の仮想スクロール検討（無限スクロールで部分対応済み）
 
 ### コレクター向け追加機能

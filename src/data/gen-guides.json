@@ -1,13 +1,15 @@
 {
-  "_comment": "externalUrl が非空の世代のみリンク帯に表示される。plannedUrl は summary-pages 本番公開後に externalUrl へコピーすること",
-  "1": { "title": "第1世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen1-2/" },
-  "2": { "title": "第2世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen1-2/" },
-  "3": { "title": "第3世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen3/" },
-  "4": { "title": "第4世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen4/" },
-  "5": { "title": "第5世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen5/" },
-  "6": { "title": "第6世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen6/" },
-  "7": { "title": "第7世代", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/gen7/" },
-  "8": { "title": "第8世代", "externalUrl": "https://www.pokebros.net/eventpokemon-genviii/" },
-  "9": { "title": "第9世代", "externalUrl": "https://www.pokebros.net/eventpokemon-gen9/" },
-  "champions": { "title": "Champions", "externalUrl": "", "plannedUrl": "https://www.pokebros.net/distribution/champions-eventpokemon/" }
+  "_comment": "検索トップから案内するまとめページ（summary-pages / WP記事）と対応世代の表。pages は同じビルドの public/pokemon.json に generations の配信データがあるものだけリンクし、無いものは「未収録」と表示する（src/pages/index.astro）。url は公開済みのページだけを書く。未収録の世代にデータを足すときは summary-pages 側を先に本番反映する",
+  "summaryTop": { "label": "配信ポケモン一覧トップ", "url": "https://www.pokebros.net/distribution/" },
+  "pages": [
+    { "label": "第9世代", "generations": [9], "url": "https://www.pokebros.net/eventpokemon-gen9/" },
+    { "label": "第8世代", "generations": [8], "url": "https://www.pokebros.net/eventpokemon-genviii/" },
+    { "label": "第7世代", "generations": [7], "url": "https://www.pokebros.net/distribution/gen7/" },
+    { "label": "第6世代", "generations": [6], "url": "https://www.pokebros.net/distribution/gen6/" },
+    { "label": "第5世代", "generations": [5], "url": "https://www.pokebros.net/distribution/gen5/" },
+    { "label": "第4世代", "generations": [4], "url": "https://www.pokebros.net/distribution/gen4/" },
+    { "label": "第3世代", "generations": [3], "url": "https://www.pokebros.net/distribution/gen3/" },
+    { "label": "第1〜2世代", "generations": [1, 2], "url": "https://www.pokebros.net/distribution/gen1-2/" },
+    { "label": "Champions", "generations": [0], "url": "https://www.pokebros.net/distribution/champions-eventpokemon/" }
+  ]
 }
