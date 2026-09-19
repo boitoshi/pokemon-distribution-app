@@ -6,7 +6,7 @@ user_invocable: true
 
 # デプロイ手順
 
-デプロイは二段構え（2026-08-03 決定。詳細は CLAUDE.md「デプロイ・データ更新」節）。`/distribution/` 配下の世代・大会まとめ等の本番デプロイ正本は pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは検索・タイムライン・比較・お気に入り・所持チェックリストのツール層。
+デプロイは二段構え（2026-08-03 決定。詳細は AGENTS.md「デプロイ・データ更新」節）。`/distribution/` 配下の世代・大会まとめ等の本番デプロイ正本は pokebros-tools の summary-pages 側（2026-07-29 決定）。本アプリは検索・タイムライン・比較・お気に入り・所持チェックリストのツール層。
 
 - **①ベータ**: GitHub Pages `https://boitoshi.github.io/pokemon-distribution-app/`（`base: '/pokemon-distribution-app'`）。main への push で `.github/workflows/deploy-pages.yml` が自動デプロイ。全ページ noindex
 - **②本番**（ベータ確認後）: ConoHa FTP `https://www.pokebros.net/distribution/search/`（`base: '/distribution/search'`）。`npm run build:prod`（`DEPLOY_TARGET=production`）でビルドし手動FTPアップロード。`pokemon/[id]` のみ noindex
