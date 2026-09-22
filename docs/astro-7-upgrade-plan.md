@@ -8,7 +8,7 @@
 production dependencies の既知脆弱性を解消する。
 
 この文書は、Mac 上で Codex に実装を依頼するときの作業指示兼チェックリストである。
-実装時は必ず最新 `main` から作業し、最初に `AGENTS.md` と `CLAUDE.md` を読むこと。
+実装時は必ず最新 `main` から作業し、最初に `AGENTS.md` を読むこと。
 
 ## 現状
 

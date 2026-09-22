@@ -36,7 +36,6 @@ pokemon-distribution-app/
 │   ├── rename_to_ascii.py           # 画像ファイル名のASCII化
 │   └── normalize-filenames.sh       # ファイル名正規化
 ├── AGENTS.md                        # 開発ガイドの正本（Claude Code・Codex 共通）
-├── CLAUDE.md                        # Claude Code の入口（@AGENTS.md を import）
 ├── SECURITY.md                      # セキュリティチェック結果
 ├── astro.config.mjs
 ├── package.json
@@ -146,7 +145,7 @@ JSONだけのFTP差し替えは、検索UIと個別ページの内容がずれ�
 
 | ファイル | 内容 |
 |---------|------|
-| [`AGENTS.md`](AGENTS.md) | 開発ガイド（Claude Code・Codex 共通。`CLAUDE.md` はその入口） |
+| [`AGENTS.md`](AGENTS.md) | 開発ガイド（Claude Code・Codex 共通） |
 | [`SECURITY.md`](SECURITY.md) | セキュリティチェック結果 |
 | [`docs/data-design.md`](docs/data-design.md) | データ設計書（カラム定義。GAS/スプレッドシートは引退・参考） |
 | [`docs/deploy.md`](docs/deploy.md) | デプロイ手順 |
