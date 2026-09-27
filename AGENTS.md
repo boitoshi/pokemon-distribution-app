@@ -64,12 +64,12 @@ CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `np
 ```
 src/
 ├── pages/
-│   ├── index.astro              # メインページ（検索・無限スクロール等）
+│   ├── index.astro              # 検索トップ（2026-09-27 に新UIへ差し替え）
 │   ├── pokemon/[id].astro       # 個別ポケモンページ（常時noindex）
 │   └── timeline.astro           # 配信タイムラインページ
 ├── components/
-│   ├── SearchBox.astro          # 検索UI（フィルター機能）
-│   └── PokemonCard.astro        # カード表示・モーダルテンプレート
+│   ├── SearchBox.astro          # 旧UIの検索部品（現在未使用）
+│   └── PokemonCard.astro        # 旧UIのカード・モーダル（現在未使用）
 ├── data/
 │   └── gen-guides.json          # まとめページへの導線（ページ・URL・対応世代。収録の有無は pokemon.json から判定）
 └── layouts/
