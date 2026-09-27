@@ -1061,6 +1061,16 @@ const uncollectedPages = guides.pages.filter((page) => !isCollected(page));
         "バイオレット": "バイオレット",
         "Pokémon LEGENDS Z-A": "ZA",
         "ZA": "Z-A",
+        // 第4世代（ダイヤモンド・パール / プラチナ / ハートゴールド・ソウルシルバー系）
+        "ダイヤモンド, パール": "DP",
+        "ダイヤモンド, パール, プラチナ": "DPt",
+        "ハートゴールド, ソウルシルバー": "HGSS",
+        "ダイヤモンド, パール, プラチナ, ハートゴールド, ソウルシルバー": "DPt/HGSS",
+        "ダイヤモンド": "ダイヤモンド",
+        "パール": "パール",
+        "プラチナ": "プラチナ",
+        "ハートゴールド": "ハートゴールド",
+        "ソウルシルバー": "ソウルシルバー",
         // 第5世代（ブラック・ホワイト系）
         "ブラック, ホワイト": "BW",
         "ブラック2, ホワイト2": "BW2",
@@ -1120,8 +1130,10 @@ const uncollectedPages = guides.pages.filter((page) => !isCollected(page));
         const hasViolet = game.includes('バイオレット');
         const hasSword = game.includes('ソード');
         const hasShield = game.includes('シールド');
-        const hasBD = game.includes('ダイヤモンド');
-        const hasSP = game.includes('パール');
+        // 「ダイヤモンド」「パール」だけで判定すると第4世代（DP）まで BDSP 扱いになるため、BDSP の正式名で見る
+        // （「ブリアントダイヤモンド」は旧データのタイポ救済）
+        const hasBD = game.includes('ブリリアントダイヤモンド') || game.includes('ブリアントダイヤモンド');
+        const hasSP = game.includes('シャイニングパール');
         if (hasScarlet && hasViolet) return 'game-sv';
         if (hasScarlet) return 'game-scarlet';
         if (hasViolet) return 'game-violet';
@@ -1134,8 +1146,14 @@ const uncollectedPages = guides.pages.filter((page) => !isCollected(page));
         if (game.includes('アルセウス')) return 'game-la';
         if (game.includes('Z-A') || game.includes('ZA')) return 'game-za';
 
-        // 第5〜7世代（gameShortNames の変換結果から判定）
+        // 第4〜7世代（gameShortNames の変換結果から判定）
         const shortName = gameShortNames[game];
+        if (shortName === 'DP') return 'game-dp';
+        if (shortName === 'DPt') return 'game-dppt';
+        if (shortName === 'HGSS') return 'game-hgss';
+        if (shortName === 'DPt/HGSS') return 'game-dpthgss';
+        if (['ダイヤモンド', 'パール', 'プラチナ', 'ハートゴールド', 'ソウルシルバー'].includes(game)) return 'gen-4';
+
         if (shortName === 'BW') return 'game-bw';
         if (shortName === 'BW2') return 'game-bw2';
         if (shortName === 'BW/BW2') return 'game-bwbw2';
