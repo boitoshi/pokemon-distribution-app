@@ -1,0 +1,557 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const assetBase = import.meta.env.DEV
+  ? `${base}images`
+  : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
+---
+
+<Layout title="次期UIプレビュー | 配信ポケモン検索" description="配信ポケモン検索の検証用UI" noindex>
+  <main class="preview">
+    <header class="preview-header">
+      <a class="back-link" href={base}>現行の検索画面へ戻る</a>
+    </header>
+
+    <section class="search-panel" aria-label="配信ポケモン検索">
+      <label class="visually-hidden" for="keyword">ポケモン名・配信名・親名などを複数語で検索</label>
+      <input id="keyword" type="search" placeholder="ポケモン名・配信名・親名など（複数語可）" autocomplete="off" />
+      <a id="search-result-shortcut" class="search-result-shortcut" href="#results-heading" aria-live="polite" hidden></a>
+    </section>
+
+    <section class="featured" aria-labelledby="featured-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="featured-heading">期限が近い配信</h2>
+        </div>
+      </div>
+      <div id="featured-list" class="featured-list" aria-live="polite"><p>読み込み中です…</p></div>
+      <p class="caution">受取可否は地域・受取方法・ゲーム内の条件を確認してください。</p>
+    </section>
+
+    <section class="browse" aria-labelledby="browse-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">すべての配信</p>
+          <h2 id="browse-heading">条件を選んで探す</h2>
+        </div>
+      </div>
+      <button id="filter-toggle" class="filter-toggle" type="button" aria-controls="filter-panel" aria-expanded="false">絞り込み</button>
+      <div id="filter-panel" class="filter-panel">
+      <div class="status-filters" role="group" aria-label="期間の状態">
+        <button type="button" data-status="all" aria-pressed="true">全件</button>
+        <button type="button" data-status="soon" aria-pressed="false">期限間近</button>
+        <button type="button" data-status="current" aria-pressed="false">受取期間内</button>
+        <button type="button" data-status="unknown" aria-pressed="false">期限未設定</button>
+        <button type="button" data-status="ended" aria-pressed="false">終了</button>
+        <button type="button" data-status="upcoming" aria-pressed="false">開始前</button>
+      </div>
+      <div class="filters">
+        <label>受取先ゲーム
+          <select id="game"><option value="">すべてのゲーム</option></select>
+        </label>
+        <label>配信方法
+          <select id="method"><option value="">すべての方法</option></select>
+        </label>
+        <label>地域
+          <select id="region"><option value="">すべての地域</option></select>
+        </label>
+        <label>並び順
+          <select id="sort">
+            <option value="recommended">おすすめ</option>
+            <option value="newest">新しい順</option>
+            <option value="oldest">古い順</option>
+            <option value="deadline">期限が近い順</option>
+            <option value="dex-asc">図鑑No（小さい順）</option>
+            <option value="dex-desc">図鑑No（大きい順）</option>
+            <option value="name-asc">ポケモン名（あ→ん）</option>
+            <option value="name-desc">ポケモン名（ん→あ）</option>
+          </select>
+        </label>
+        <label class="checkbox"><input id="shiny" type="checkbox" /> 色違いのみ</label>
+      </div>
+      <details class="advanced">
+        <summary>詳細な条件 <span id="advanced-count" aria-live="polite"></span></summary>
+        <div class="advanced-grid">
+          <label>世代<select id="generation"><option value="">すべての世代</option></select></label>
+          <label>開始日（以降）<input id="date-from" type="date" /></label>
+          <label>開始日（以前）<input id="date-to" type="date" /></label>
+          <label>ボール<select id="ball"><option value="">すべてのボール</option></select></label>
+          <label>親名<input id="ot" type="search" placeholder="親名で検索" /></label>
+          <label>トレーナーID<input id="trainer-id" type="search" placeholder="IDで検索" /></label>
+          <label class="checkbox"><input id="gigantamax" type="checkbox" /> キョダイマックスのみ</label>
+          <label class="checkbox"><input id="alpha" type="checkbox" /> オヤブンのみ</label>
+          <label class="checkbox"><input id="special-moves" type="checkbox" /> 特別な技あり</label>
+          <label class="checkbox"><input id="held-item" type="checkbox" /> 持ち物あり</label>
+        </div>
+        <fieldset class="ribbon-filter">
+          <legend>リボン・あかし</legend>
+          <p>リボン</p><div id="ribbon-options" class="ribbon-options"></div>
+          <p>あかし</p><div id="mark-options" class="ribbon-options"></div>
+          <details class="ribbon-mode">
+            <summary id="ribbon-mode-summary">複数選択時：いずれかを含む</summary>
+            <div class="ribbon-mode-options" role="group" aria-label="選択したリボン・あかしの組み合わせ">
+              <label><input type="radio" name="ribbon-mode" value="OR" checked /> いずれかを含む</label>
+              <label><input type="radio" name="ribbon-mode" value="AND" /> すべてを含む</label>
+            </div>
+          </details>
+        </fieldset>
+        <div class="advanced-actions">
+          <button id="advanced-reset" type="button">詳細条件だけクリア</button>
+        </div>
+      </details>
+      </div>
+      <div id="results-heading" class="results-heading">
+        <p id="result-count" role="status" aria-live="polite">読み込み中です…</p>
+        <button id="reset" type="button">条件をクリア</button>
+      </div>
+      <div id="results" class="card-grid"></div>
+      <button id="more" class="more" type="button" hidden>もっと見る</button>
+    </section>
+  </main>
+</Layout>
+
+<script is:inline define:vars={{ base, assetBase }}>
+  const root = document.querySelector('.preview');
+  const $ = (selector) => root.querySelector(selector);
+  const controls = {
+    keyword: $('#keyword'), game: $('#game'), method: $('#method'),
+    region: $('#region'), sort: $('#sort'), shiny: $('#shiny'),
+    generation: $('#generation'), dateFrom: $('#date-from'), dateTo: $('#date-to'),
+    ball: $('#ball'), ot: $('#ot'), trainerId: $('#trainer-id'),
+    gigantamax: $('#gigantamax'), alpha: $('#alpha'), specialMoves: $('#special-moves'),
+    heldItem: $('#held-item')
+  };
+  const advancedControlNames = [
+    'generation', 'dateFrom', 'dateTo', 'ball', 'ot', 'trainerId',
+    'gigantamax', 'alpha', 'specialMoves', 'heldItem'
+  ];
+  const results = $('#results');
+  const featured = $('#featured-list');
+  const more = $('#more');
+  const statusButtons = [...root.querySelectorAll('[data-status]')];
+  const pageSize = 24;
+  let data = [];
+  let shown = pageSize;
+  let statusFilter = 'all';
+  let selectedRibbons = [];
+  let ribbonMode = 'OR';
+
+  function todayJst() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  }
+
+  const today = todayJst();
+  function daysUntil(date) {
+    return Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000);
+  }
+  function stateOf(p) {
+    if (p.startDate && p.startDate > today) return 'upcoming';
+    if (!p.endDate) return 'unknown';
+    if (p.endDate < today) return 'ended';
+    if (!p.startDate) return 'unknown';
+    return daysUntil(p.endDate) <= 14 ? 'soon' : 'current';
+  }
+  const stateNames = {
+    soon: '期限間近', current: '受取期間内', unknown: '期限未設定',
+    ended: '終了', upcoming: '開始前'
+  };
+  const normalize = (s) => String(s || '').normalize('NFKC').toLowerCase()
+    .replace(/[ぁ-ゖ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  const gameTokens = (game) => String(game || '').split(',').map(name => name.trim()).filter(Boolean);
+  const dateLabel = (s) => s ? s.replaceAll('-', '/') : '未設定';
+  const ribbonsOf = (p) => Array.isArray(p.ribbons)
+    ? p.ribbons.filter(Boolean) : [p.ribbon1, p.ribbon2, p.ribbon3].filter(Boolean);
+  const isMark = (name) => name.endsWith('あかし');
+  function visualFor(p) {
+    const visual = document.createElement('div');
+    visual.className = 'card-visual';
+    const fallback = document.createElement('span');
+    fallback.className = 'image-fallback';
+    fallback.textContent = '画像なし';
+    const image = document.createElement('img');
+    const imageName = p.gigantamax ? `キョダイマックス${p.pokemonName}` : p.pokemonName;
+    image.src = `${assetBase}/pokemon/pokedex/${String(p.dexNo).padStart(4, '0')}_${encodeURIComponent(imageName)}.png`;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.hidden = true;
+    image.addEventListener('load', () => {
+      image.hidden = false;
+      fallback.hidden = true;
+    }, { once: true });
+    image.addEventListener('error', () => {
+      image.remove();
+      fallback.hidden = false;
+    }, { once: true });
+    visual.append(fallback, image);
+    if (image.complete && image.naturalWidth > 0) {
+      image.hidden = false;
+      fallback.hidden = true;
+    }
+    return visual;
+  }
+
+  function shinyBadge(p) {
+    if (p.shiny !== 'あり' && p.shiny !== '条件次第') return null;
+    const badge = document.createElement('span');
+    badge.className = p.shiny === '条件次第' ? 'card-shiny card-shiny-conditional' : 'card-shiny';
+    const icon = document.createElement('img');
+    icon.src = `${assetBase}/status/shiny.png`;
+    icon.alt = '';
+    icon.loading = 'lazy';
+    icon.addEventListener('error', () => icon.remove(), { once: true });
+    badge.append(icon, document.createTextNode(p.shiny === '条件次第' ? '色違いは条件次第' : '色違い'));
+    return badge;
+  }
+
+  function card(p) {
+    const link = document.createElement('a');
+    link.className = 'distribution-card';
+    link.href = `${base}pokemon/${encodeURIComponent(p.managementId)}/`;
+    link.setAttribute('aria-label', `${p.pokemonName || '名称未設定'}（${p.eventName || 'イベント名未設定'}）の詳細`);
+
+    const content = document.createElement('div');
+    content.className = 'card-content';
+    const badge = document.createElement('span');
+    const state = stateOf(p);
+    badge.className = `state state-${state}`;
+    badge.textContent = stateNames[state];
+    const name = document.createElement('h3');
+    name.textContent = p.pokemonName || '名称未設定';
+    const title = document.createElement('div');
+    title.className = 'card-title-row';
+    title.append(name);
+    const shiny = shinyBadge(p);
+    if (shiny) title.append(shiny);
+    const event = document.createElement('p');
+    event.className = 'event-name';
+    event.textContent = p.eventName || 'イベント名未設定';
+    const facts = document.createElement('dl');
+    for (const [label, value] of [
+      ['ゲーム', p.game], ['受取方法', p.distributionMethod],
+      ['期間', `${dateLabel(p.startDate)} 〜 ${dateLabel(p.endDate)}`],
+      ['地域', p.region]
+    ]) {
+      if (!value) continue;
+      const dt = document.createElement('dt'); dt.textContent = label;
+      const dd = document.createElement('dd'); dd.textContent = value;
+      facts.append(dt, dd);
+    }
+    content.append(badge, title, event, facts);
+    link.append(visualFor(p), content);
+    return link;
+  }
+  function featuredCard(p) {
+    const link = document.createElement('a');
+    link.className = 'featured-card';
+    link.href = `${base}pokemon/${encodeURIComponent(p.managementId)}/`;
+    link.setAttribute('aria-label', `${p.pokemonName || '名称未設定'}（${p.eventName || 'イベント名未設定'}）の詳細・${dateLabel(p.endDate)}まで`);
+    const copy = document.createElement('div');
+    copy.className = 'featured-copy';
+    const name = document.createElement('strong');
+    name.textContent = p.pokemonName || '名称未設定';
+    const title = document.createElement('div');
+    title.className = 'card-title-row';
+    title.append(name);
+    const shiny = shinyBadge(p);
+    if (shiny) title.append(shiny);
+    const event = document.createElement('span');
+    event.textContent = p.eventName || 'イベント名未設定';
+    const deadline = document.createElement('small');
+    const days = daysUntil(p.endDate);
+    deadline.textContent = `${dateLabel(p.endDate)}まで・${days === 0 ? '本日終了' : `残り${days}日`}`;
+    copy.append(title, event, deadline);
+    link.append(visualFor(p), copy);
+    return link;
+  }
+
+  function addOptions(select, values) {
+    for (const value of values) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = value;
+      select.append(option);
+    }
+  }
+  function populateFilters() {
+    addOptions(controls.game, [...new Set(data.flatMap(p => gameTokens(p.game)))].sort((a, b) => a.localeCompare(b, 'ja')));
+    addOptions(controls.method, [...new Set(data.map(p => p.distributionMethod).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    addOptions(controls.region, [...new Set(data.flatMap(p => String(p.region || '').split(',').map(x => x.trim())).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    for (const gen of [...new Set(data.map(p => p.generation).filter(x => x !== undefined && x !== null))].sort((a, b) => b - a)) {
+      const option = document.createElement('option');
+      option.value = String(gen);
+      option.textContent = gen === 0 ? 'Champions' : `第${gen}世代`;
+      controls.generation.append(option);
+    }
+    addOptions(controls.ball, [...new Set(data.map(p => p.ball).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    const ribbons = [...new Set(data.flatMap(ribbonsOf))].sort((a, b) => a.localeCompare(b, 'ja'));
+    for (const name of ribbons) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = name;
+      button.dataset.ribbon = name;
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => toggleRibbon(name));
+      $(isMark(name) ? '#mark-options' : '#ribbon-options').append(button);
+    }
+  }
+  function toggleRibbon(name) {
+    selectedRibbons = selectedRibbons.includes(name)
+      ? selectedRibbons.filter(x => x !== name) : [...selectedRibbons, name];
+    syncRibbonSelection();
+    update();
+  }
+  function syncRibbonSelection() {
+    root.querySelectorAll('[data-ribbon]').forEach(button =>
+      button.setAttribute('aria-pressed', String(selectedRibbons.includes(button.dataset.ribbon))));
+  }
+  function renderFeatured() {
+    featured.replaceChildren();
+    const soon = data.filter(p => stateOf(p) === 'soon')
+      .sort((a, b) => a.endDate.localeCompare(b.endDate)).slice(0, 3);
+    if (!soon.length) {
+      const empty = document.createElement('p');
+      empty.textContent = '現在、終了日が14日以内の配信データはありません。';
+      featured.append(empty);
+      return;
+    }
+    featured.append(...soon.map(featuredCard));
+  }
+  function recommendedRank(p) {
+    return { soon: 0, current: 1, unknown: 2, upcoming: 3, ended: 4 }[stateOf(p)];
+  }
+  function filteredData() {
+    const terms = normalize(controls.keyword.value).trim().split(/[\s\u3000]+/).filter(Boolean);
+    const ot = normalize(controls.ot.value.trim());
+    const trainerId = controls.trainerId.value.trim();
+    const list = data.filter(p => {
+      if (statusFilter !== 'all' && stateOf(p) !== statusFilter) return false;
+      if (controls.game.value && !gameTokens(p.game).includes(controls.game.value)) return false;
+      if (controls.method.value && p.distributionMethod !== controls.method.value) return false;
+      if (controls.region.value) {
+        const tokens = String(p.region || '').split(',').map(x => x.trim());
+        if (!tokens.includes(controls.region.value) && (controls.region.value === '全世界' || !tokens.includes('全世界'))) return false;
+      }
+      if (controls.shiny.checked && !p.shiny) return false;
+      if (controls.generation.value !== '' && p.generation !== Number(controls.generation.value)) return false;
+      if (controls.dateFrom.value && (!p.startDate || p.startDate < controls.dateFrom.value)) return false;
+      if (controls.dateTo.value && (!p.startDate || p.startDate > controls.dateTo.value)) return false;
+      if (controls.ball.value && p.ball !== controls.ball.value) return false;
+      if (controls.gigantamax.checked && !p.gigantamax) return false;
+      if (controls.alpha.checked && !p.alpha) return false;
+      if (controls.specialMoves.checked && !(Array.isArray(p.specialMoves) ? p.specialMoves.length > 0 : Boolean(p.specialMoves))) return false;
+      if (controls.heldItem.checked && !p.heldItem) return false;
+      if (ot && !normalize(typeof p.ot === 'object' ? Object.values(p.ot || {}).join(' ') : p.ot).includes(ot)) return false;
+      if (trainerId && !String(p.trainerId || '').includes(trainerId)) return false;
+      if (selectedRibbons.length) {
+        const ribbons = ribbonsOf(p).map(normalize);
+        const matched = selectedRibbons.map(name => ribbons.some(r => r.includes(normalize(name))));
+        if (ribbonMode === 'AND' ? !matched.every(Boolean) : !matched.some(Boolean)) return false;
+      }
+      const otText = typeof p.ot === 'object' ? Object.values(p.ot || {}).join(' ') : p.ot;
+      const keywordFields = [p.pokemonName, p.eventName, otText, p.distributionMethod,
+        p.distributionLocation, p.notes, p.game, p.region].map(normalize);
+      return terms.every(term => keywordFields.some(field => field.includes(term)));
+    });
+    const byNewest = (a, b) => String(b.startDate || '').localeCompare(String(a.startDate || ''));
+    list.sort((a, b) => {
+      if (controls.sort.value === 'oldest') return -byNewest(a, b);
+      if (controls.sort.value === 'newest') return byNewest(a, b);
+      if (controls.sort.value === 'deadline') {
+        const aEnd = a.endDate && a.endDate >= today ? a.endDate : '9999-12-31';
+        const bEnd = b.endDate && b.endDate >= today ? b.endDate : '9999-12-31';
+        return aEnd.localeCompare(bEnd) || byNewest(a, b);
+      }
+      if (controls.sort.value === 'dex-asc') return Number(a.dexNo || 0) - Number(b.dexNo || 0);
+      if (controls.sort.value === 'dex-desc') return Number(b.dexNo || 0) - Number(a.dexNo || 0);
+      if (controls.sort.value === 'name-asc') return String(a.pokemonName || '').localeCompare(String(b.pokemonName || ''), 'ja');
+      if (controls.sort.value === 'name-desc') return String(b.pokemonName || '').localeCompare(String(a.pokemonName || ''), 'ja');
+      return recommendedRank(a) - recommendedRank(b) ||
+        (stateOf(a) === 'soon' ? a.endDate.localeCompare(b.endDate) : byNewest(a, b));
+    });
+    return list;
+  }
+  function render() {
+    const list = filteredData();
+    $('#result-count').textContent = `${list.length}件の配信が見つかりました`;
+    const shortcut = $('#search-result-shortcut');
+    shortcut.textContent = `${list.length}件の結果を見る ↓`;
+    shortcut.hidden = !controls.keyword.value.trim();
+    const activeCount = Object.entries(controls).filter(([name, control]) =>
+      !['keyword', 'game', 'method', 'region', 'sort', 'shiny'].includes(name) &&
+      (control.type === 'checkbox' ? control.checked : Boolean(control.value))).length +
+      (selectedRibbons.length ? 1 : 0);
+    $('#advanced-count').textContent = activeCount ? `（${activeCount}条件を適用中）` : '';
+    const filterCount = (statusFilter !== 'all' ? 1 : 0) +
+      ['game', 'method', 'region', 'shiny'].filter(name => {
+        const control = controls[name];
+        return control.type === 'checkbox' ? control.checked : Boolean(control.value);
+      }).length + activeCount;
+    $('#filter-toggle').textContent = filterCount ? `絞り込み（${filterCount}）` : '絞り込み';
+    results.replaceChildren();
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = '一致する配信はありません。条件を変えてお試しください。';
+      results.append(empty);
+    } else {
+      results.append(...list.slice(0, shown).map(p => card(p)));
+    }
+    more.hidden = shown >= list.length;
+  }
+  function update() { shown = pageSize; render(); }
+  $('#filter-toggle').addEventListener('click', event => {
+    const button = event.currentTarget;
+    button.setAttribute('aria-expanded', String(button.getAttribute('aria-expanded') !== 'true'));
+  });
+  for (const el of Object.values(controls)) el.addEventListener(['search', 'date'].includes(el.type) ? 'input' : 'change', update);
+  root.querySelectorAll('[name="ribbon-mode"]').forEach(radio => radio.addEventListener('change', () => {
+    ribbonMode = root.querySelector('[name="ribbon-mode"]:checked').value;
+    $('#ribbon-mode-summary').textContent = `複数選択時：${ribbonMode === 'AND' ? 'すべてを含む' : 'いずれかを含む'}`;
+    update();
+  }));
+  for (const button of statusButtons) button.addEventListener('click', () => {
+    statusFilter = button.dataset.status;
+    for (const item of statusButtons) item.setAttribute('aria-pressed', String(item === button));
+    update();
+  });
+  function clearControls(names) {
+    for (const name of names) {
+      const control = controls[name];
+      if (control.type === 'checkbox') control.checked = false;
+      else control.value = '';
+    }
+  }
+  function clearAdvanced() {
+    clearControls(advancedControlNames);
+    selectedRibbons = [];
+    ribbonMode = 'OR';
+    root.querySelector('[name="ribbon-mode"][value="OR"]').checked = true;
+    $('#ribbon-mode-summary').textContent = '複数選択時：いずれかを含む';
+    root.querySelector('.ribbon-mode').open = false;
+    syncRibbonSelection();
+  }
+  $('#advanced-reset').addEventListener('click', () => {
+    clearAdvanced();
+    update();
+  });
+  $('#reset').addEventListener('click', () => {
+    clearControls(['keyword', 'game', 'method', 'region', 'sort', 'shiny']);
+    controls.sort.value = 'recommended';
+    clearAdvanced();
+    statusButtons[0].click();
+  });
+  more.addEventListener('click', () => { shown += pageSize; render(); });
+
+  fetch(`${base}pokemon.json`)
+    .then(response => { if (!response.ok) throw new Error('取得失敗'); return response.json(); })
+    .then(json => {
+      if (!Array.isArray(json)) throw new Error('データ形式が不正');
+      data = json;
+      populateFilters();
+      renderFeatured();
+      render();
+    })
+    .catch(() => {
+      featured.textContent = '配信データを読み込めませんでした。ページを再読み込みしてください。';
+      $('#result-count').textContent = 'データを読み込めませんでした';
+      results.textContent = '通信状況を確認して、ページを再読み込みしてください。';
+    });
+</script>
+
+<style is:global>
+  .preview { --pv-ink: #302820; --pv-link: #754500; --pv-soft: #fff8ed; --pv-line: #e7dac8; --pv-control-line: #ab9c88; --pv-white: #fff; --pv-muted: #62594e; max-width: 1180px; margin: 0 auto; padding: clamp(12px, 2vw, 24px) 0 60px; color: var(--pv-ink); }
+  .preview .preview-header { display: flex; justify-content: flex-end; padding: 0; margin: 0 0 10px; background: transparent; box-shadow: none; }
+  .preview .eyebrow { color: var(--pv-link) !important; font-size: .75rem !important; font-weight: 800; letter-spacing: .08em; margin-bottom: 8px; }
+  .preview .back-link { flex: none; color: var(--pv-link); font-weight: 700; text-underline-offset: 3px; }
+  .preview .search-panel, .preview .featured, .preview .browse { margin-bottom: 22px; }
+  .preview .search-panel { padding: 0; background: transparent; }
+  .preview input[type="checkbox"], .preview input[type="radio"] { accent-color: var(--color-primary-dark); }
+  .preview .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .preview .search-panel input { width: 100%; padding: 13px 16px; font-size: 1rem; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 8px; }
+  .preview .search-result-shortcut { display: none; }
+  .preview .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 18px; }
+  .preview .section-heading h2 { font-size: clamp(1.3rem, 2vw, 1.8rem); line-height: 1.3; }
+  .preview .section-heading > p { color: var(--pv-muted); }
+  .preview .featured { padding: clamp(14px, 2vw, 20px); background: var(--pv-soft); border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .featured-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+  .preview .featured-card { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-line); border-radius: 8px; text-decoration: none; }
+  .preview .featured-card:hover { border-color: var(--color-primary-dark); }
+  .preview .featured-card .card-visual { flex: 0 0 58px; width: 58px; height: 58px; }
+  .preview .featured-card .card-visual img { max-width: 52px; max-height: 52px; }
+  .preview .featured-copy { display: flex; flex-direction: column; min-width: 0; gap: 2px; line-height: 1.3; }
+  .preview .featured-copy strong { font-size: .98rem; }
+  .preview .card-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+  .preview .card-shiny { display: inline-flex; align-items: center; gap: 3px; flex: none; padding: 2px 6px; border: 1px solid #d9bc6e; border-radius: 4px; background: #fff7dc; color: #614300; font-size: .7rem; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+  .preview .card-shiny-conditional { border-color: var(--pv-line); background: #f5f1e9; color: var(--pv-muted); }
+  .preview .card-shiny img { position: static; width: 13px; height: 13px; object-fit: contain; }
+  .preview .featured-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pv-muted); font-size: .82rem; }
+  .preview .featured-copy small { color: #754500; font-weight: 800; }
+  .preview .caution { margin-top: 14px; color: var(--pv-muted); font-size: .86rem; }
+  .preview .filter-toggle { display: none; }
+  .preview .filter-panel { display: contents; }
+  .preview .status-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .preview .status-filters button, .preview .results-heading button { padding: 9px 13px; background: white; border: 1px solid var(--pv-line); border-radius: 7px; color: var(--pv-ink); cursor: pointer; }
+  .preview .status-filters button[aria-pressed="true"] { background: var(--color-primary); border-color: var(--color-primary-dark); color: var(--pv-ink); font-weight: 800; }
+  .preview .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); align-items: end; gap: 12px; padding: 18px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .filters label { display: grid; gap: 6px; font-weight: 700; }
+  .preview .filters select { width: 100%; min-width: 0; padding: 10px; background: white; border: 1px solid var(--pv-control-line); border-radius: 6px; color: var(--pv-ink); }
+  .preview .filters .checkbox { display: flex; align-items: center; gap: 8px; min-height: 42px; }
+  .preview .filters .checkbox input { width: 18px; height: 18px; }
+  .preview .advanced { margin-top: 12px; padding: 12px 16px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .advanced summary { color: var(--pv-link); font-weight: 800; cursor: pointer; }
+  .preview .advanced-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; margin-top: 16px; }
+  .preview .advanced-grid label { display: grid; gap: 5px; font-weight: 700; }
+  .preview .advanced-grid label.checkbox { display: flex; align-items: center; gap: 8px; }
+  .preview .advanced-grid input:not([type="checkbox"]), .preview .advanced-grid select { width: 100%; min-width: 0; padding: 10px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 6px; font-size: 1rem; }
+  .preview .ribbon-filter { min-width: 0; margin: 18px 0 0; padding: 12px; border: 1px solid var(--pv-line); border-radius: 8px; }
+  .preview .ribbon-filter legend { font-weight: 800; }
+  .preview .ribbon-options button { padding: 6px 9px; border: 1px solid var(--pv-line); border-radius: 6px; background: white; color: var(--pv-ink); cursor: pointer; }
+  .preview .ribbon-filter p { margin: 12px 0 5px; font-weight: 700; }
+  .preview .ribbon-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preview .ribbon-options button[aria-pressed="true"] { color: var(--pv-ink); background: var(--color-primary); border-color: var(--color-primary-dark); font-weight: 800; }
+  .preview .ribbon-mode { margin-top: 12px; font-size: .9rem; }
+  .preview .ribbon-mode summary { color: var(--pv-muted); font-weight: 600; }
+  .preview .ribbon-mode-options { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+  .preview .ribbon-mode-options label { white-space: nowrap; }
+  .preview .advanced-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .preview .advanced-actions button { max-width: 100%; padding: 9px 13px; background: white; border: 1px solid var(--pv-line); border-radius: 7px; color: var(--pv-link); font-weight: 700; cursor: pointer; }
+  .preview .results-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 19px 0 14px; }
+  .preview .results-heading p { font-weight: 700; }
+  .preview .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+  .preview .distribution-card { display: flex; gap: 15px; min-width: 0; padding: 18px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-line); border-radius: 10px; text-decoration: none; }
+  .preview .distribution-card:hover { border-color: var(--color-primary-dark); box-shadow: 0 3px 12px rgb(48 40 32 / 10%); }
+  .preview .card-visual { display: grid; place-items: center; flex: 0 0 80px; width: 80px; height: 80px; background: var(--pv-soft); border-radius: 8px; position: relative; }
+  .preview .card-visual img { position: absolute; max-width: 72px; max-height: 72px; object-fit: contain; }
+  .preview .image-fallback { color: var(--pv-muted); font-size: .7rem; }
+  .preview .card-content { min-width: 0; flex: 1; }
+  .preview .card-content .card-title-row { margin: 8px 0 3px; }
+  .preview .card-content h3 { margin: 0; font-size: 1.1rem; }
+  .preview .event-name { margin-bottom: 12px; color: var(--pv-muted); line-height: 1.45; overflow-wrap: anywhere; }
+  .preview .state { display: inline-block; padding: 4px 8px; background: #f2eee8; color: #554d45; border-radius: 4px; font-size: .75rem; font-weight: 800; }
+  .preview .state-soon { background: #fff0d4; color: #754500; }
+  .preview .state-current { background: #e0f3ec; color: #146447; }
+  .preview .state-ended { background: #eef0f2; color: #58616d; }
+  .preview .card-content dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; margin: 0; line-height: 1.45; }
+  .preview .card-content dt { color: var(--pv-muted); }
+  .preview .card-content dd { overflow-wrap: anywhere; }
+  .preview .more { display: block; margin: 22px auto 0; padding: 12px 24px; background: var(--color-primary); border: 1px solid var(--color-primary-dark); border-radius: 7px; color: var(--pv-ink); font-weight: 800; cursor: pointer; }
+  .preview .more[hidden] { display: none; }
+  .preview .empty { grid-column: 1 / -1; padding: 25px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview #results-heading { scroll-margin-top: 12px; }
+  .preview :focus-visible { outline: 3px solid #ef9a23; outline-offset: 3px; }
+  @media (max-width: 768px) {
+    .preview .search-result-shortcut:not([hidden]) { display: inline-flex; align-items: center; min-height: 44px; margin-top: 5px; color: var(--pv-link); font-weight: 800; text-underline-offset: 3px; }
+    .preview .filter-toggle { display: block; width: 100%; min-height: 44px; margin-bottom: 12px; padding: 9px 13px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 7px; font-weight: 800; text-align: left; cursor: pointer; }
+    .preview .filter-toggle::after { content: '⌄'; float: right; }
+    .preview .filter-toggle[aria-expanded="true"]::after { content: '⌃'; }
+    .preview .filter-panel { display: none; }
+    .preview .filter-toggle[aria-expanded="true"] + .filter-panel { display: block; }
+  }
+  @media (max-width: 640px) { .preview .section-heading { display: block; } .preview .section-heading > p { margin-top: 7px; } .preview .featured-list, .preview .card-grid { grid-template-columns: 1fr; } .preview .distribution-card { padding: 14px; } .preview .distribution-card .card-visual { flex-basis: 64px; width: 64px; height: 64px; } .preview .distribution-card .card-visual img { max-width: 58px; max-height: 58px; } }
+</style>
