@@ -12,11 +12,11 @@
 pokemon-distribution-app/
 ├── src/
 │   ├── pages/
-│   │   ├── index.astro              # メインページ（検索・無限スクロール等）
+│   │   ├── index.astro              # 検索トップ（2026-09-27 に新UIへ差し替え）
 │   │   ├── pokemon/[id].astro       # 個別ポケモンページ
 │   │   └── timeline.astro           # 配信タイムラインページ
 │   ├── components/
-│   │   ├── SearchBox.astro          # 検索UI（フィルター機能）
+│   │   ├── SearchBox.astro          # 旧UIの検索部品（現在未使用）
 │   │   └── PokemonCard.astro        # カード表示・モーダル
 │   ├── data/
 │   │   └── gen-guides.json          # まとめページへの導線（収録の有無は pokemon.json から判定）

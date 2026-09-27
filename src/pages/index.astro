@@ -1,2296 +1,557 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SearchBox from '../components/SearchBox.astro';
-import PokemonCard from '../components/PokemonCard.astro';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-// アイコン対応表（日本語名 → ファイル名スラッグ）。正本は content-hub の
-// reference-data/distribution-assets.json で、sync-from-pokemon-data.mjs がコピーする。
-import assets from '../data/distribution-assets.json';
 
-const baseUrl = import.meta.env.BASE_URL;
-const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
-
-// 色違い・キョダイマックス・オヤブンの状態アイコン画像URL（静的HTML側で使用）
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 const assetBase = import.meta.env.DEV
-    ? `${normalizedBaseUrl}images`
-    : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
-const statusImageBaseUrl = `${assetBase}/status`;
-// テラスタイプは日本語名からスラッグを引く必要があるので、対応表ごとクライアントへ渡す
-const teraSlugs: Record<string, string> = assets.slugs.tera;
-
-// gen-guides.json: 検索トップから案内するまとめページ（summary-pages / WP記事）と対応世代の表。
-// 収録の有無は手で書かず、同じビルドの public/pokemon.json に対応世代の配信データがあるかで決める。
-// データが無いページはリンクせず「未収録」と表示する（配信が無かったという意味ではない）。
-interface GuidePage {
-    label: string;
-    generations: number[];
-    url: string;
-}
-interface Guides {
-    summaryTop: { label: string; url: string };
-    pages: GuidePage[];
-}
-const guidesPath = join(process.cwd(), 'src', 'data', 'gen-guides.json');
-const guides: Guides = JSON.parse(readFileSync(guidesPath, 'utf-8'));
-
-const pokemonPath = join(process.cwd(), 'public', 'pokemon.json');
-const pokemonEntries: Array<{ generation: number }> = JSON.parse(readFileSync(pokemonPath, 'utf-8'));
-const collectedGenerations = new Set<number>(pokemonEntries.map((entry) => entry.generation));
-const isCollected = (page: GuidePage): boolean =>
-    page.generations.some((generation) => collectedGenerations.has(generation));
-const collectedPages = guides.pages.filter(isCollected);
-const uncollectedPages = guides.pages.filter((page) => !isCollected(page));
+  ? `${base}images`
+  : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
 ---
 
-<Layout title="配信ポケモン検索データベース">
-    <header>
-        <div class="header-content">
-            <div class="header-left">
-                <h1>配信ポケモン検索データベース</h1>
-                <p>配信ポケモンを検索できます</p>
-            </div>
-            <div class="header-right">
-                <a href={`${normalizedBaseUrl}timeline/`} class="timeline-link-btn" aria-label="タイムライン">
-                    <span aria-hidden="true">📅</span>
-                    <span class="timeline-link-label">タイムライン</span>
-                </a>
-                <button id="toggleDarkMode" class="dark-mode-btn" title="ダークモード切替">🌙</button>
-            </div>
-        </div>
+<Layout title="配信ポケモン検索データベース" description="歴代の配信ポケモンを、ポケモン名・配信名・受取先ゲーム・期限などの条件で探せます">
+  <main class="preview">
+    <header class="preview-header">
+      <h1>配信ポケモン検索</h1>
     </header>
 
-    <nav class:list={['gen-nav', { 'gen-nav--with-note': uncollectedPages.length > 0 }]} aria-label="まとめページ">
-        <span class="gen-nav-label">まとめページ:</span>
-        <a class="gen-nav-link" href={guides.summaryTop.url} target="_blank" rel="noopener">{guides.summaryTop.label}</a>
-        {collectedPages.map((page) => (
-            <a class="gen-nav-link" href={page.url} target="_blank" rel="noopener">{page.label}</a>
-        ))}
-    </nav>
-    {uncollectedPages.length > 0 && (
-        <p class="gen-nav-note">
-            未収録: {uncollectedPages.map((page) => page.label).join('・')}
-            （配信データをまだ収録していないため、検索結果にも出ません。配信が無かったという意味ではありません）
-        </p>
-    )}
+    <section class="search-panel" aria-label="配信ポケモン検索">
+      <label class="visually-hidden" for="keyword">ポケモン名・配信名・親名などを複数語で検索</label>
+      <input id="keyword" type="search" placeholder="ポケモン名・配信名・親名など（複数語可）" autocomplete="off" />
+      <a id="search-result-shortcut" class="search-result-shortcut" href="#results-heading" aria-live="polite" hidden></a>
+    </section>
 
-    <SearchBox />
-
-    <!-- プリセットエリア -->
-    <div class="preset-area" id="presetArea">
-        <div id="presetButtons" class="preset-buttons"></div>
-    </div>
-
-    <!-- 統計ダッシュボード -->
-    <div class="dashboard" id="dashboard" style="display: none;">
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <div class="dashboard-number" id="totalCount">0</div>
-                <div class="dashboard-label">総配布数</div>
-            </div>
-            <div class="dashboard-card" id="shinyStatTile" data-filter-toggle="filterShiny" role="button" tabindex="0" aria-pressed="false" title="クリックで色違いのみ表示を切替">
-                <div class="dashboard-number" id="shinyCount">0</div>
-                <div class="dashboard-label">色違い</div>
-            </div>
-            <div class="dashboard-card" id="activeStatTile" data-filter-toggle="filterActive" role="button" tabindex="0" aria-pressed="false" title="クリックで配信中のみ表示を切替">
-                <div class="dashboard-number" id="activeCount">0</div>
-                <div class="dashboard-label">配信中</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-number" id="favoriteCount">0</div>
-                <div class="dashboard-label">お気に入り</div>
-            </div>
-            <div class="dashboard-card">
-                <div class="dashboard-number" id="ownedCount">0</div>
-                <div class="dashboard-label">所持済み</div>
-            </div>
+    <section class="featured" aria-labelledby="featured-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="featured-heading">期限が近い配信</h2>
         </div>
-        <button id="toggleDashboard" class="toggle-dashboard-btn">📊 データサマリーを閉じる</button>
-    </div>
-    <button id="showDashboard" class="show-dashboard-btn" style="display: none;">📊 データサマリー</button>
+      </div>
+      <div id="featured-list" class="featured-list" aria-live="polite"><p>読み込み中です…</p></div>
+      <p class="caution">受取可否は地域・受取方法・ゲーム内の条件を確認してください。</p>
+    </section>
 
-    <!-- コレクション統計 -->
-    <div class="collection-stats-panel" id="collectionStatsPanel" style="display:none;">
-        <div class="collection-stats-inner" id="collectionStatsInner">
-            <!-- updateCollectionStats() で動的生成 -->
+    <section class="browse" aria-labelledby="browse-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">すべての配信</p>
+          <h2 id="browse-heading">条件を選んで探す</h2>
         </div>
-    </div>
-    <button id="toggleCollectionStats" class="toggle-collection-stats-btn" style="display:none">📦 所持コレクション進捗</button>
-
-    <div class="stats" id="stats" style="display: none;">
-        <button id="showFavorites" class="action-btn" title="お気に入りのみ表示">⭐ お気に入り</button>
-        <button id="showOwned" class="action-btn" title="所持済みのみ表示">📦 所持済み</button>
-        <button id="toggleCompareMode" class="action-btn" title="比較モード">🔄 比較</button>
-        <button id="compareSelected" class="compare-btn" style="display: none;">比較 (<span id="compareCount">0</span>)</button>
-        <span id="resultCount" class="stats-result-count"></span>
-        <div class="quick-filters" id="quickFilters" style="display:none">
-            <button class="quick-filter-btn" data-filter="shiny">
-                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/shiny.png`} alt="色違い" /></span>
-                <span class="quick-text">色違い</span>
-            </button>
-            <button class="quick-filter-btn" data-filter="gigantamax">
-                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/gigantamax.png`} alt="キョダイマックス" /></span>
-                <span class="quick-text">キョダイ</span>
-            </button>
-            <button class="quick-filter-btn" data-filter="alpha">
-                <span class="quick-icon"><img class="status-icon" src={`${statusImageBaseUrl}/alpha.png`} alt="オヤブン" /></span>
-                <span class="quick-text">オヤブン</span>
-            </button>
-            <button class="quick-filter-btn" data-filter="moves">
-                <span class="quick-icon">🎯</span>
-                <span class="quick-text">技</span>
-            </button>
-            <button class="quick-filter-btn" data-filter="item">
-                <span class="quick-icon">🎁</span>
-                <span class="quick-text">持ち物</span>
-            </button>
+      </div>
+      <button id="filter-toggle" class="filter-toggle" type="button" aria-controls="filter-panel" aria-expanded="false">絞り込み</button>
+      <div id="filter-panel" class="filter-panel">
+      <div class="status-filters" role="group" aria-label="期間の状態">
+        <button type="button" data-status="all" aria-pressed="true">全件</button>
+        <button type="button" data-status="soon" aria-pressed="false">期限間近</button>
+        <button type="button" data-status="current" aria-pressed="false">受取期間内</button>
+        <button type="button" data-status="unknown" aria-pressed="false">期限未設定</button>
+        <button type="button" data-status="ended" aria-pressed="false">終了</button>
+        <button type="button" data-status="upcoming" aria-pressed="false">開始前</button>
+      </div>
+      <div class="filters">
+        <label>受取先ゲーム
+          <select id="game"><option value="">すべてのゲーム</option></select>
+        </label>
+        <label>配信方法
+          <select id="method"><option value="">すべての方法</option></select>
+        </label>
+        <label>地域
+          <select id="region"><option value="">すべての地域</option></select>
+        </label>
+        <label>並び順
+          <select id="sort">
+            <option value="recommended">おすすめ</option>
+            <option value="newest">新しい順</option>
+            <option value="oldest">古い順</option>
+            <option value="deadline">期限が近い順</option>
+            <option value="dex-asc">図鑑No（小さい順）</option>
+            <option value="dex-desc">図鑑No（大きい順）</option>
+            <option value="name-asc">ポケモン名（あ→ん）</option>
+            <option value="name-desc">ポケモン名（ん→あ）</option>
+          </select>
+        </label>
+        <label class="checkbox"><input id="shiny" type="checkbox" /> 色違いのみ</label>
+      </div>
+      <details class="advanced">
+        <summary>詳細な条件 <span id="advanced-count" aria-live="polite"></span></summary>
+        <div class="advanced-grid">
+          <label>世代<select id="generation"><option value="">すべての世代</option></select></label>
+          <label>開始日（以降）<input id="date-from" type="date" /></label>
+          <label>開始日（以前）<input id="date-to" type="date" /></label>
+          <label>ボール<select id="ball"><option value="">すべてのボール</option></select></label>
+          <label>親名<input id="ot" type="search" placeholder="親名で検索" /></label>
+          <label>トレーナーID<input id="trainer-id" type="search" placeholder="IDで検索" /></label>
+          <label class="checkbox"><input id="gigantamax" type="checkbox" /> キョダイマックスのみ</label>
+          <label class="checkbox"><input id="alpha" type="checkbox" /> オヤブンのみ</label>
+          <label class="checkbox"><input id="special-moves" type="checkbox" /> 特別な技あり</label>
+          <label class="checkbox"><input id="held-item" type="checkbox" /> 持ち物あり</label>
         </div>
-    </div>
-
-    <div class="loading" id="loading">読み込み中...</div>
-
-    <div class="results" id="results"></div>
-
-    <!-- 無限スクロール用ローディング -->
-    <div class="infinite-scroll-loader" id="infiniteScrollLoader" style="display: none;">
-        <div class="loader-spinner"></div>
-        <span>読み込み中...</span>
-    </div>
-    <div id="scrollSentinel" style="height: 1px;"></div>
-
-    <!-- 一番上に戻るボタン -->
-    <button id="scrollToTop" class="scroll-to-top" aria-label="一番上に戻る">↑</button>
-
-    <PokemonCard />
+        <fieldset class="ribbon-filter">
+          <legend>リボン・あかし</legend>
+          <p>リボン</p><div id="ribbon-options" class="ribbon-options"></div>
+          <p>あかし</p><div id="mark-options" class="ribbon-options"></div>
+          <details class="ribbon-mode">
+            <summary id="ribbon-mode-summary">複数選択時：いずれかを含む</summary>
+            <div class="ribbon-mode-options" role="group" aria-label="選択したリボン・あかしの組み合わせ">
+              <label><input type="radio" name="ribbon-mode" value="OR" checked /> いずれかを含む</label>
+              <label><input type="radio" name="ribbon-mode" value="AND" /> すべてを含む</label>
+            </div>
+          </details>
+        </fieldset>
+        <div class="advanced-actions">
+          <button id="advanced-reset" type="button">詳細条件だけクリア</button>
+        </div>
+      </details>
+      </div>
+      <div id="results-heading" class="results-heading">
+        <p id="result-count" role="status" aria-live="polite">読み込み中です…</p>
+        <button id="reset" type="button">条件をクリア</button>
+      </div>
+      <div id="results" class="card-grid"></div>
+      <button id="more" class="more" type="button" hidden>もっと見る</button>
+    </section>
+  </main>
 </Layout>
 
-<script is:inline define:vars={{ baseUrl: normalizedBaseUrl, teraSlugs }}>
-    let allData = [];
-    let displayedCount = 0;
-    const ITEMS_PER_PAGE = 24;
-    const JSON_URL = `${baseUrl}pokemon.json`;
+<script is:inline define:vars={{ base, assetBase }}>
+  const root = document.querySelector('.preview');
+  const $ = (selector) => root.querySelector(selector);
+  const controls = {
+    keyword: $('#keyword'), game: $('#game'), method: $('#method'),
+    region: $('#region'), sort: $('#sort'), shiny: $('#shiny'),
+    generation: $('#generation'), dateFrom: $('#date-from'), dateTo: $('#date-to'),
+    ball: $('#ball'), ot: $('#ot'), trainerId: $('#trainer-id'),
+    gigantamax: $('#gigantamax'), alpha: $('#alpha'), specialMoves: $('#special-moves'),
+    heldItem: $('#held-item')
+  };
+  const advancedControlNames = [
+    'generation', 'dateFrom', 'dateTo', 'ball', 'ot', 'trainerId',
+    'gigantamax', 'alpha', 'specialMoves', 'heldItem'
+  ];
+  const results = $('#results');
+  const featured = $('#featured-list');
+  const more = $('#more');
+  const statusButtons = [...root.querySelectorAll('[data-status]')];
+  const pageSize = 24;
+  let data = [];
+  let shown = pageSize;
+  let statusFilter = 'all';
+  let selectedRibbons = [];
+  let ribbonMode = 'OR';
 
-    // 無限スクロール用の状態管理
-    let currentDisplayData = [];
-    let isLoadingMore = false;
-    let infiniteScrollObserver = null;
+  function todayJst() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  }
 
-    // リボン複数選択
-    let selectedRibbons = [];
-
-    // specialMoves = 通常プレイでは覚えられない特別な技（技名の配列）。旧形式の文字列フラグも許容
-    function hasSpecialMoves(p) {
-        return Array.isArray(p.specialMoves)
-            ? p.specialMoves.length > 0
-            : Boolean(p.specialMoves && p.specialMoves !== '');
+  const today = todayJst();
+  function daysUntil(date) {
+    return Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000);
+  }
+  function stateOf(p) {
+    if (p.startDate && p.startDate > today) return 'upcoming';
+    if (!p.endDate) return 'unknown';
+    if (p.endDate < today) return 'ended';
+    if (!p.startDate) return 'unknown';
+    return daysUntil(p.endDate) <= 14 ? 'soon' : 'current';
+  }
+  const stateNames = {
+    soon: '期限間近', current: '受取期間内', unknown: '期限未設定',
+    ended: '終了', upcoming: '開始前'
+  };
+  const normalize = (s) => String(s || '').normalize('NFKC').toLowerCase()
+    .replace(/[ぁ-ゖ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  const gameTokens = (game) => String(game || '').split(',').map(name => name.trim()).filter(Boolean);
+  const dateLabel = (s) => s ? s.replaceAll('-', '/') : '未設定';
+  const ribbonsOf = (p) => Array.isArray(p.ribbons)
+    ? p.ribbons.filter(Boolean) : [p.ribbon1, p.ribbon2, p.ribbon3].filter(Boolean);
+  const isMark = (name) => name.endsWith('あかし');
+  function visualFor(p) {
+    const visual = document.createElement('div');
+    visual.className = 'card-visual';
+    const fallback = document.createElement('span');
+    fallback.className = 'image-fallback';
+    fallback.textContent = '画像なし';
+    const image = document.createElement('img');
+    const imageName = p.gigantamax ? `キョダイマックス${p.pokemonName}` : p.pokemonName;
+    image.src = `${assetBase}/pokemon/pokedex/${String(p.dexNo).padStart(4, '0')}_${encodeURIComponent(imageName)}.png`;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.hidden = true;
+    image.addEventListener('load', () => {
+      image.hidden = false;
+      fallback.hidden = true;
+    }, { once: true });
+    image.addEventListener('error', () => {
+      image.remove();
+      fallback.hidden = false;
+    }, { once: true });
+    visual.append(fallback, image);
+    if (image.complete && image.naturalWidth > 0) {
+      image.hidden = false;
+      fallback.hidden = true;
     }
-    let ribbonFilterMode = 'OR';
+    return visual;
+  }
 
-    // かな正規化検索用: NFKC正規化 → 小文字化 → ひらがな→カタカナ変換
-    // 「ぴかちゅう」でピカチュウがヒットしたり、全角英数（ｐｉｋａ）でも検索できるようにする
-    function normalizeSearchText(str) {
-        return String(str || '')
-            .normalize('NFKC')
-            .toLowerCase()
-            .replace(/[ぁ-ゖ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+  function shinyBadge(p) {
+    if (p.shiny !== 'あり' && p.shiny !== '条件次第') return null;
+    const badge = document.createElement('span');
+    badge.className = p.shiny === '条件次第' ? 'card-shiny card-shiny-conditional' : 'card-shiny';
+    const icon = document.createElement('img');
+    icon.src = `${assetBase}/status/shiny.png`;
+    icon.alt = '';
+    icon.loading = 'lazy';
+    icon.addEventListener('error', () => icon.remove(), { once: true });
+    badge.append(icon, document.createTextNode(p.shiny === '条件次第' ? '色違いは条件次第' : '色違い'));
+    return badge;
+  }
+
+  function card(p) {
+    const link = document.createElement('a');
+    link.className = 'distribution-card';
+    link.href = `${base}pokemon/${encodeURIComponent(p.managementId)}/`;
+    link.setAttribute('aria-label', `${p.pokemonName || '名称未設定'}（${p.eventName || 'イベント名未設定'}）の詳細`);
+
+    const content = document.createElement('div');
+    content.className = 'card-content';
+    const badge = document.createElement('span');
+    const state = stateOf(p);
+    badge.className = `state state-${state}`;
+    badge.textContent = stateNames[state];
+    const name = document.createElement('h3');
+    name.textContent = p.pokemonName || '名称未設定';
+    const title = document.createElement('div');
+    title.className = 'card-title-row';
+    title.append(name);
+    const shiny = shinyBadge(p);
+    if (shiny) title.append(shiny);
+    const event = document.createElement('p');
+    event.className = 'event-name';
+    event.textContent = p.eventName || 'イベント名未設定';
+    const facts = document.createElement('dl');
+    for (const [label, value] of [
+      ['ゲーム', p.game], ['受取方法', p.distributionMethod],
+      ['期間', `${dateLabel(p.startDate)} 〜 ${dateLabel(p.endDate)}`],
+      ['地域', p.region]
+    ]) {
+      if (!value) continue;
+      const dt = document.createElement('dt'); dt.textContent = label;
+      const dd = document.createElement('dd'); dd.textContent = value;
+      facts.append(dt, dd);
     }
+    content.append(badge, title, event, facts);
+    link.append(visualFor(p), content);
+    return link;
+  }
+  function featuredCard(p) {
+    const link = document.createElement('a');
+    link.className = 'featured-card';
+    link.href = `${base}pokemon/${encodeURIComponent(p.managementId)}/`;
+    link.setAttribute('aria-label', `${p.pokemonName || '名称未設定'}（${p.eventName || 'イベント名未設定'}）の詳細・${dateLabel(p.endDate)}まで`);
+    const copy = document.createElement('div');
+    copy.className = 'featured-copy';
+    const name = document.createElement('strong');
+    name.textContent = p.pokemonName || '名称未設定';
+    const title = document.createElement('div');
+    title.className = 'card-title-row';
+    title.append(name);
+    const shiny = shinyBadge(p);
+    if (shiny) title.append(shiny);
+    const event = document.createElement('span');
+    event.textContent = p.eventName || 'イベント名未設定';
+    const deadline = document.createElement('small');
+    const days = daysUntil(p.endDate);
+    deadline.textContent = `${dateLabel(p.endDate)}まで・${days === 0 ? '本日終了' : `残り${days}日`}`;
+    copy.append(title, event, deadline);
+    link.append(visualFor(p), copy);
+    return link;
+  }
 
-    // セキュリティ: HTMLエスケープ関数
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+  function addOptions(select, values) {
+    for (const value of values) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = value;
+      select.append(option);
     }
-
-    // リボン複数選択管理
-    function addRibbon(value) {
-        const v = value.trim();
-        if (!v || selectedRibbons.includes(v)) return;
-        selectedRibbons.push(v);
-        const input = document.getElementById('filterRibbonInput');
-        if (input) input.value = '';
-        renderRibbonTags();
-        searchPokemon();
+  }
+  function populateFilters() {
+    addOptions(controls.game, [...new Set(data.flatMap(p => gameTokens(p.game)))].sort((a, b) => a.localeCompare(b, 'ja')));
+    addOptions(controls.method, [...new Set(data.map(p => p.distributionMethod).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    addOptions(controls.region, [...new Set(data.flatMap(p => String(p.region || '').split(',').map(x => x.trim())).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    for (const gen of [...new Set(data.map(p => p.generation).filter(x => x !== undefined && x !== null))].sort((a, b) => b - a)) {
+      const option = document.createElement('option');
+      option.value = String(gen);
+      option.textContent = gen === 0 ? 'Champions' : `第${gen}世代`;
+      controls.generation.append(option);
     }
-
-    function removeRibbon(value) {
-        const v = String(value).trim();
-        selectedRibbons = selectedRibbons.filter(r => r !== v);
-        renderRibbonTags();
-        searchPokemon();
+    addOptions(controls.ball, [...new Set(data.map(p => p.ball).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')));
+    const ribbons = [...new Set(data.flatMap(ribbonsOf))].sort((a, b) => a.localeCompare(b, 'ja'));
+    for (const name of ribbons) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = name;
+      button.dataset.ribbon = name;
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => toggleRibbon(name));
+      $(isMark(name) ? '#mark-options' : '#ribbon-options').append(button);
     }
-
-    // リボン/あかしボタンのクリック処理（addRibbon/removeRibbonを共通利用してトグル）
-    // 比較は add/remove と同じく trim ベースに統一（URL/プリセット由来の空白ズレ対策）
-    function toggleRibbonSelection(value) {
-        const v = String(value).trim();
-        if (selectedRibbons.includes(v)) {
-            removeRibbon(v);
-        } else {
-            addRibbon(v);
-        }
+  }
+  function toggleRibbon(name) {
+    selectedRibbons = selectedRibbons.includes(name)
+      ? selectedRibbons.filter(x => x !== name) : [...selectedRibbons, name];
+    syncRibbonSelection();
+    update();
+  }
+  function syncRibbonSelection() {
+    root.querySelectorAll('[data-ribbon]').forEach(button =>
+      button.setAttribute('aria-pressed', String(selectedRibbons.includes(button.dataset.ribbon))));
+  }
+  function renderFeatured() {
+    featured.replaceChildren();
+    const soon = data.filter(p => stateOf(p) === 'soon')
+      .sort((a, b) => a.endDate.localeCompare(b.endDate)).slice(0, 3);
+    if (!soon.length) {
+      const empty = document.createElement('p');
+      empty.textContent = '現在、終了日が14日以内の配信データはありません。';
+      featured.append(empty);
+      return;
     }
-
-    function renderRibbonTags() {
-        const container = document.getElementById('selectedRibbonTags');
-        const modeRow = document.getElementById('ribbonModeRow');
-        if (!container) return;
-        container.innerHTML = '';
-        selectedRibbons.forEach(ribbon => {
-            const tag = document.createElement('span');
-            tag.className = 'ribbon-tag';
-            tag.innerHTML = `${escapeHtml(ribbon)} <button type="button" data-ribbon="${escapeHtml(ribbon)}">×</button>`;
-            tag.querySelector('button').addEventListener('click', () => removeRibbon(ribbon));
-            container.appendChild(tag);
-        });
-        if (modeRow) {
-            modeRow.style.display = selectedRibbons.length >= 2 ? 'flex' : 'none';
-            // 現在のモードをUIに反映
-            const modeRadios = document.querySelectorAll('input[name="ribbonMode"]');
-            modeRadios.forEach(radio => {
-                radio.checked = radio.value === ribbonFilterMode;
-            });
-        }
-        // リボン/あかしボタン一覧の選択状態を同期（タグ×削除・クリア・URL復元など全経路で反映される）
-        document.querySelectorAll('.ribbon-toggle-btn').forEach(btn => {
-            const isSelected = selectedRibbons.includes(String(btn.dataset.ribbon || '').trim());
-            btn.classList.toggle('is-active', isSelected);
-            btn.setAttribute('aria-pressed', String(isSelected));
-        });
-        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
-        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
-    }
-
-    // お気に入り管理
-    function getFavorites() {
-        try {
-            const stored = localStorage.getItem('pokemon-favorites');
-            return stored ? JSON.parse(stored) : [];
-        } catch (e) {
-            console.error('Failed to parse favorites:', e);
-            return [];
-        }
-    }
-
-    function saveFavorites(favorites) {
-        localStorage.setItem('pokemon-favorites', JSON.stringify(favorites));
-        updateFavoriteCount();
-    }
-
-    function toggleFavorite(managementId) {
-        const favorites = getFavorites();
-        const index = favorites.indexOf(managementId);
-        if (index === -1) {
-            favorites.push(managementId);
-        } else {
-            favorites.splice(index, 1);
-        }
-        saveFavorites(favorites);
-        return index === -1; // true if added
-    }
-
-    function isFavorite(managementId) {
-        return getFavorites().includes(managementId);
-    }
-
-    function updateFavoriteCount() {
-        const count = getFavorites().length;
-        document.getElementById('favoriteCount').textContent = count;
-    }
-
-    // 所持管理
-    function getOwned() {
-        try {
-            const stored = localStorage.getItem('pokemon-owned');
-            return stored ? JSON.parse(stored) : [];
-        } catch (e) { return []; }
-    }
-    function saveOwned(owned) {
-        localStorage.setItem('pokemon-owned', JSON.stringify(owned));
-        updateOwnedCount();
-    }
-    function toggleOwned(managementId) {
-        const owned = getOwned();
-        const index = owned.indexOf(managementId);
-        if (index === -1) { owned.push(managementId); }
-        else { owned.splice(index, 1); }
-        saveOwned(owned);
-        return index === -1;
-    }
-    function isOwned(managementId) {
-        return getOwned().includes(managementId);
-    }
-    function updateOwnedCount() {
-        const el = document.getElementById('ownedCount');
-        if (el) el.textContent = getOwned().length;
-    }
-
-    // メモ管理（保管場所・カスタムメモ）
-    function getNotes() {
-        try {
-            const stored = localStorage.getItem('pokemon-notes');
-            return stored ? JSON.parse(stored) : {};
-        } catch (e) {
-            console.error('Failed to parse notes:', e);
-            return {};
-        }
-    }
-
-    function saveNote(managementId, noteData) {
-        const notes = getNotes();
-        notes[managementId] = noteData;
-        localStorage.setItem('pokemon-notes', JSON.stringify(notes));
-    }
-
-    function getNote(managementId) {
-        const notes = getNotes();
-        return notes[managementId] || { location: '', customNote: '' };
-    }
-
-    function deleteNote(managementId) {
-        const notes = getNotes();
-        delete notes[managementId];
-        localStorage.setItem('pokemon-notes', JSON.stringify(notes));
-    }
-
-    // 保管場所プリセット
-    const LOCATION_PRESETS = [
-        { value: 'home', label: '📱 HOME保管中', icon: '📱' },
-        { value: 'violet', label: '🟣 バイオレット', icon: '🟣' },
-        { value: 'scarlet', label: '🔴 スカーレット', icon: '🔴' },
-        { value: 'sword', label: '⚔️ ソード', icon: '⚔️' },
-        { value: 'shield', label: '🛡️ シールド', icon: '🛡️' },
-        { value: 'bdsp', label: '💎 ダイパリメイク', icon: '💎' },
-        { value: 'legends', label: '🏔️ アルセウス', icon: '🏔️' },
-        { value: 'custom', label: '✏️ カスタム', icon: '✏️' }
-    ];
-
-    function getLocationIcon(locationValue) {
-        const preset = LOCATION_PRESETS.find(p => p.value === locationValue);
-        return preset ? preset.icon : '📝';
-    }
-
-    // ダークモード
-    function initDarkMode() {
-        const isDark = localStorage.getItem('dark-mode') === 'true';
-        if (isDark) {
-            document.body.classList.add('dark-mode');
-            document.getElementById('toggleDarkMode').textContent = '☀️';
-        }
-    }
-
-    function toggleDarkMode() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        localStorage.setItem('dark-mode', isDark);
-        document.getElementById('toggleDarkMode').textContent = isDark ? '☀️' : '🌙';
-    }
-
-    // 画像URL生成関数
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const assetBase = isLocal
-        ? `${baseUrl}images`
-        : 'https://www.pokebros.net/wp-content/uploads/pokemon-assets';
-    const imageBaseUrl = `${assetBase}/pokemon/pokedex`;
-    const ballImageBaseUrl = `${assetBase}/balls`;
-    const ribbonImageBaseUrl = `${assetBase}/ribbons`;
-    const markImageBaseUrl = `${assetBase}/marks`;
-    const statusImageBaseUrl = `${assetBase}/status`;
-    const teraImageBaseUrl = `${assetBase}/tera`;
-
-    /** テラスタイプのアイコンHTML。対応表に無い値（"ランダム"など）は空文字を返す。 */
-    function teraIconHtml(teraType) {
-        const slug = teraSlugs[teraType];
-        return slug
-            ? `<img class="tera-icon" src="${teraImageBaseUrl}/${slug}.png" alt="">`
-            : '';
-    }
-
-    function getPokemonImageUrl(pokemon) {
-        const dexNo = String(pokemon.dexNo).padStart(4, '0');
-        const name = pokemon.gigantamax
-            ? `キョダイマックス${pokemon.pokemonName}`
-            : pokemon.pokemonName;
-        return `${imageBaseUrl}/${dexNo}_${name}.png`;
-    }
-
-    function isMarkName(name) {
-        return name.endsWith('あかし');
-    }
-
-    function getRibbonImageUrl(name) {
-        return isMarkName(name)
-            ? `${markImageBaseUrl}/${name}.png`
-            : `${ribbonImageBaseUrl}/${name}.png`;
-    }
-
-    function getBallImageUrl(name) {
-        return `${ballImageBaseUrl}/${name}.png`;
-    }
-
-    // URLパラメータからフィルター初期状態を設定
-    function applyUrlParameters() {
-        const params = new URLSearchParams(window.location.search);
-
-        const filters = [
-            { param: 'shiny', id: 'filterShiny' },
-            { param: 'gigantamax', id: 'filterGigantamax' },
-            { param: 'alpha', id: 'filterAlpha' },
-            { param: 'moves', id: 'filterSpecialMoves' },
-            { param: 'item', id: 'filterHeldItem' },
-            { param: 'active', id: 'filterActive' }
-        ];
-
-        let hasFilters = false;
-
-        filters.forEach(({ param, id }) => {
-            if (params.get(param) === '1') {
-                hasFilters = true;
-                const el = document.getElementById(id);
-                if (el) el.checked = true;
-            }
-        });
-
-        // 地域パラメータ
-        const region = params.get('region');
-        if (region) {
-            hasFilters = true;
-            const regionSelect = document.getElementById('filterRegion');
-            if (regionSelect) regionSelect.value = region;
-        }
-
-        // 世代パラメータ（?generation=0 でChampionsのみ表示。"0"は空文字と区別するためnullチェック）
-        const generationParam = params.get('generation');
-        if (generationParam !== null) {
-            hasFilters = true;
-            const generationSelect = document.getElementById('filterGeneration');
-            if (generationSelect) generationSelect.value = generationParam;
-        }
-
-        // リボン複数対応（?ribbon=クラシック&ribbon=バースデー など）
-        const ribbonParams = params.getAll('ribbon');
-        if (ribbonParams.length > 0) {
-            selectedRibbons = ribbonParams.map(r => String(r).trim()).filter(Boolean);
-            renderRibbonTags();
-            hasFilters = true;
-        }
-
-        if (hasFilters) {
-            searchPokemon();
-        }
-        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
-        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
-    }
-
-    // プリセット管理
-    function getPresets() {
-        try { return JSON.parse(localStorage.getItem('pokemon-search-presets') || '[]'); }
-        catch { return []; }
-    }
-
-    function getCurrentFilterState() {
-        return {
-            searchName: document.getElementById('searchName')?.value || '',
-            generation: document.getElementById('filterGeneration')?.value || '',
-            method: document.getElementById('filterMethod')?.value || '',
-            region: document.getElementById('filterRegion')?.value || '',
-            shiny: document.getElementById('filterShiny')?.checked || false,
-            gigantamax: document.getElementById('filterGigantamax')?.checked || false,
-            alpha: document.getElementById('filterAlpha')?.checked || false,
-            specialMoves: document.getElementById('filterSpecialMoves')?.checked || false,
-            heldItem: document.getElementById('filterHeldItem')?.checked || false,
-            active: document.getElementById('filterActive')?.checked || false,
-            ribbons: [...selectedRibbons],
-            ribbonMode: ribbonFilterMode,
-            dateFrom: document.getElementById('filterDateFrom')?.value || '',
-            dateTo: document.getElementById('filterDateTo')?.value || '',
-            ot: document.getElementById('filterOT')?.value || '',
-            trainerId: document.getElementById('filterTrainerId')?.value || '',
-            sortOrder: document.getElementById('sortOrder')?.value || 'date-desc'
-        };
-    }
-
-    function applyFilterState(filters) {
-        if (document.getElementById('searchName')) document.getElementById('searchName').value = filters.searchName || '';
-        if (document.getElementById('filterGeneration')) document.getElementById('filterGeneration').value = filters.generation || '';
-        if (document.getElementById('filterMethod')) document.getElementById('filterMethod').value = filters.method || '';
-        if (document.getElementById('filterRegion')) document.getElementById('filterRegion').value = filters.region || '';
-        if (document.getElementById('filterShiny')) document.getElementById('filterShiny').checked = filters.shiny || false;
-        if (document.getElementById('filterGigantamax')) document.getElementById('filterGigantamax').checked = filters.gigantamax || false;
-        if (document.getElementById('filterAlpha')) document.getElementById('filterAlpha').checked = filters.alpha || false;
-        if (document.getElementById('filterSpecialMoves')) document.getElementById('filterSpecialMoves').checked = filters.specialMoves || false;
-        if (document.getElementById('filterHeldItem')) document.getElementById('filterHeldItem').checked = filters.heldItem || false;
-        if (document.getElementById('filterActive')) document.getElementById('filterActive').checked = filters.active || false;
-        if (document.getElementById('filterDateFrom')) document.getElementById('filterDateFrom').value = filters.dateFrom || '';
-        if (document.getElementById('filterDateTo')) document.getElementById('filterDateTo').value = filters.dateTo || '';
-        if (document.getElementById('filterOT')) document.getElementById('filterOT').value = filters.ot || '';
-        if (document.getElementById('filterTrainerId')) document.getElementById('filterTrainerId').value = filters.trainerId || '';
-        if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = filters.sortOrder || 'date-desc';
-
-        // リボン
-        selectedRibbons = (filters.ribbons || []).map(r => String(r).trim()).filter(Boolean);
-        ribbonFilterMode = filters.ribbonMode || 'OR';
-        renderRibbonTags();
-
-        searchPokemon();
-        // 詳細フィルターの適用件数バッジを更新（SearchBox.astro側で定義）
-        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
-    }
-
-    function savePreset(name) {
-        const presets = getPresets();
-        if (presets.length >= 5) {
-            alert('プリセットは最大5件まで保存できます。');
-            return;
-        }
-        presets.push({ id: `preset_${Date.now()}`, name, filters: getCurrentFilterState() });
-        localStorage.setItem('pokemon-search-presets', JSON.stringify(presets));
-        renderPresets();
-    }
-
-    function deletePreset(id) {
-        const presets = getPresets().filter(p => p.id !== id);
-        localStorage.setItem('pokemon-search-presets', JSON.stringify(presets));
-        renderPresets();
-    }
-
-    function renderPresets() {
-        const container = document.getElementById('presetButtons');
-        if (!container) return;
-        const presets = getPresets();
-        container.innerHTML = '';
-        presets.forEach(preset => {
-            const wrap = document.createElement('span');
-            wrap.className = 'preset-btn-wrap';
-            wrap.innerHTML = `
-                <button type="button" class="preset-btn" data-id="${escapeHtml(preset.id)}">${escapeHtml(preset.name)}</button>
-                <button type="button" class="preset-delete-btn" data-id="${escapeHtml(preset.id)}" title="削除">×</button>
-            `;
-            wrap.querySelector('.preset-btn').addEventListener('click', () => applyFilterState(preset.filters));
-            wrap.querySelector('.preset-delete-btn').addEventListener('click', () => {
-                if (confirm(`「${preset.name}」を削除しますか？`)) deletePreset(preset.id);
-            });
-            container.appendChild(wrap);
-        });
-    }
-
-    // Load data on page load
-    async function loadData() {
-        try {
-            const response = await fetch(JSON_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-
-            // データ検証
-            if (!Array.isArray(data)) {
-                throw new Error('Invalid data format: expected array');
-            }
-
-            // Champions(generation:0)も検索UI対象（2026-08-03 改定。世代フィルタでは「Champions」として選択可能）
-            allData = data;
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('stats').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'block';
-
-            populateFilters();
-            updateDashboard();
-            applyUrlParameters();
-
-            const params = new URLSearchParams(window.location.search);
-            if (![...params.keys()].some(key => ['shiny', 'gigantamax', 'alpha', 'moves', 'ribbon', 'item', 'region', 'active', 'generation'].includes(key))) {
-                const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
-                searchResults = sortData(allData, sortOrder);
-                displayResults(searchResults);
-            }
-        } catch (error) {
-            console.error('Data loading error:', error);
-            document.getElementById('loading').innerHTML =
-                '<div style="background: white; padding: 30px; border-radius: 8px; color: #d32f2f;">データの読み込みに失敗しました。<br>URLを確認してください。</div>';
-        }
-    }
-
-    // ダッシュボード更新
-    function updateDashboard() {
-        document.getElementById('totalCount').textContent = allData.length;
-        document.getElementById('shinyCount').textContent = allData.filter(p => p.shiny && p.shiny !== '').length;
-        document.getElementById('activeCount').textContent = allData.filter(p => isDistributionActive(p.endDate)).length;
-        updateFavoriteCount();
-        updateOwnedCount();
-    }
-
-    // 統計タイル（色違い・配信中）をクリック/タップでフィルタートグル
-    function updateStatTileStates() {
-        document.querySelectorAll('.dashboard-card[data-filter-toggle]').forEach(tile => {
-            const checkbox = document.getElementById(tile.dataset.filterToggle);
-            const pressed = !!(checkbox && checkbox.checked);
-            tile.classList.toggle('is-pressed', pressed);
-            tile.setAttribute('aria-pressed', String(pressed));
-        });
-    }
-
-    function toggleStatTileFilter(checkboxId) {
-        const checkbox = document.getElementById(checkboxId);
-        if (!checkbox) return;
-        checkbox.checked = !checkbox.checked;
-        searchPokemon();
-        updateStatTileStates();
-        if (window.updateAdvancedFiltersBadge) window.updateAdvancedFiltersBadge();
-    }
-
-    document.querySelectorAll('.dashboard-card[data-filter-toggle]').forEach(tile => {
-        tile.addEventListener('click', () => toggleStatTileFilter(tile.dataset.filterToggle));
-        tile.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggleStatTileFilter(tile.dataset.filterToggle);
-            }
-        });
+    featured.append(...soon.map(featuredCard));
+  }
+  function recommendedRank(p) {
+    return { soon: 0, current: 1, unknown: 2, upcoming: 3, ended: 4 }[stateOf(p)];
+  }
+  function filteredData() {
+    const terms = normalize(controls.keyword.value).trim().split(/[\s\u3000]+/).filter(Boolean);
+    const ot = normalize(controls.ot.value.trim());
+    const trainerId = controls.trainerId.value.trim();
+    const list = data.filter(p => {
+      if (statusFilter !== 'all' && stateOf(p) !== statusFilter) return false;
+      if (controls.game.value && !gameTokens(p.game).includes(controls.game.value)) return false;
+      if (controls.method.value && p.distributionMethod !== controls.method.value) return false;
+      if (controls.region.value) {
+        const tokens = String(p.region || '').split(',').map(x => x.trim());
+        if (!tokens.includes(controls.region.value) && (controls.region.value === '全世界' || !tokens.includes('全世界'))) return false;
+      }
+      if (controls.shiny.checked && !p.shiny) return false;
+      if (controls.generation.value !== '' && p.generation !== Number(controls.generation.value)) return false;
+      if (controls.dateFrom.value && (!p.startDate || p.startDate < controls.dateFrom.value)) return false;
+      if (controls.dateTo.value && (!p.startDate || p.startDate > controls.dateTo.value)) return false;
+      if (controls.ball.value && p.ball !== controls.ball.value) return false;
+      if (controls.gigantamax.checked && !p.gigantamax) return false;
+      if (controls.alpha.checked && !p.alpha) return false;
+      if (controls.specialMoves.checked && !(Array.isArray(p.specialMoves) ? p.specialMoves.length > 0 : Boolean(p.specialMoves))) return false;
+      if (controls.heldItem.checked && !p.heldItem) return false;
+      if (ot && !normalize(typeof p.ot === 'object' ? Object.values(p.ot || {}).join(' ') : p.ot).includes(ot)) return false;
+      if (trainerId && !String(p.trainerId || '').includes(trainerId)) return false;
+      if (selectedRibbons.length) {
+        const ribbons = ribbonsOf(p).map(normalize);
+        const matched = selectedRibbons.map(name => ribbons.some(r => r.includes(normalize(name))));
+        if (ribbonMode === 'AND' ? !matched.every(Boolean) : !matched.some(Boolean)) return false;
+      }
+      const otText = typeof p.ot === 'object' ? Object.values(p.ot || {}).join(' ') : p.ot;
+      const keywordFields = [p.pokemonName, p.eventName, otText, p.distributionMethod,
+        p.distributionLocation, p.notes, p.game, p.region].map(normalize);
+      return terms.every(term => keywordFields.some(field => field.includes(term)));
     });
-
-    // region フィールドをカンマ区切りで分割し、トリムした配列にする
-    function regionTokens(region) {
-        return (region || '').split(',').map(r => r.trim()).filter(Boolean);
-    }
-
-    // 地域の優先表示順（先頭固定）
-    const REGION_PRIORITY_ORDER = ['日本', '全世界', '北米', '欧州', '韓国', '台湾'];
-
-    // 世代の略称マッピング（プルダウン表示用）
-    const GENERATION_SHORT_NAMES = {
-        9: 'SV',
-        8: '剣盾・BDSP・LA',
-        7: 'SM・USUM・ピカブイ',
-        6: 'XY・ORAS',
-        5: 'BW・BW2',
-        4: 'DPPt・HGSS',
-        3: 'RSE・FRLG',
-        2: '金銀',
-        1: '赤緑'
-    };
-
-    // Populate filter dropdowns from data
-    function populateFilters() {
-        const methods = [...new Set(allData.map(p => p.distributionMethod))].sort();
-
-        const methodSelect = document.getElementById('filterMethod');
-        methods.forEach(method => {
-            const option = document.createElement('option');
-            option.value = method;
-            option.textContent = method;
-            methodSelect.appendChild(option);
-        });
-
-        // リボンのリストを抽出
-        const ribbonSet = new Set();
-        allData.forEach(p => {
-            const ribbons = p.ribbons && Array.isArray(p.ribbons)
-                ? p.ribbons.filter(r => r && r !== '')
-                : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
-            ribbons.forEach(r => ribbonSet.add(r));
-        });
-        const ribbons = [...ribbonSet].sort();
-
-        const ribbonList = document.getElementById('ribbonList');
-        ribbons.forEach(ribbon => {
-            const option = document.createElement('option');
-            option.value = ribbon;
-            ribbonList.appendChild(option);
-        });
-
-        // リボン/あかしのボタン一覧を生成（データの一覧性向上。あかしは名前が「あかし」で終わるもので判定）
-        function createRibbonToggleButton(name) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'ribbon-toggle-btn';
-            btn.dataset.ribbon = name;
-            btn.textContent = name;
-            btn.setAttribute('aria-pressed', 'false');
-            btn.addEventListener('click', () => toggleRibbonSelection(name));
-            return btn;
-        }
-
-        const ribbonButtonsContainer = document.getElementById('ribbonButtons');
-        const markButtonsContainer = document.getElementById('markButtons');
-        const markButtonGroup = document.getElementById('markButtonGroup');
-        const ribbonNames = ribbons.filter(r => !isMarkName(r));
-        const markNames = ribbons.filter(r => isMarkName(r));
-
-        if (ribbonButtonsContainer) {
-            ribbonNames.forEach(name => ribbonButtonsContainer.appendChild(createRibbonToggleButton(name)));
-        }
-        if (markButtonsContainer) {
-            markNames.forEach(name => markButtonsContainer.appendChild(createRibbonToggleButton(name)));
-        }
-        // あかしが0件の場合はグループごと非表示（将来データが変わっても安全に）
-        if (markButtonGroup) {
-            markButtonGroup.style.display = markNames.length > 0 ? '' : 'none';
-        }
-        // 初期状態（selectedRibbonsがあれば）をボタンに反映
-        renderRibbonTags();
-
-        // 地域の選択肢をデータから動的生成（カンマ区切りの複合値は分割して個別値を候補にする）
-        const regionSet = new Set();
-        allData.forEach(p => regionTokens(p.region).forEach(r => regionSet.add(r)));
-        const priorityRegions = REGION_PRIORITY_ORDER.filter(r => regionSet.has(r));
-        const otherRegions = [...regionSet]
-            .filter(r => !REGION_PRIORITY_ORDER.includes(r))
-            .sort((a, b) => a.localeCompare(b, 'ja'));
-        const orderedRegions = [...priorityRegions, ...otherRegions];
-
-        const regionSelect = document.getElementById('filterRegion');
-        orderedRegions.forEach(region => {
-            const option = document.createElement('option');
-            option.value = region;
-            option.textContent = region;
-            regionSelect.appendChild(option);
-        });
-
-        // 世代の選択肢をデータから動的生成（降順。Championsのgeneration:0は最後尾に「Champions」として表示）
-        const generations = [...new Set(allData.map(p => p.generation))]
-            .sort((a, b) => b - a);
-        const generationSelect = document.getElementById('filterGeneration');
-        generations.forEach(gen => {
-            const option = document.createElement('option');
-            option.value = String(gen);
-            if (gen === 0) {
-                option.textContent = 'Champions';
-            } else {
-                const short = GENERATION_SHORT_NAMES[gen];
-                option.textContent = short ? `第${gen}世代 (${short})` : `第${gen}世代`;
-            }
-            generationSelect.appendChild(option);
-        });
-    }
-
-    // 検索結果を保存
-    let searchResults = [];
-    let showingFavorites = false;
-
-    // 比較機能
-    let compareMode = false;
-    let selectedForCompare = [];
-
-    // ソート関数（同値の場合はmanagementIdで安定ソート）
-    function sortData(data, sortOrder) {
-        const sorted = [...data];
-        sorted.sort((a, b) => {
-            let result = 0;
-            switch (sortOrder) {
-                case 'date-desc':
-                    result = (b.startDate || '').localeCompare(a.startDate || '');
-                    break;
-                case 'date-asc':
-                    result = (a.startDate || '').localeCompare(b.startDate || '');
-                    break;
-                case 'end-soon': {
-                    // 1. 配信中＋終了日あり（締切が近い順） 2. 配信中＋終了日なし 3. 終了済み（最近終わった順）
-                    const rankOf = (p) => {
-                        const active = isDistributionActive(p.endDate);
-                        if (active && p.endDate) return 0;
-                        if (active) return 1;
-                        return 2;
-                    };
-                    const rankA = rankOf(a);
-                    const rankB = rankOf(b);
-                    if (rankA !== rankB) {
-                        result = rankA - rankB;
-                    } else if (rankA === 0) {
-                        result = (a.endDate || '').localeCompare(b.endDate || '');
-                    } else if (rankA === 2) {
-                        result = (b.endDate || '').localeCompare(a.endDate || '');
-                    } else {
-                        result = 0;
-                    }
-                    break;
-                }
-                case 'dex-asc':
-                    result = (a.dexNo || 0) - (b.dexNo || 0);
-                    break;
-                case 'dex-desc':
-                    result = (b.dexNo || 0) - (a.dexNo || 0);
-                    break;
-                case 'name-asc':
-                    result = (a.pokemonName || '').localeCompare(b.pokemonName || '', 'ja');
-                    break;
-                case 'name-desc':
-                    result = (b.pokemonName || '').localeCompare(a.pokemonName || '', 'ja');
-                    break;
-            }
-            // 同値の場合はmanagementIdで安定化
-            if (result === 0) {
-                result = (a.managementId || '').localeCompare(b.managementId || '');
-            }
-            return result;
-        });
-        return sorted;
-    }
-
-    // Search function
-    function searchPokemon() {
-        const searchName = document.getElementById('searchName').value;
-        const filterGeneration = document.getElementById('filterGeneration').value;
-        const filterMethod = document.getElementById('filterMethod').value;
-        const filterRegion = document.getElementById('filterRegion').value;
-        const filterShiny = document.getElementById('filterShiny')?.checked;
-        const filterGigantamax = document.getElementById('filterGigantamax')?.checked;
-        const filterAlpha = document.getElementById('filterAlpha')?.checked;
-        const filterSpecialMoves = document.getElementById('filterSpecialMoves')?.checked;
-        const filterHeldItem = document.getElementById('filterHeldItem')?.checked;
-        const filterActive = document.getElementById('filterActive')?.checked;
-        const filterDateFrom = document.getElementById('filterDateFrom')?.value;
-        const filterDateTo = document.getElementById('filterDateTo')?.value;
-        const filterOT = document.getElementById('filterOT')?.value;
-        const filterTrainerId = document.getElementById('filterTrainerId')?.value;
-        const sortOrder = document.getElementById('sortOrder')?.value || 'date-desc';
-
-        let filtered = allData;
-
-        // Filter by Pokemon name, event name, OT, distribution info, notes（かな正規化して比較）
-        if (searchName) {
-            const normalizedSearchName = normalizeSearchText(searchName);
-            filtered = filtered.filter(p => {
-                const otStr = typeof p.ot === 'object'
-                    ? Object.values(p.ot).join(' ')
-                    : (p.ot || '');
-                return normalizeSearchText(p.pokemonName).includes(normalizedSearchName) ||
-                    normalizeSearchText(p.eventName).includes(normalizedSearchName) ||
-                    normalizeSearchText(otStr).includes(normalizedSearchName) ||
-                    normalizeSearchText(p.distributionMethod).includes(normalizedSearchName) ||
-                    normalizeSearchText(p.distributionLocation).includes(normalizedSearchName) ||
-                    normalizeSearchText(p.notes).includes(normalizedSearchName);
-            });
-        }
-
-        // Filter by generation（value="0"はChampions。truthy判定だと"0"文字列自体は真だが、
-        // 明示的に !== '' へ統一して未選択(空文字)との区別を堅牢にする）
-        if (filterGeneration !== '') {
-            filtered = filtered.filter(p => p.generation === parseInt(filterGeneration, 10));
-        }
-
-        // Filter by distribution method
-        if (filterMethod) {
-            filtered = filtered.filter(p => p.distributionMethod === filterMethod);
-        }
-
-        // Filter by region（カンマ区切り複合値対応。特定地域選択時は「全世界」も含める）
-        if (filterRegion) {
-            filtered = filtered.filter(p => {
-                const tokens = regionTokens(p.region);
-                if (filterRegion === '全世界') return tokens.includes('全世界');
-                return tokens.includes(filterRegion) || tokens.includes('全世界');
-            });
-        }
-
-        // Filter by date range
-        if (filterDateFrom) {
-            filtered = filtered.filter(p => p.startDate && p.startDate >= filterDateFrom);
-        }
-        if (filterDateTo) {
-            filtered = filtered.filter(p => p.startDate && p.startDate <= filterDateTo);
-        }
-
-        // Filter by shiny
-        if (filterShiny) {
-            filtered = filtered.filter(p => p.shiny && p.shiny !== '');
-        }
-
-        // Filter by Gigantamax
-        if (filterGigantamax) {
-            filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
-        }
-
-        // Filter by Alpha
-        if (filterAlpha) {
-            filtered = filtered.filter(p => p.alpha && p.alpha !== '');
-        }
-
-        // Filter by specialMoves（特別な技の配列。旧形式の文字列も許容 — hasSpecialMoves 参照）
-        if (filterSpecialMoves) {
-            filtered = filtered.filter(hasSpecialMoves);
-        }
-
-        // Filter by ribbons (複数選択・AND/OR)
-        if (selectedRibbons.length > 0) {
-            filtered = filtered.filter(p => {
-                const ribbons = p.ribbons && Array.isArray(p.ribbons)
-                    ? p.ribbons.filter(r => r && r !== '')
-                    : [p.ribbon1, p.ribbon2, p.ribbon3].filter(r => r && r !== '');
-                if (ribbonFilterMode === 'AND') {
-                    return selectedRibbons.every(sel => ribbons.some(r => r.toLowerCase().includes(sel.toLowerCase())));
-                } else {
-                    return selectedRibbons.some(sel => ribbons.some(r => r.toLowerCase().includes(sel.toLowerCase())));
-                }
-            });
-        }
-
-        // Filter by held item
-        if (filterHeldItem) {
-            filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
-        }
-
-        // Filter by active distribution
-        if (filterActive) {
-            filtered = filtered.filter(p => isDistributionActive(p.endDate));
-        }
-
-        // Filter by OT (親名) - supports multi-language OT（かな正規化して比較）
-        if (filterOT) {
-            const normalizedFilterOT = normalizeSearchText(filterOT);
-            filtered = filtered.filter(p => {
-                if (!p.ot) return false;
-                if (typeof p.ot === 'string') {
-                    return normalizeSearchText(p.ot).includes(normalizedFilterOT);
-                }
-                // Multi-language OT object
-                if (typeof p.ot === 'object') {
-                    return Object.values(p.ot).some(otValue =>
-                        otValue && normalizeSearchText(otValue).includes(normalizedFilterOT)
-                    );
-                }
-                return false;
-            });
-        }
-
-        // Filter by Trainer ID
-        if (filterTrainerId) {
-            filtered = filtered.filter(p => {
-                if (!p.trainerId) return false;
-                return String(p.trainerId).includes(filterTrainerId);
-            });
-        }
-
-        // Apply sort
-        filtered = sortData(filtered, sortOrder);
-
-        // Reset display count
-        displayedCount = 0;
-        showingFavorites = false;
-        showingOwned = false;
-        document.getElementById('showFavorites').classList.remove('active');
-        document.getElementById('showOwned').classList.remove('active');
-
-        searchResults = filtered;
-        resetQuickFilters();
-        displayResults(filtered);
-    }
-
-    // 素早い絞り込み機能
-    function applyQuickFilter() {
-        let filtered = searchResults;
-
-        const activeFilters = [...document.querySelectorAll('.quick-filter-btn.active')]
-            .map(btn => btn.dataset.filter);
-
-        activeFilters.forEach(filter => {
-            switch(filter) {
-                case 'shiny':
-                    filtered = filtered.filter(p => p.shiny && p.shiny !== '');
-                    break;
-                case 'gigantamax':
-                    filtered = filtered.filter(p => p.gigantamax && p.gigantamax !== '');
-                    break;
-                case 'alpha':
-                    filtered = filtered.filter(p => p.alpha && p.alpha !== '');
-                    break;
-                case 'moves':
-                    filtered = filtered.filter(hasSpecialMoves);
-                    break;
-                case 'item':
-                    filtered = filtered.filter(p => p.heldItem && p.heldItem !== '');
-                    break;
-            }
-        });
-
-        displayedCount = 0;
-        displayResults(filtered);
-    }
-
-    // 素早い絞り込みをリセット
-    function resetQuickFilters() {
-        document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-    }
-
-    // モバイルで結果エリアにスクロール
-    function scrollToResults() {
-        if (window.innerWidth <= 768) {
-            const resultsEl = document.getElementById('results');
-            setTimeout(() => {
-                resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
-        }
-    }
-
-    // Format date for display
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
-    }
-
-    // Check if distribution is active
-    function isDistributionActive(endDate) {
-        if (!endDate) return true;
-        const now = new Date();
-        const end = new Date(endDate);
-        return now <= end;
-    }
-
-    // Create distribution status badge
-    function createStatusBadge(endDate) {
-        const isActive = isDistributionActive(endDate);
-        const statusClass = isActive ? 'status-active' : 'status-ended';
-        const statusText = isActive ? '配信中' : '終了';
-        return `<span class="status-badge ${statusClass}">${statusText}</span>`;
-    }
-
-    // Game short name mapping
-    const gameShortNames = {
-        "ソード, シールド": "剣盾",
-        "ソード": "ソード",
-        "シールド": "シールド",
-        "ブリリアントダイヤモンド, シャイニングパール": "BDSP",
-        "ブリアントダイヤモンド,シャイニングパール": "BDSP",
-        "Pokémon LEGENDS アルセウス": "LA",
-        "スカーレット, バイオレット": "SV",
-        "スカーレット": "スカーレット",
-        "バイオレット": "バイオレット",
-        "Pokémon LEGENDS Z-A": "ZA",
-        "ZA": "Z-A",
-        // 第4世代（ダイヤモンド・パール / プラチナ / ハートゴールド・ソウルシルバー系）
-        "ダイヤモンド, パール": "DP",
-        "ダイヤモンド, パール, プラチナ": "DPt",
-        "ハートゴールド, ソウルシルバー": "HGSS",
-        "ダイヤモンド, パール, プラチナ, ハートゴールド, ソウルシルバー": "DPt/HGSS",
-        "ダイヤモンド": "ダイヤモンド",
-        "パール": "パール",
-        "プラチナ": "プラチナ",
-        "ハートゴールド": "ハートゴールド",
-        "ソウルシルバー": "ソウルシルバー",
-        // 第5世代（ブラック・ホワイト系）
-        "ブラック, ホワイト": "BW",
-        "ブラック2, ホワイト2": "BW2",
-        "ブラック, ホワイト, ブラック2, ホワイト2": "BW/BW2",
-        "ブラック": "ブラック",
-        "ホワイト": "ホワイト",
-        "ブラック2": "ブラック2",
-        "ホワイト2": "ホワイト2",
-        // 第6世代（X・Y / オメガルビー・アルファサファイア系）
-        "X, Y": "XY",
-        "オメガルビー, アルファサファイア": "ORAS",
-        "X, Y, オメガルビー, アルファサファイア": "XY/ORAS",
-        "X": "X",
-        "Y": "Y",
-        // 第7世代（サン・ムーン / ウルトラサン・ウルトラムーン / ピカブイ系）
-        "サン, ムーン": "SM",
-        "ウルトラサン, ウルトラムーン": "USUM",
-        "サン, ムーン, ウルトラサン, ウルトラムーン": "SM/USUM",
-        "ピカブイ": "ピカブイ",
-        "ピカチュウ（Let's Go）": "ピカブイ",
-        "イーブイ（Let's Go）": "ピカブイ",
-        "サン": "サン",
-        "ムーン": "ムーン",
-        "ウルトラサン": "ウルトラサン",
-        "ウルトラムーン": "ウルトラムーン",
-        // Champions（generation:0）
-        "Pokémon Champions": "ポケチャン"
-    };
-
-    // 世代表示ラベル（Champions=generation:0は「第0世代」ではなく「Champions」と表示する）
-    function getGenerationLabel(generation) {
-        return generation === 0 ? 'Champions' : `第${generation}世代`;
-    }
-    function getGameShortName(game) {
-        if (gameShortNames[game]) return gameShortNames[game];
-        // 複数ソフト対応（5ソフト同時配信等）
-        const parts = [];
-        if (game.includes('ソード') || game.includes('シールド')) parts.push('剣盾');
-        if (game.includes('ダイヤモンド') || game.includes('パール')) parts.push('BDSP');
-        if (game.includes('アルセウス')) parts.push('LA');
-        if (parts.length > 0) return parts.join('/');
-        return game;
-    }
-
-    // ⚠ かつて isSwSh / isSV / isLegendsGame でバッジの出し分けをしていたが削除した。
-    // キョダイマックス・テラスタイプ・オヤブンは gigantamax / teraType / alpha の各
-    // フィールドが持つ情報で、受け取り先ソフト名で二重にチェックする必要がない。
-    // むしろ HOME 受け取りの個体（game が "HOME" になる）が全部この網から漏れ、
-    // データを持っているのにバッジが出ていなかった（キョダイ3件・オヤブン3件・テラ5件）。
-
-    function getGameColorClass(game) {
-        if (!game) return '';
-        // Champions
-        if (game.includes('Champions')) return 'game-champions';
-        // 複合版（両方含む）
-        const hasScarlet = game.includes('スカーレット');
-        const hasViolet = game.includes('バイオレット');
-        const hasSword = game.includes('ソード');
-        const hasShield = game.includes('シールド');
-        // 「ダイヤモンド」「パール」だけで判定すると第4世代（DP）まで BDSP 扱いになるため、BDSP の正式名で見る
-        // （「ブリアントダイヤモンド」は旧データのタイポ救済）
-        const hasBD = game.includes('ブリリアントダイヤモンド') || game.includes('ブリアントダイヤモンド');
-        const hasSP = game.includes('シャイニングパール');
-        if (hasScarlet && hasViolet) return 'game-sv';
-        if (hasScarlet) return 'game-scarlet';
-        if (hasViolet) return 'game-violet';
-        if (hasSword && hasShield) return 'game-swsh';
-        if (hasSword) return 'game-sword';
-        if (hasShield) return 'game-shield';
-        if (hasBD && hasSP) return 'game-bdsp';
-        if (hasBD) return 'game-bd';
-        if (hasSP) return 'game-sp';
-        if (game.includes('アルセウス')) return 'game-la';
-        if (game.includes('Z-A') || game.includes('ZA')) return 'game-za';
-
-        // 第4〜7世代（gameShortNames の変換結果から判定）
-        const shortName = gameShortNames[game];
-        if (shortName === 'DP') return 'game-dp';
-        if (shortName === 'DPt') return 'game-dppt';
-        if (shortName === 'HGSS') return 'game-hgss';
-        if (shortName === 'DPt/HGSS') return 'game-dpthgss';
-        if (['ダイヤモンド', 'パール', 'プラチナ', 'ハートゴールド', 'ソウルシルバー'].includes(game)) return 'gen-4';
-
-        if (shortName === 'BW') return 'game-bw';
-        if (shortName === 'BW2') return 'game-bw2';
-        if (shortName === 'BW/BW2') return 'game-bwbw2';
-        if (['ブラック', 'ホワイト', 'ブラック2', 'ホワイト2'].includes(game)) return 'gen-5';
-
-        if (shortName === 'XY') return 'game-xy';
-        if (shortName === 'ORAS') return 'game-oras';
-        if (shortName === 'XY/ORAS') return 'game-xyoras';
-        if (['X', 'Y'].includes(game)) return 'gen-6';
-
-        if (shortName === 'SM') return 'game-sm';
-        if (shortName === 'USUM') return 'game-usum';
-        if (shortName === 'SM/USUM') return 'game-smusum';
-        if (shortName === 'ピカブイ') return 'game-pikabuy';
-        if (['サン', 'ムーン', 'ウルトラサン', 'ウルトラムーン'].includes(game)) return 'gen-7';
-
-        return '';
-    }
-
-    // Create a Pokemon card element
-    function createPokemonCard(pokemon) {
-        const template = document.getElementById('pokemon-card-template');
-        const card = template.content.cloneNode(true);
-        const cardEl = card.querySelector('.pokemon-card');
-
-        cardEl.dataset.pokemonData = JSON.stringify(pokemon);
-        cardEl.dataset.managementId = pokemon.managementId;
-
-        // ポケモン画像の設定
-        const imgEl = cardEl.querySelector('.pokemon-image');
-        imgEl.src = getPokemonImageUrl(pokemon);
-        imgEl.alt = pokemon.pokemonName;
-        imgEl.addEventListener('error', function() {
-            this.style.display = 'none';
-        });
-
-        // Name
-        cardEl.querySelector('.pokemon-name').textContent = pokemon.pokemonName;
-
-        // Dex Number
-        cardEl.querySelector('.dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
-
-        let badgesHtml = '';
-        if (pokemon.shiny && pokemon.shiny !== '') {
-            badgesHtml += `<span class="icon-badge" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>`;
-        }
-        if (pokemon.gigantamax && pokemon.gigantamax !== '') {
-            badgesHtml += `<span class="icon-badge" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
-        }
-        if (pokemon.teraType && pokemon.teraType !== '') {
-            badgesHtml += `<span class="tera-type-badge tera-${pokemon.teraType}" title="テラスタイプ: ${pokemon.teraType}">${teraIconHtml(pokemon.teraType)}${pokemon.teraType}</span>`;
-        }
-        if (pokemon.alpha && pokemon.alpha !== '') {
-            badgesHtml += `<span class="icon-badge" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
-        }
-        cardEl.querySelector('.badges').innerHTML = badgesHtml;
-
-        // Generation badge / Game name badge
-        // Champions（generation:0）は世代が存在せずソフトも「ポケチャン」固定のため、
-        // 検索結果カードのみ世代バッジ+ゲームバッジを統合し「ポケチャン」1バッジ表示にする
-        // （モーダル・比較・個別ページは対象外）
-        const genBadge = cardEl.querySelector('.generation-badge');
-        const gameBadge = cardEl.querySelector('.game-name-badge');
-        if (pokemon.generation === 0) {
-            const genRow = genBadge.closest('.info-row');
-            if (genRow) {
-                const genLabel = genRow.querySelector('.info-label');
-                if (genLabel) genLabel.textContent = '世代/ソフト:';
-            }
-            genBadge.textContent = getGameShortName(pokemon.game);
-            genBadge.classList.add('gen-0');
-            if (gameBadge) gameBadge.style.display = 'none';
-        } else {
-            genBadge.textContent = getGenerationLabel(pokemon.generation);
-            genBadge.classList.add(`gen-${pokemon.generation}`);
-
-            if (gameBadge) {
-                gameBadge.textContent = getGameShortName(pokemon.game);
-                const gameClass = getGameColorClass(pokemon.game);
-                if (gameClass) gameBadge.classList.add(gameClass);
-            }
-        }
-
-        // Basic info
-        cardEl.querySelector('.event-name').textContent = pokemon.eventName;
-
-        const startDate = formatDate(pokemon.startDate);
-        const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
-        cardEl.querySelector('.distribution-period').textContent = `${startDate} 〜 ${endDate}`;
-
-        cardEl.querySelector('.distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
-        cardEl.querySelector('.distribution-method').textContent = pokemon.distributionMethod;
-        cardEl.querySelector('.distribution-location').textContent = pokemon.distributionLocation;
-
-        // Region badge
-        if (pokemon.region) {
-            const regionRow = cardEl.querySelector('.region-row');
-            if (regionRow) {
-                regionRow.style.display = 'flex';
-                cardEl.querySelector('.region-value').textContent = pokemon.region;
-            }
-        }
-
-        // Ribbons
-        const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
-            ? pokemon.ribbons.filter(r => r && r !== '')
-            : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
-        if (ribbons.length > 0) {
-            const ribbonsRow = cardEl.querySelector('.ribbons-row');
-            ribbonsRow.style.display = 'flex';
-            cardEl.querySelector('.ribbons').innerHTML = ribbons.map(ribbon =>
-                `<span class="ribbon-icon"><img src="${getRibbonImageUrl(ribbon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(ribbon) ? '🏅' : '🎀'}</span> ${ribbon}</span>`
-            ).join('');
-        }
-
-        // Favorite button
-        const favBtn = cardEl.querySelector('.favorite-btn');
-        if (favBtn) {
-            favBtn.classList.toggle('active', isFavorite(pokemon.managementId));
-            favBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const added = toggleFavorite(pokemon.managementId);
-                favBtn.classList.toggle('active', added);
-            });
-        }
-
-        // Owned button
-        const ownedBtn = cardEl.querySelector('.owned-btn');
-        if (ownedBtn) {
-            ownedBtn.classList.toggle('active', isOwned(pokemon.managementId));
-            ownedBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const added = toggleOwned(pokemon.managementId);
-                ownedBtn.classList.toggle('active', added);
-                cardEl.classList.toggle('is-owned', added);
-                updateCollectionStats();
-            });
-        }
-        // カード初期状態
-        cardEl.classList.toggle('is-owned', isOwned(pokemon.managementId));
-
-        // Location badge (保管場所バッジ)
-        const locationBadge = cardEl.querySelector('.location-badge');
-        const noteData = getNote(pokemon.managementId);
-        if (noteData.location) {
-            const icon = getLocationIcon(noteData.location);
-            locationBadge.textContent = icon;
-            locationBadge.style.display = 'flex';
-            locationBadge.title = noteData.customNote || '保管場所設定済み';
-        }
-
-        // Compare checkbox (比較用チェックボックス)
-        const compareCheckbox = cardEl.querySelector('.compare-checkbox');
-        if (compareCheckbox) {
-            compareCheckbox.style.display = compareMode ? 'flex' : 'none';
-            compareCheckbox.checked = selectedForCompare.includes(pokemon.managementId);
-
-            compareCheckbox.addEventListener('change', (e) => {
-                e.stopPropagation();
-                if (e.target.checked) {
-                    if (selectedForCompare.length >= 5) {
-                        e.target.checked = false;
-                        alert('比較できるのは最大5個までです');
-                        return;
-                    }
-                    selectedForCompare.push(pokemon.managementId);
-                } else {
-                    selectedForCompare = selectedForCompare.filter(id => id !== pokemon.managementId);
-                }
-                updateCompareButton();
-            });
-        }
-
-        return card;
-    }
-
-    // Show modal with Pokemon details
-    function showDetailModal(pokemon) {
-        const template = document.getElementById('pokemon-modal-template');
-        const modal = template.content.cloneNode(true);
-        const modalEl = modal.querySelector('.modal-overlay');
-
-        // Pokemon image
-        const imgEl = modalEl.querySelector('.modal-pokemon-image');
-        imgEl.src = getPokemonImageUrl(pokemon);
-        imgEl.alt = pokemon.pokemonName;
-        imgEl.addEventListener('error', function() {
-            this.style.display = 'none';
-        });
-
-        // Name with shiny indicator
-        const pokemonNameEl = modalEl.querySelector('.modal-pokemon-name');
-        pokemonNameEl.textContent = pokemon.pokemonName;
-        if (pokemon.shiny && pokemon.shiny !== '') {
-            pokemonNameEl.innerHTML = `${escapeHtml(pokemon.pokemonName)} <span class="modal-shiny-indicator" title="色違い"><img class="status-icon" src="${statusImageBaseUrl}/shiny.png" alt="色違い"></span>`;
-        }
-
-        // Dex Number
-        modalEl.querySelector('.modal-dex-number').textContent = `No.${String(pokemon.dexNo).padStart(3, '0')}`;
-
-        // Badges
-        let badgesHtml = '';
-        if (pokemon.gigantamax && pokemon.gigantamax !== '') {
-            badgesHtml += `<span class="icon-badge mobile-only" title="キョダイマックス"><img class="status-icon" src="${statusImageBaseUrl}/gigantamax.png" alt="キョダイマックス"></span>`;
-            badgesHtml += '<span class="text-badge pc-only">キョダイマックス可</span>';
-        }
-        if (pokemon.alpha && pokemon.alpha !== '') {
-            badgesHtml += `<span class="icon-badge mobile-only" title="オヤブン"><img class="status-icon" src="${statusImageBaseUrl}/alpha.png" alt="オヤブン"></span>`;
-            badgesHtml += '<span class="text-badge pc-only">オヤブン</span>';
-        }
-        modalEl.querySelector('.modal-badges').innerHTML = badgesHtml;
-
-        // Generation badge
-        const genBadge = modalEl.querySelector('.modal-generation-badge');
-        genBadge.textContent = getGenerationLabel(pokemon.generation);
-        genBadge.classList.add(`gen-${pokemon.generation}`);
-
-        // Basic info
-        modalEl.querySelector('.modal-event-name').textContent = pokemon.eventName;
-
-        const startDate = formatDate(pokemon.startDate);
-        const endDate = pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定';
-        modalEl.querySelector('.modal-distribution-period').textContent = `${startDate} 〜 ${endDate}`;
-
-        modalEl.querySelector('.modal-distribution-status').innerHTML = createStatusBadge(pokemon.endDate);
-        modalEl.querySelector('.modal-distribution-method').textContent = pokemon.distributionMethod;
-
-        // Password (あいことば)
-        if (pokemon.password && pokemon.password !== '') {
-            const passwordRow = modalEl.querySelector('.modal-password-row');
-            passwordRow.style.display = 'flex';
-            modalEl.querySelector('.modal-password').textContent = pokemon.password;
-            const copyBtn = modalEl.querySelector('.password-copy-btn');
-            copyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                navigator.clipboard.writeText(pokemon.password).then(() => {
-                    copyBtn.textContent = '✅';
-                    setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
-                });
-            });
-        }
-
-        modalEl.querySelector('.modal-distribution-location').textContent = pokemon.distributionLocation;
-        const modalGameBadge = modalEl.querySelector('.modal-game-badge');
-        if (modalGameBadge) {
-            modalGameBadge.textContent = getGameShortName(pokemon.game);
-            modalGameBadge.classList.add('game-name-badge');
-            const gameClass = getGameColorClass(pokemon.game);
-            if (gameClass) modalGameBadge.classList.add(gameClass);
-        }
-
-        // Region
-        if (pokemon.region) {
-            const regionRow = modalEl.querySelector('.modal-region-row');
-            if (regionRow) {
-                regionRow.style.display = 'flex';
-                modalEl.querySelector('.modal-region').textContent = pokemon.region;
-            }
-        }
-
-        // Stats
-        modalEl.querySelector('.modal-level').textContent = pokemon.level || '?';
-        modalEl.querySelector('.modal-ability').textContent = pokemon.ability || '?';
-
-        if (pokemon.nature) {
-            const natureRow = modalEl.querySelector('.modal-nature-row');
-            natureRow.style.display = 'flex';
-            modalEl.querySelector('.modal-nature').textContent = pokemon.nature;
-        }
-
-        // Ball info
-        const ballStatus = modalEl.querySelector('.modal-ball-status');
-        if (pokemon.ball) {
-            ballStatus.innerHTML = `<img src="${getBallImageUrl(pokemon.ball)}" alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">⚪</span> ${pokemon.ball}`;
-        } else {
-            ballStatus.textContent = '?';
-        }
-
-        // Tera Type
-        if (pokemon.teraType && pokemon.teraType !== '') {
-            const teraTypeRow = modalEl.querySelector('.modal-tera-type-row');
-            teraTypeRow.style.display = 'flex';
-            const teraEl = modalEl.querySelector('.modal-tera-type');
-            teraEl.innerHTML = `<span class="tera-type-badge tera-${pokemon.teraType}">${teraIconHtml(pokemon.teraType)}${pokemon.teraType}</span>`;
-        }
-
-        // Held item
-        if (pokemon.heldItem && pokemon.heldItem !== '') {
-            const itemRow = modalEl.querySelector('.modal-item-row');
-            itemRow.style.display = 'flex';
-            modalEl.querySelector('.modal-item-tag').textContent = pokemon.heldItem;
-        }
-
-        // IVs (個体値)
-        if (pokemon.ivs) {
-            const ivsRow = modalEl.querySelector('.modal-ivs-row');
-            ivsRow.style.display = 'flex';
-            let ivsText;
-            if (typeof pokemon.ivs === 'object') {
-                const labels = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
-                ivsText = Object.entries(labels)
-                    .filter(([key]) => pokemon.ivs[key] !== undefined)
-                    .map(([key, label]) => `${label}:${pokemon.ivs[key]}`)
-                    .join(' / ');
-            } else {
-                ivsText = /^\d+V$/.test(pokemon.ivs) ? `${pokemon.ivs}固定` : pokemon.ivs;
-            }
-            modalEl.querySelector('.modal-ivs').textContent = ivsText;
-        }
-
-        // EVs (努力値)
-        if (pokemon.evs) {
-            const evsRow = modalEl.querySelector('.modal-evs-row');
-            evsRow.style.display = 'flex';
-            modalEl.querySelector('.modal-evs').textContent = pokemon.evs;
-        }
-
-        // Moves
-        const moves = pokemon.moves && Array.isArray(pokemon.moves)
-            ? pokemon.moves.filter(m => m && m !== '')
-            : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
-        if (moves.length > 0) {
-            const movesSection = modalEl.querySelector('.modal-moves-section');
-            movesSection.style.display = 'block';
-            modalEl.querySelector('.modal-moves').innerHTML = moves.map(move =>
-                `<div class="move-item">${move}</div>`
-            ).join('');
-        }
-
-        // Trainer info - OT
-        const otEl = modalEl.querySelector('.modal-ot');
-        if (pokemon.ot) {
-            if (typeof pokemon.ot === 'object') {
-                const otParts = [];
-                if (pokemon.ot.JPN) otParts.push(`日: ${pokemon.ot.JPN}`);
-                if (pokemon.ot.ENG) otParts.push(`英: ${pokemon.ot.ENG}`);
-                if (pokemon.ot.SPA) otParts.push(`西: ${pokemon.ot.SPA}`);
-                if (pokemon.ot.SPA_EU) otParts.push(`欧西: ${pokemon.ot.SPA_EU}`);
-                if (pokemon.ot.SPA_LA) otParts.push(`米西: ${pokemon.ot.SPA_LA}`);
-                if (pokemon.ot.FRE) otParts.push(`仏: ${pokemon.ot.FRE}`);
-                if (pokemon.ot.GER) otParts.push(`独: ${pokemon.ot.GER}`);
-                if (pokemon.ot.ITA) otParts.push(`伊: ${pokemon.ot.ITA}`);
-                if (pokemon.ot.KOR) otParts.push(`韓: ${pokemon.ot.KOR}`);
-                if (pokemon.ot.CHS) otParts.push(`簡中: ${pokemon.ot.CHS}`);
-                if (pokemon.ot.CHT) otParts.push(`繁中: ${pokemon.ot.CHT}`);
-                otEl.textContent = otParts.join(' / ') || '?';
-            } else {
-                otEl.textContent = pokemon.ot;
-            }
-        } else {
-            otEl.textContent = '?';
-        }
-
-        if (pokemon.trainerId) {
-            const trainerIdRow = modalEl.querySelector('.modal-trainer-id-row');
-            trainerIdRow.style.display = 'flex';
-            modalEl.querySelector('.modal-trainer-id').textContent = pokemon.trainerId;
-        }
-
-        // Ribbons
-        const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
-            ? pokemon.ribbons.filter(r => r && r !== '')
-            : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
-        if (ribbons.length > 0) {
-            const ribbonsSection = modalEl.querySelector('.modal-ribbons-section');
-            ribbonsSection.style.display = 'block';
-            modalEl.querySelector('.modal-ribbons').innerHTML = ribbons.map(ribbon =>
-                `<span class="ribbon-icon"><img src="${getRibbonImageUrl(ribbon)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(ribbon) ? '🏅' : '🎀'}</span> ${ribbon}</span>`
-            ).join('');
-        }
-
-        // Notes
-        if (pokemon.notes && pokemon.notes !== '') {
-            const notesSection = modalEl.querySelector('.modal-notes-section');
-            notesSection.style.display = 'block';
-            modalEl.querySelector('.modal-notes').textContent = pokemon.notes;
-        }
-
-        // Post URL
-        if (pokemon.postUrl && pokemon.postUrl !== '') {
-            const postUrlRow = modalEl.querySelector('.modal-post-url-row');
-            postUrlRow.style.display = 'flex';
-            const postUrlLink = modalEl.querySelector('.modal-post-url-link');
-            postUrlLink.href = pokemon.postUrl;
-        }
-
-        // Share buttons (記事URLがあればそちらを優先)
-        const shareSection = modalEl.querySelector('.modal-share-section');
-        if (shareSection) {
-            const appUrl = `${window.location.origin}${window.location.pathname}?id=${pokemon.managementId}`;
-            const shareUrl = (pokemon.postUrl && pokemon.postUrl !== '') ? pokemon.postUrl : appUrl;
-            const shareText = `${pokemon.pokemonName} - ${pokemon.eventName}`;
-
-            const twitterBtn = shareSection.querySelector('.share-twitter');
-            if (twitterBtn) {
-                twitterBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-            }
-
-            const copyBtn = shareSection.querySelector('.share-copy');
-            if (copyBtn) {
-                copyBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                        copyBtn.textContent = 'コピーしました！';
-                        setTimeout(() => {
-                            copyBtn.textContent = '🔗 URLコピー';
-                        }, 2000);
-                    });
-                });
-            }
-        }
-
-        // Favorite button in modal (icon only)
-        const modalFavBtn = modalEl.querySelector('.modal-favorite-btn');
-        if (modalFavBtn) {
-            const favActive = isFavorite(pokemon.managementId);
-            modalFavBtn.classList.toggle('active', favActive);
-            modalFavBtn.textContent = favActive ? '⭐' : '☆';
-            modalFavBtn.addEventListener('click', () => {
-                const added = toggleFavorite(pokemon.managementId);
-                modalFavBtn.classList.toggle('active', added);
-                modalFavBtn.textContent = added ? '⭐' : '☆';
-                const card = document.querySelector(`[data-management-id="${pokemon.managementId}"] .favorite-btn`);
-                if (card) card.classList.toggle('active', added);
-            });
-        }
-
-        // Owned button in modal
-        const modalOwnedBtn = modalEl.querySelector('.modal-owned-btn');
-        if (modalOwnedBtn) {
-            const ownActive = isOwned(pokemon.managementId);
-            modalOwnedBtn.classList.toggle('active', ownActive);
-            modalOwnedBtn.textContent = ownActive ? '✅' : '📦';
-            modalOwnedBtn.addEventListener('click', () => {
-                const added = toggleOwned(pokemon.managementId);
-                modalOwnedBtn.classList.toggle('active', added);
-                modalOwnedBtn.textContent = added ? '✅' : '📦';
-                const card = document.querySelector(`[data-management-id="${pokemon.managementId}"]`);
-                if (card) {
-                    card.classList.toggle('is-owned', added);
-                    const cardOwnedBtn = card.querySelector('.owned-btn');
-                    if (cardOwnedBtn) cardOwnedBtn.classList.toggle('active', added);
-                }
-                updateCollectionStats();
-            });
-        }
-
-        // Memo functionality (保管場所・メモ機能)
-        const memoLocationSelect = modalEl.querySelector('#memoLocationSelect');
-        const memoCustomNote = modalEl.querySelector('#memoCustomNote');
-        const memoSaveBtn = modalEl.querySelector('#memoSaveBtn');
-        const memoDeleteBtn = modalEl.querySelector('#memoDeleteBtn');
-
-        // Load existing memo
-        const existingNote = getNote(pokemon.managementId);
-        if (memoLocationSelect) memoLocationSelect.value = existingNote.location || '';
-        if (memoCustomNote) memoCustomNote.value = existingNote.customNote || '';
-
-        // Save memo
-        if (memoSaveBtn) {
-            memoSaveBtn.addEventListener('click', () => {
-                const noteData = {
-                    location: memoLocationSelect.value,
-                    customNote: memoCustomNote.value
-                };
-                saveNote(pokemon.managementId, noteData);
-
-                // Update card location badge
-                const card = document.querySelector(`[data-management-id="${pokemon.managementId}"]`);
-                if (card) {
-                    const locationBadge = card.querySelector('.location-badge');
-                    if (noteData.location) {
-                        const icon = getLocationIcon(noteData.location);
-                        locationBadge.textContent = icon;
-                        locationBadge.style.display = 'flex';
-                        locationBadge.title = noteData.customNote || '保管場所設定済み';
-                    } else {
-                        locationBadge.style.display = 'none';
-                    }
-                }
-
-                // Visual feedback
-                memoSaveBtn.textContent = '✅ 保存しました！';
-                setTimeout(() => {
-                    memoSaveBtn.textContent = '💾 保存';
-                }, 2000);
-            });
-        }
-
-        // Delete memo
-        if (memoDeleteBtn) {
-            memoDeleteBtn.addEventListener('click', () => {
-                if (confirm('メモを削除しますか？')) {
-                    deleteNote(pokemon.managementId);
-                    if (memoLocationSelect) memoLocationSelect.value = '';
-                    if (memoCustomNote) memoCustomNote.value = '';
-
-                    // Update card location badge
-                    const card = document.querySelector(`[data-management-id="${pokemon.managementId}"]`);
-                    if (card) {
-                        const locationBadge = card.querySelector('.location-badge');
-                        locationBadge.style.display = 'none';
-                    }
-
-                    // Visual feedback
-                    memoDeleteBtn.textContent = '🗑️ 削除しました';
-                    setTimeout(() => {
-                        memoDeleteBtn.textContent = '🗑️ メモ削除';
-                    }, 2000);
-                }
-            });
-        }
-
-        document.body.appendChild(modal);
-
-        const overlay = document.querySelector('.modal-overlay');
-        const closeBtn = overlay.querySelector('.modal-close');
-        const bottomCloseBtn = overlay.querySelector('.modal-bottom-close');
-
-        const closeModal = () => {
-            overlay.remove();
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        bottomCloseBtn.addEventListener('click', closeModal);
-
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                closeModal();
-            }
-        });
-
-        // ESCキーで閉じる
-        const escHandler = (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-                document.removeEventListener('keydown', escHandler);
-            }
-        };
-        document.addEventListener('keydown', escHandler);
-    }
-
-    // 無限スクロール: 追加読み込み
-    function loadMoreItems() {
-        if (isLoadingMore) return;
-        if (displayedCount >= currentDisplayData.length) return;
-
-        isLoadingMore = true;
-        const loader = document.getElementById('infiniteScrollLoader');
-        loader.style.display = 'flex';
-
-        // 少し遅延を入れてローディング表示をスムーズに
-        requestAnimationFrame(() => {
-            const resultsDiv = document.getElementById('results');
-            const endIndex = Math.min(displayedCount + ITEMS_PER_PAGE, currentDisplayData.length);
-            const batchData = currentDisplayData.slice(displayedCount, endIndex);
-
-            batchData.forEach(pokemon => {
-                const cardFragment = createPokemonCard(pokemon);
-                // カードにクリックイベントを付与
-                const cardEl = cardFragment.querySelector('.pokemon-card');
-                if (cardEl) {
-                    cardEl.addEventListener('click', function(e) {
-                        if (e.target.closest('.favorite-btn')) return;
-                        if (e.target.closest('.owned-btn')) return;
-                        if (e.target.closest('.compare-checkbox')) return;
-                        const pokemonData = JSON.parse(this.dataset.pokemonData);
-                        showDetailModal(pokemonData);
-                    });
-                }
-                resultsDiv.appendChild(cardFragment);
-            });
-
-            displayedCount = endIndex;
-            isLoadingMore = false;
-
-            // 全件表示完了ならローダーを非表示
-            if (displayedCount >= currentDisplayData.length) {
-                loader.style.display = 'none';
-            } else {
-                loader.style.display = 'none';
-            }
-        });
-    }
-
-    // IntersectionObserver のセットアップ
-    function setupInfiniteScroll() {
-        // 既存のオブザーバーを破棄
-        if (infiniteScrollObserver) {
-            infiniteScrollObserver.disconnect();
-        }
-
-        const sentinel = document.getElementById('scrollSentinel');
-        infiniteScrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && displayedCount < currentDisplayData.length) {
-                    loadMoreItems();
-                }
-            });
-        }, {
-            rootMargin: '200px'
-        });
-
-        infiniteScrollObserver.observe(sentinel);
-    }
-
-    // Display results with infinite scroll
-    function displayResults(data) {
-        const resultsDiv = document.getElementById('results');
-        const resultCountDiv = document.getElementById('resultCount');
-        const loader = document.getElementById('infiniteScrollLoader');
-
-        currentDisplayData = data;
-        displayedCount = 0;
-        updateStatTileStates();
-
-        const totalItems = data.length;
-        resultCountDiv.textContent = `${totalItems}件のポケモンが見つかりました`;
-
-        if (totalItems === 0) {
-            resultsDiv.innerHTML = '<div class="no-results">該当するポケモンが見つかりませんでした</div>';
-            loader.style.display = 'none';
-            return;
-        }
-
-        // 初回バッチを表示
-        resultsDiv.innerHTML = '';
-        const endIndex = Math.min(ITEMS_PER_PAGE, totalItems);
-        const initialData = data.slice(0, endIndex);
-
-        initialData.forEach(pokemon => {
-            const cardFragment = createPokemonCard(pokemon);
-            const cardEl = cardFragment.querySelector('.pokemon-card');
-            if (cardEl) {
-                cardEl.addEventListener('click', function(e) {
-                    if (e.target.closest('.favorite-btn')) return;
-                    if (e.target.closest('.owned-btn')) return;
-                    if (e.target.closest('.compare-checkbox')) return;
-                    const pokemonData = JSON.parse(this.dataset.pokemonData);
-                    showDetailModal(pokemonData);
-                });
-            }
-            resultsDiv.appendChild(cardFragment);
-        });
-
-        displayedCount = endIndex;
-
-        // まだデータが残っている場合、無限スクロールを設定
-        if (displayedCount < totalItems) {
-            setupInfiniteScroll();
-        } else {
-            loader.style.display = 'none';
-            if (infiniteScrollObserver) {
-                infiniteScrollObserver.disconnect();
-            }
-        }
-
-    }
-
-    // Event listeners
-    document.getElementById('searchButton').addEventListener('click', () => {
-        searchPokemon();
-        scrollToResults();
+    const byNewest = (a, b) => String(b.startDate || '').localeCompare(String(a.startDate || ''));
+    list.sort((a, b) => {
+      if (controls.sort.value === 'oldest') return -byNewest(a, b);
+      if (controls.sort.value === 'newest') return byNewest(a, b);
+      if (controls.sort.value === 'deadline') {
+        const aEnd = a.endDate && a.endDate >= today ? a.endDate : '9999-12-31';
+        const bEnd = b.endDate && b.endDate >= today ? b.endDate : '9999-12-31';
+        return aEnd.localeCompare(bEnd) || byNewest(a, b);
+      }
+      if (controls.sort.value === 'dex-asc') return Number(a.dexNo || 0) - Number(b.dexNo || 0);
+      if (controls.sort.value === 'dex-desc') return Number(b.dexNo || 0) - Number(a.dexNo || 0);
+      if (controls.sort.value === 'name-asc') return String(a.pokemonName || '').localeCompare(String(b.pokemonName || ''), 'ja');
+      if (controls.sort.value === 'name-desc') return String(b.pokemonName || '').localeCompare(String(a.pokemonName || ''), 'ja');
+      return recommendedRank(a) - recommendedRank(b) ||
+        (stateOf(a) === 'soon' ? a.endDate.localeCompare(b.endDate) : byNewest(a, b));
     });
-
-    document.getElementById('searchName').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchPokemon();
-            scrollToResults();
-        }
-    });
-
-    // 全フィルター・ソートをリアルタイム反映
-    ['sortOrder', 'filterGeneration', 'filterMethod', 'filterRegion', 'filterDateFrom', 'filterDateTo',
-     'filterShiny', 'filterGigantamax', 'filterAlpha', 'filterSpecialMoves', 'filterHeldItem', 'filterActive'
-    ].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', () => searchPokemon());
-    });
-
-    // テキスト入力はdebounce（300ms）でリアルタイム反映
-    let searchDebounce;
-    ['searchName', 'filterOT', 'filterTrainerId'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', () => {
-            clearTimeout(searchDebounce);
-            searchDebounce = setTimeout(() => searchPokemon(), 300);
-        });
-    });
-
-    // 素早い絞り込みボタン
-    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.classList.toggle('active');
-            applyQuickFilter();
-        });
-    });
-
-    // お気に入り表示
-    document.getElementById('showFavorites').addEventListener('click', function() {
-        showingFavorites = !showingFavorites;
-        this.classList.toggle('active', showingFavorites);
-        showingOwned = false;
-        document.getElementById('showOwned').classList.remove('active');
-
-        if (showingFavorites) {
-            const favorites = getFavorites();
-            const favoriteData = allData.filter(p => favorites.includes(p.managementId));
-            displayedCount = 0;
-            displayResults(favoriteData);
-        } else {
-            displayResults(searchResults.length > 0 ? searchResults : allData);
-        }
-    });
-
-    // 所持済み表示
-    let showingOwned = false;
-    document.getElementById('showOwned').addEventListener('click', function() {
-        showingOwned = !showingOwned;
-        this.classList.toggle('active', showingOwned);
-        showingFavorites = false;
-        document.getElementById('showFavorites').classList.remove('active');
-        if (showingOwned) {
-            const owned = getOwned();
-            const ownedData = allData.filter(p => owned.includes(p.managementId));
-            displayedCount = 0;
-            displayResults(ownedData);
-        } else {
-            displayResults(searchResults.length > 0 ? searchResults : allData);
-        }
-    });
-
-    // ダッシュボード表示切替
-    document.getElementById('toggleDashboard').addEventListener('click', () => {
-        document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('showDashboard').style.display = 'block';
-    });
-
-    document.getElementById('showDashboard').addEventListener('click', () => {
-        document.getElementById('dashboard').style.display = 'block';
-        document.getElementById('showDashboard').style.display = 'none';
-    });
-
-    // ダークモード切替
-    document.getElementById('toggleDarkMode').addEventListener('click', toggleDarkMode);
-
-    // 比較モード切替
-    function updateCompareButton() {
-        const compareBtn = document.getElementById('compareSelected');
-        const countSpan = document.getElementById('compareCount');
-        countSpan.textContent = selectedForCompare.length;
-
-        if (selectedForCompare.length >= 2 && selectedForCompare.length <= 5) {
-            compareBtn.style.display = 'block';
-        } else {
-            compareBtn.style.display = 'none';
-        }
+    return list;
+  }
+  function render() {
+    const list = filteredData();
+    $('#result-count').textContent = `${list.length}件の配信が見つかりました`;
+    const shortcut = $('#search-result-shortcut');
+    shortcut.textContent = `${list.length}件の結果を見る ↓`;
+    shortcut.hidden = !controls.keyword.value.trim();
+    const activeCount = Object.entries(controls).filter(([name, control]) =>
+      !['keyword', 'game', 'method', 'region', 'sort', 'shiny'].includes(name) &&
+      (control.type === 'checkbox' ? control.checked : Boolean(control.value))).length +
+      (selectedRibbons.length ? 1 : 0);
+    $('#advanced-count').textContent = activeCount ? `（${activeCount}条件を適用中）` : '';
+    const filterCount = (statusFilter !== 'all' ? 1 : 0) +
+      ['game', 'method', 'region', 'shiny'].filter(name => {
+        const control = controls[name];
+        return control.type === 'checkbox' ? control.checked : Boolean(control.value);
+      }).length + activeCount;
+    $('#filter-toggle').textContent = filterCount ? `絞り込み（${filterCount}）` : '絞り込み';
+    results.replaceChildren();
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = '一致する配信はありません。条件を変えてお試しください。';
+      results.append(empty);
+    } else {
+      results.append(...list.slice(0, shown).map(p => card(p)));
     }
-
-    document.getElementById('toggleCompareMode').addEventListener('click', function() {
-        compareMode = !compareMode;
-        this.classList.toggle('active', compareMode);
-
-        // Update all cards to show/hide checkboxes
-        document.querySelectorAll('.compare-checkbox').forEach(checkbox => {
-            checkbox.style.display = compareMode ? 'flex' : 'none';
-        });
-
-        if (!compareMode) {
-            selectedForCompare = [];
-            updateCompareButton();
-        }
-    });
-
-    document.getElementById('compareSelected').addEventListener('click', () => {
-        if (selectedForCompare.length >= 2 && selectedForCompare.length <= 5) {
-            const pokemonToCompare = allData.filter(p => selectedForCompare.includes(p.managementId));
-            showCompareModal(pokemonToCompare);
-        }
-    });
-
-    // 比較モーダル表示
-    function showCompareModal(pokemonList) {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-
-        let modalHtml = `
-            <div class="modal-content compare-modal-content">
-                <button class="modal-close compare-modal-close">
-                    <span class="pokeball-close"></span>
-                </button>
-                <div class="modal-body">
-                    <h2 style="margin-bottom: 20px; text-align: center;">🔄 配信ポケモン比較</h2>
-                    <div class="compare-grid">
-        `;
-
-        pokemonList.forEach(pokemon => {
-            const moves = pokemon.moves && Array.isArray(pokemon.moves)
-                ? pokemon.moves.filter(m => m && m !== '')
-                : [pokemon.move1, pokemon.move2, pokemon.move3, pokemon.move4].filter(m => m && m !== '');
-
-            const ribbons = pokemon.ribbons && Array.isArray(pokemon.ribbons)
-                ? pokemon.ribbons.filter(r => r && r !== '')
-                : [pokemon.ribbon1, pokemon.ribbon2, pokemon.ribbon3].filter(r => r && r !== '');
-
-            const otLangLabels = { JPN: '日', ENG: '英', SPA: '西', SPA_EU: '欧西', SPA_LA: '米西', FRE: '仏', GER: '独', ITA: '伊', KOR: '韓', CHS: '簡中', CHT: '繁中' };
-            const otDisplay = typeof pokemon.ot === 'object'
-                ? Object.entries(pokemon.ot).map(([lang, name]) => `${escapeHtml(otLangLabels[lang] || lang)}: ${escapeHtml(name)}`).join(' / ')
-                : escapeHtml(pokemon.ot) || '?';
-
-            modalHtml += `
-                <div class="compare-column">
-                    <div class="compare-header">
-                        <img src="${getPokemonImageUrl(pokemon)}" alt="${escapeHtml(pokemon.pokemonName)}" class="compare-image">
-                        <h3>${escapeHtml(pokemon.pokemonName)} ${pokemon.shiny ? '<img class="status-icon" src="' + statusImageBaseUrl + '/shiny.png" alt="色違い">' : ''}</h3>
-                        <div class="compare-dex">No.${String(pokemon.dexNo).padStart(3, '0')}</div>
-                    </div>
-                    <div class="compare-details">
-                        <div class="compare-row"><strong>世代:</strong> ${getGenerationLabel(pokemon.generation)}</div>
-                        <div class="compare-row"><strong>イベント:</strong> ${escapeHtml(pokemon.eventName)}</div>
-                        <div class="compare-row"><strong>配信期間:</strong> ${formatDate(pokemon.startDate)} 〜 ${pokemon.endDate ? formatDate(pokemon.endDate) : '終了日未定'}</div>
-                        <div class="compare-row"><strong>配信方法:</strong> ${escapeHtml(pokemon.distributionMethod)}</div>
-                        ${pokemon.region ? `<div class="compare-row"><strong>地域:</strong> ${escapeHtml(pokemon.region)}</div>` : ''}
-                        <div class="compare-row"><strong>ゲーム:</strong> ${escapeHtml(getGameShortName(pokemon.game))}</div>
-                        <div class="compare-row"><strong>レベル:</strong> ${pokemon.level ? escapeHtml(String(pokemon.level)) : '?'}</div>
-                        <div class="compare-row"><strong>親名:</strong> ${otDisplay}</div>
-                        ${pokemon.trainerId ? `<div class="compare-row"><strong>ID:</strong> ${escapeHtml(String(pokemon.trainerId))}</div>` : ''}
-                        ${pokemon.nature ? `<div class="compare-row"><strong>性格:</strong> ${escapeHtml(pokemon.nature)}</div>` : ''}
-                        <div class="compare-row"><strong>特性:</strong> ${escapeHtml(pokemon.ability) || '?'}</div>
-                        ${pokemon.ball ? `<div class="compare-row"><strong>ボール:</strong> <img src="${getBallImageUrl(pokemon.ball)}" alt="" class="ball-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">⚪</span> ${escapeHtml(pokemon.ball)}</div>` : ''}
-                        ${pokemon.teraType ? `<div class="compare-row"><strong>テラスタイプ:</strong> ${escapeHtml(pokemon.teraType)}</div>` : ''}
-                        ${pokemon.heldItem ? `<div class="compare-row"><strong>持ち物:</strong> ${escapeHtml(pokemon.heldItem)}</div>` : ''}
-                        ${pokemon.ivs ? `<div class="compare-row"><strong>個体値:</strong> ${typeof pokemon.ivs === 'object' ? Object.entries({hp:'H',atk:'A',def:'B',spa:'C',spd:'D',spe:'S'}).filter(([k])=>pokemon.ivs[k]!==undefined).map(([k,l])=>`${l}:${pokemon.ivs[k]}`).join(' / ') : (/^\d+V$/.test(pokemon.ivs) ? escapeHtml(pokemon.ivs)+'固定' : escapeHtml(pokemon.ivs))}</div>` : ''}
-                        ${pokemon.evs ? `<div class="compare-row"><strong>努力値:</strong> ${escapeHtml(pokemon.evs)}</div>` : ''}
-                        ${moves.length > 0 ? `<div class="compare-row"><strong>技:</strong><br>${moves.map(m => escapeHtml(m)).join('<br>')}</div>` : ''}
-                        ${ribbons.length > 0 ? `<div class="compare-row"><strong>リボン:</strong><br>${ribbons.map(r => `<span class="ribbon-icon"><img src="${getRibbonImageUrl(r)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${isMarkName(r) ? '🏅' : '🎀'}</span> ${escapeHtml(r)}</span>`).join(' ')}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-
-        modalHtml += `
-                    </div>
-                    <button class="modal-bottom-close compare-bottom-close">閉じる</button>
-                </div>
-            </div>
-        `;
-
-        modal.innerHTML = modalHtml;
-        document.body.appendChild(modal);
-
-        const closeModal = () => modal.remove();
-        modal.querySelector('.compare-modal-close').addEventListener('click', closeModal);
-        modal.querySelector('.compare-bottom-close').addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+    more.hidden = shown >= list.length;
+  }
+  function update() { shown = pageSize; render(); }
+  $('#filter-toggle').addEventListener('click', event => {
+    const button = event.currentTarget;
+    button.setAttribute('aria-expanded', String(button.getAttribute('aria-expanded') !== 'true'));
+  });
+  for (const el of Object.values(controls)) el.addEventListener(['search', 'date'].includes(el.type) ? 'input' : 'change', update);
+  root.querySelectorAll('[name="ribbon-mode"]').forEach(radio => radio.addEventListener('change', () => {
+    ribbonMode = root.querySelector('[name="ribbon-mode"]:checked').value;
+    $('#ribbon-mode-summary').textContent = `複数選択時：${ribbonMode === 'AND' ? 'すべてを含む' : 'いずれかを含む'}`;
+    update();
+  }));
+  for (const button of statusButtons) button.addEventListener('click', () => {
+    statusFilter = button.dataset.status;
+    for (const item of statusButtons) item.setAttribute('aria-pressed', String(item === button));
+    update();
+  });
+  function clearControls(names) {
+    for (const name of names) {
+      const control = controls[name];
+      if (control.type === 'checkbox') control.checked = false;
+      else control.value = '';
     }
+  }
+  function clearAdvanced() {
+    clearControls(advancedControlNames);
+    selectedRibbons = [];
+    ribbonMode = 'OR';
+    root.querySelector('[name="ribbon-mode"][value="OR"]').checked = true;
+    $('#ribbon-mode-summary').textContent = '複数選択時：いずれかを含む';
+    root.querySelector('.ribbon-mode').open = false;
+    syncRibbonSelection();
+  }
+  $('#advanced-reset').addEventListener('click', () => {
+    clearAdvanced();
+    update();
+  });
+  $('#reset').addEventListener('click', () => {
+    clearControls(['keyword', 'game', 'method', 'region', 'sort', 'shiny']);
+    controls.sort.value = 'recommended';
+    clearAdvanced();
+    statusButtons[0].click();
+  });
+  more.addEventListener('click', () => { shown += pageSize; render(); });
 
-    // クリアボタンからのイベントリスナー
-    window.addEventListener('clearSearch', () => {
-        searchResults = allData;
-        showingFavorites = false;
-        showingOwned = false;
-        displayedCount = 0;
-        document.getElementById('showFavorites').classList.remove('active');
-        document.getElementById('showOwned').classList.remove('active');
-        selectedRibbons = [];
-        ribbonFilterMode = 'OR';
-        renderRibbonTags();
-        displayResults(allData);
-    });
-
-    // リボン追加ボタン
-    document.getElementById('addRibbonBtn')?.addEventListener('click', () => {
-        const input = document.getElementById('filterRibbonInput');
-        if (input) addRibbon(input.value);
-    });
-
-    document.getElementById('filterRibbonInput')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addRibbon(e.target.value);
-        }
-    });
-
-    // リボンモード切替
-    document.querySelectorAll('input[name="ribbonMode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            ribbonFilterMode = e.target.value;
-            searchPokemon();
-        });
-    });
-
-    // プリセット保存ボタン
-    document.getElementById('savePresetBtn')?.addEventListener('click', () => {
-        const name = prompt('プリセット名を入力してください（最大20文字）:');
-        if (name && name.trim()) {
-            savePreset(name.trim().slice(0, 20));
-        }
-    });
-
-    // コレクション統計
-    function updateCollectionStats() {
-        const inner = document.getElementById('collectionStatsInner');
-        if (!inner) return;
-        const owned = getOwned();
-        const total = allData.length;
-        const ownedCount = owned.length;
-
-        // 世代別集計
-        const genGroups = {};
-        allData.forEach(p => {
-            const g = getGenerationLabel(p.generation);
-            if (!genGroups[g]) genGroups[g] = { total: 0, owned: 0 };
-            genGroups[g].total++;
-            if (owned.includes(p.managementId)) genGroups[g].owned++;
-        });
-
-        // ゲーム別集計
-        const gameGroups = {};
-        allData.forEach(p => {
-            const g = getGameShortName(p.game);
-            if (!gameGroups[g]) gameGroups[g] = { total: 0, owned: 0 };
-            gameGroups[g].total++;
-            if (owned.includes(p.managementId)) gameGroups[g].owned++;
-        });
-
-        // HTML生成
-        function renderGroup(title, groups) {
-            const sortedEntries = Object.entries(groups).sort((a, b) => b[1].total - a[1].total);
-            const rows = sortedEntries.map(([label, data]) => {
-                const pct = data.total > 0 ? Math.round((data.owned / data.total) * 100) : 0;
-                return `
-                    <div class="stats-row">
-                        <div class="stats-row-label">${escapeHtml(label)}</div>
-                        <div class="stats-row-bar-wrap">
-                            <div class="stats-row-bar" style="width:${pct}%"></div>
-                        </div>
-                        <div class="stats-row-count">${data.owned} / ${data.total}</div>
-                    </div>`;
-            }).join('');
-            return `<div class="stats-group"><h4 class="stats-group-title">${title}</h4>${rows}</div>`;
-        }
-
-        const overallPct = total > 0 ? Math.round((ownedCount / total) * 100) : 0;
-        inner.innerHTML = `
-            <div class="stats-overall">
-                <span class="stats-overall-label">総合</span>
-                <div class="stats-row-bar-wrap">
-                    <div class="stats-row-bar stats-row-bar--overall" style="width:${overallPct}%"></div>
-                </div>
-                <span class="stats-overall-count">${ownedCount} / ${total} (${overallPct}%)</span>
-            </div>
-            <div class="stats-groups">
-                ${renderGroup('世代別', genGroups)}
-                ${renderGroup('ゲーム別', gameGroups)}
-            </div>
-        `;
-    }
-
-    document.getElementById('toggleCollectionStats')?.addEventListener('click', function() {
-        const panel = document.getElementById('collectionStatsPanel');
-        const isHidden = panel.style.display === 'none';
-        panel.style.display = isHidden ? 'block' : 'none';
-        this.textContent = isHidden ? '📦 所持コレクション進捗を閉じる' : '📦 所持コレクション進捗';
-        if (isHidden) updateCollectionStats();
-    });
-
-    // 初期化
-    initDarkMode();
-    renderPresets();
-    updateOwnedCount();
-    loadData();
-
-    // 一番上に戻るボタンの処理
-    const scrollToTopBtn = document.getElementById('scrollToTop');
-
-    window.addEventListener('scroll', () => {
-        if (window.innerWidth <= 768) {
-            if (window.scrollY > 300) {
-                scrollToTopBtn.classList.add('show');
-            } else {
-                scrollToTopBtn.classList.remove('show');
-            }
-        }
-    });
-
-    scrollToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+  fetch(`${base}pokemon.json`)
+    .then(response => { if (!response.ok) throw new Error('取得失敗'); return response.json(); })
+    .then(json => {
+      if (!Array.isArray(json)) throw new Error('データ形式が不正');
+      data = json;
+      populateFilters();
+      renderFeatured();
+      render();
+    })
+    .catch(() => {
+      featured.textContent = '配信データを読み込めませんでした。ページを再読み込みしてください。';
+      $('#result-count').textContent = 'データを読み込めませんでした';
+      results.textContent = '通信状況を確認して、ページを再読み込みしてください。';
     });
 </script>
 
-<style>
-.timeline-link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: rgba(255,255,255,0.2);
-  color: #fff;
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .timeline-link-btn {
-    padding: 6px 8px;
+<style is:global>
+  .preview { --pv-ink: #302820; --pv-link: #754500; --pv-soft: #fff8ed; --pv-line: #e7dac8; --pv-control-line: #ab9c88; --pv-white: #fff; --pv-muted: #62594e; max-width: 1180px; margin: 0 auto; padding: clamp(12px, 2vw, 24px) 0 60px; color: var(--pv-ink); }
+  .preview .preview-header { display: flex; justify-content: flex-start; padding: 0; margin: 0 0 10px; background: transparent; box-shadow: none; }
+  .preview .preview-header h1 { margin: 0; color: var(--pv-ink); font-size: clamp(1.15rem, 2vw, 1.4rem); line-height: 1.3; }
+  .preview .eyebrow { color: var(--pv-link) !important; font-size: .75rem !important; font-weight: 800; letter-spacing: .08em; margin-bottom: 8px; }
+  .preview .search-panel, .preview .featured, .preview .browse { margin-bottom: 22px; }
+  .preview .search-panel { padding: 0; background: transparent; }
+  .preview input[type="checkbox"], .preview input[type="radio"] { accent-color: var(--color-primary-dark); }
+  .preview .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .preview .search-panel input { width: 100%; padding: 13px 16px; font-size: 1rem; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 8px; }
+  .preview .search-result-shortcut { display: none; }
+  .preview .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 18px; }
+  .preview .section-heading h2 { font-size: clamp(1.3rem, 2vw, 1.8rem); line-height: 1.3; }
+  .preview .section-heading > p { color: var(--pv-muted); }
+  .preview .featured { padding: clamp(14px, 2vw, 20px); background: var(--pv-soft); border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .featured-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+  .preview .featured-card { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-line); border-radius: 8px; text-decoration: none; }
+  .preview .featured-card:hover { border-color: var(--color-primary-dark); }
+  .preview .featured-card .card-visual { flex: 0 0 58px; width: 58px; height: 58px; }
+  .preview .featured-card .card-visual img { max-width: 52px; max-height: 52px; }
+  .preview .featured-copy { display: flex; flex-direction: column; min-width: 0; gap: 2px; line-height: 1.3; }
+  .preview .featured-copy strong { font-size: .98rem; }
+  .preview .card-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+  .preview .card-shiny { display: inline-flex; align-items: center; gap: 3px; flex: none; padding: 2px 6px; border: 1px solid #d9bc6e; border-radius: 4px; background: #fff7dc; color: #614300; font-size: .7rem; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+  .preview .card-shiny-conditional { border-color: var(--pv-line); background: #f5f1e9; color: var(--pv-muted); }
+  .preview .card-shiny img { position: static; width: 13px; height: 13px; object-fit: contain; }
+  .preview .featured-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--pv-muted); font-size: .82rem; }
+  .preview .featured-copy small { color: #754500; font-weight: 800; }
+  .preview .caution { margin-top: 14px; color: var(--pv-muted); font-size: .86rem; }
+  .preview .filter-toggle { display: none; }
+  .preview .filter-panel { display: contents; }
+  .preview .status-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .preview .status-filters button, .preview .results-heading button { padding: 9px 13px; background: white; border: 1px solid var(--pv-line); border-radius: 7px; color: var(--pv-ink); cursor: pointer; }
+  .preview .status-filters button[aria-pressed="true"] { background: var(--color-primary); border-color: var(--color-primary-dark); color: var(--pv-ink); font-weight: 800; }
+  .preview .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); align-items: end; gap: 12px; padding: 18px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .filters label { display: grid; gap: 6px; font-weight: 700; }
+  .preview .filters select { width: 100%; min-width: 0; padding: 10px; background: white; border: 1px solid var(--pv-control-line); border-radius: 6px; color: var(--pv-ink); }
+  .preview .filters .checkbox { display: flex; align-items: center; gap: 8px; min-height: 42px; }
+  .preview .filters .checkbox input { width: 18px; height: 18px; }
+  .preview .advanced { margin-top: 12px; padding: 12px 16px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview .advanced summary { color: var(--pv-link); font-weight: 800; cursor: pointer; }
+  .preview .advanced-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; margin-top: 16px; }
+  .preview .advanced-grid label { display: grid; gap: 5px; font-weight: 700; }
+  .preview .advanced-grid label.checkbox { display: flex; align-items: center; gap: 8px; }
+  .preview .advanced-grid input:not([type="checkbox"]), .preview .advanced-grid select { width: 100%; min-width: 0; padding: 10px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 6px; font-size: 1rem; }
+  .preview .ribbon-filter { min-width: 0; margin: 18px 0 0; padding: 12px; border: 1px solid var(--pv-line); border-radius: 8px; }
+  .preview .ribbon-filter legend { font-weight: 800; }
+  .preview .ribbon-options button { padding: 6px 9px; border: 1px solid var(--pv-line); border-radius: 6px; background: white; color: var(--pv-ink); cursor: pointer; }
+  .preview .ribbon-filter p { margin: 12px 0 5px; font-weight: 700; }
+  .preview .ribbon-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preview .ribbon-options button[aria-pressed="true"] { color: var(--pv-ink); background: var(--color-primary); border-color: var(--color-primary-dark); font-weight: 800; }
+  .preview .ribbon-mode { margin-top: 12px; font-size: .9rem; }
+  .preview .ribbon-mode summary { color: var(--pv-muted); font-weight: 600; }
+  .preview .ribbon-mode-options { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+  .preview .ribbon-mode-options label { white-space: nowrap; }
+  .preview .advanced-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .preview .advanced-actions button { max-width: 100%; padding: 9px 13px; background: white; border: 1px solid var(--pv-line); border-radius: 7px; color: var(--pv-link); font-weight: 700; cursor: pointer; }
+  .preview .results-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 19px 0 14px; }
+  .preview .results-heading p { font-weight: 700; }
+  .preview .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+  .preview .distribution-card { display: flex; gap: 15px; min-width: 0; padding: 18px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-line); border-radius: 10px; text-decoration: none; }
+  .preview .distribution-card:hover { border-color: var(--color-primary-dark); box-shadow: 0 3px 12px rgb(48 40 32 / 10%); }
+  .preview .card-visual { display: grid; place-items: center; flex: 0 0 80px; width: 80px; height: 80px; background: var(--pv-soft); border-radius: 8px; position: relative; }
+  .preview .card-visual img { position: absolute; max-width: 72px; max-height: 72px; object-fit: contain; }
+  .preview .image-fallback { color: var(--pv-muted); font-size: .7rem; }
+  .preview .card-content { min-width: 0; flex: 1; }
+  .preview .card-content .card-title-row { margin: 8px 0 3px; }
+  .preview .card-content h3 { margin: 0; font-size: 1.1rem; }
+  .preview .event-name { margin-bottom: 12px; color: var(--pv-muted); line-height: 1.45; overflow-wrap: anywhere; }
+  .preview .state { display: inline-block; padding: 4px 8px; background: #f2eee8; color: #554d45; border-radius: 4px; font-size: .75rem; font-weight: 800; }
+  .preview .state-soon { background: #fff0d4; color: #754500; }
+  .preview .state-current { background: #e0f3ec; color: #146447; }
+  .preview .state-ended { background: #eef0f2; color: #58616d; }
+  .preview .card-content dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; margin: 0; line-height: 1.45; }
+  .preview .card-content dt { color: var(--pv-muted); }
+  .preview .card-content dd { overflow-wrap: anywhere; }
+  .preview .more { display: block; margin: 22px auto 0; padding: 12px 24px; background: var(--color-primary); border: 1px solid var(--color-primary-dark); border-radius: 7px; color: var(--pv-ink); font-weight: 800; cursor: pointer; }
+  .preview .more[hidden] { display: none; }
+  .preview .empty { grid-column: 1 / -1; padding: 25px; background: white; border: 1px solid var(--pv-line); border-radius: 10px; }
+  .preview #results-heading { scroll-margin-top: 12px; }
+  .preview :focus-visible { outline: 3px solid #ef9a23; outline-offset: 3px; }
+  @media (max-width: 768px) {
+    .preview .search-result-shortcut:not([hidden]) { display: inline-flex; align-items: center; min-height: 44px; margin-top: 5px; color: var(--pv-link); font-weight: 800; text-underline-offset: 3px; }
+    .preview .filter-toggle { display: block; width: 100%; min-height: 44px; margin-bottom: 12px; padding: 9px 13px; background: white; color: var(--pv-ink); border: 1px solid var(--pv-control-line); border-radius: 7px; font-weight: 800; text-align: left; cursor: pointer; }
+    .preview .filter-toggle::after { content: '⌄'; float: right; }
+    .preview .filter-toggle[aria-expanded="true"]::after { content: '⌃'; }
+    .preview .filter-panel { display: none; }
+    .preview .filter-toggle[aria-expanded="true"] + .filter-panel { display: block; }
   }
-
-  .timeline-link-label {
-    display: none;
-  }
-}
-
-/* 世代リンク帯 */
-.gen-nav {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    background: var(--color-bg-section);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.gen-nav-label {
-    display: inline-block;
-    font-size: 13px;
-    color: var(--color-text-muted, #666);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.gen-nav-link {
-    display: inline-block;
-    padding: 5px 12px;
-    background: var(--color-bg-card);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-    border-radius: 20px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.gen-nav-link:hover {
-    background: var(--color-primary);
-    color: #fff;
-}
-
-@media (max-width: 768px) {
-    .gen-nav {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 8px 12px;
-        gap: 6px;
-    }
-
-    .gen-nav-link {
-        font-size: 12px;
-        padding: 4px 10px;
-        flex-shrink: 0;
-    }
-
-    .gen-nav-label {
-        font-size: 12px;
-    }
-}
-
-body.dark-mode .gen-nav {
-    background: #1a1a1a;
-    border-color: #333;
-}
-
-body.dark-mode .gen-nav-link {
-    background: #2a2a2a;
-    color: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-body.dark-mode .gen-nav-link:hover {
-    background: var(--color-accent);
-    color: #fff;
-}
-
-/* 未収録のまとめページ（リンク帯の直下に一行で示す） */
-.gen-nav--with-note {
-    border-bottom: none;
-}
-
-.gen-nav-note {
-    margin: 0;
-    padding: 0 12px 10px;
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--color-text-muted, #666);
-    background: var(--color-bg-section);
-    border-bottom: 1px solid var(--color-border);
-}
-
-body.dark-mode .gen-nav-note {
-    background: #1a1a1a;
-    border-color: #333;
-    color: #aaa;
-}
-
-/* 統計タイル（色違い・配信中）クリックでフィルタートグル */
-.dashboard-card[data-filter-toggle] {
-    cursor: pointer;
-    user-select: none;
-}
-
-.dashboard-card[data-filter-toggle]:hover {
-    border-color: var(--color-primary);
-}
-
-.dashboard-card[data-filter-toggle]:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-}
-
-.dashboard-card[data-filter-toggle].is-pressed {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-}
-
-body.dark-mode .dashboard-card[data-filter-toggle].is-pressed {
-    background: var(--color-primary-dark);
-}
+  @media (max-width: 640px) { .preview .section-heading { display: block; } .preview .section-heading > p { margin-top: 7px; } .preview .featured-list, .preview .card-grid { grid-template-columns: 1fr; } .preview .distribution-card { padding: 14px; } .preview .distribution-card .card-visual { flex-basis: 64px; width: 64px; height: 64px; } .preview .distribution-card .card-visual img { max-width: 58px; max-height: 58px; } }
 </style>
