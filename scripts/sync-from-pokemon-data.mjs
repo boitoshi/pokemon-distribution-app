@@ -80,3 +80,22 @@ try {
     process.exit(1);
   }
 }
+
+// 重複エントリの転送（重複id → 本来のid）。正本は pokemon-data の distributions/*.json の duplicateOf で、
+// build/meta.json の redirects に出る。重複は pokemon.json から外れるので、公開URL /pokemon/{重複id}/ を
+// 404 にしないよう astro.config.mjs がこの対応から転送ページを作る。
+const META_SOURCE = SOURCE.replace(/pokemon\.json$/, "meta.json");
+const REDIRECTS_DEST = "src/data/redirects.json";
+try {
+  const meta = JSON.parse(fs.readFileSync(META_SOURCE, "utf8"));
+  const redirects = meta.redirects ?? {};
+  fs.writeFileSync(REDIRECTS_DEST, JSON.stringify(redirects, null, 2) + "\n", "utf8");
+  console.log(`✅ ${REDIRECTS_DEST} に ${Object.keys(redirects).length}件を同期しました。`);
+} catch (err) {
+  if (err.code === "ENOENT") {
+    console.warn(`⚠️  ${META_SOURCE} が見つかりません。既存の ${REDIRECTS_DEST} を保持します。`);
+  } else {
+    console.error(`❌ ${REDIRECTS_DEST} の同期エラー:`, err.message);
+    process.exit(1);
+  }
+}
