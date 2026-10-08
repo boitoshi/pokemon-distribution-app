@@ -43,7 +43,7 @@
 
 ## プロジェクト概要
 
-配信ポケモン情報を検索できる日本語の静的Webサイト。Astroで構築。デプロイは二段構え（①ベータ: GitHub Pages → ②本番: ConoHaサーバー pokebros.net）。詳細は「デプロイ・データ更新」節を参照。
+配信ポケモン情報を検索できる日本語の静的Webサイト。Astroで構築。このリポジトリは旧検索アプリ（アーカイブは未実施）。現行の本番検索は pokebros-tools のデータサイト `https://data.pokebros.net/distribution/` に統合済みで、Cloudflare Pages で配信する。GitHub Pages は旧アプリのベータ。詳細は「デプロイ・データ更新」節を参照。
 
 ## クイックスタート
 
