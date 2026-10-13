@@ -53,7 +53,7 @@ npm run dev       # 開発サーバー起動 (http://localhost:4321)
 npm run lint      # Lintチェック（scripts/lint-project.mjs）
 npm run smoke     # データ整合性チェック（scripts/validate-data.mjs）
 npm run build     # ①ベータ（GitHub Pages）ターゲットでビルド (dist/)。scripts/build-safe.mjs 経由（画像ディレクトリ退避ラッパー）
-npm run build:prod # ②本番（ConoHa）ターゲットでビルド (dist/)。DEPLOY_TARGET=production
+npm run build:prod # 旧本番（/distribution/search）向けビルド。現行配信には使わない。DEPLOY_TARGET=production
 npm run preview   # ビルド結果プレビュー
 ```
 
@@ -71,7 +71,7 @@ src/
 │   ├── SearchBox.astro          # 旧UIの検索部品（現在未使用）
 │   └── PokemonCard.astro        # 旧UIのカード・モーダル（現在未使用）
 ├── data/
-│   └── gen-guides.json          # まとめページへの導線（ページ・URL・対応世代。収録の有無は pokemon.json から判定）
+│   └── gen-guides.json          # まとめページへの導線の表（現在どこからも参照していない）
 └── layouts/
     └── Layout.astro             # 共通レイアウト・グローバルCSS
 
@@ -137,7 +137,7 @@ nuxt-reference/                  # 参考用Nuxt版（修正不要）
 ## 役割分担・継続作業の入口
 
 - WP・summary-pages・検索アプリの役割と掲載範囲: [ADR 0010](../pokebros-content-hub/docs/adr/0010-distribution-deploy-canonical.md)
-- 配置・導線・同期運用を検討するとき: [配信まわりの現状と未決事項](../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)
+- 現行の配置: [ADR 0017](../pokebros-content-hub/docs/adr/0017-static-apps-to-cloudflare-pages.md)。アーカイブを含む残作業: [data.pokebros.net の残作業](../pokebros-content-hub/research-notes/20260928-data-site-progress.md)（T-060）
 - ビルド・データ同期・公開手順: [docs/deploy.md](docs/deploy.md)
 - フィールド仕様: [docs/data-design.md](docs/data-design.md)
 

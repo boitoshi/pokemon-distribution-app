@@ -52,7 +52,7 @@
 
 ## 今後の課題
 
-配信まわりの配置・導線・同期運用の未決事項は [作業入口](../../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)で扱う。以下は機能別の残項目。
+このリポジトリはアーカイブ待ち（[ADR 0017](../../pokebros-content-hub/docs/adr/0017-static-apps-to-cloudflare-pages.md)）。残作業は [data.pokebros.net の残作業](../../pokebros-content-hub/research-notes/20260928-data-site-progress.md)（T-060）で扱う。以下は機能別の残項目。
 
 - [ ] 個別詳細画面のPC表示で「トレーナー情報」と「わざ」を横並びにする（次期UI検証後に検討、未着手）
 
