@@ -1,5 +1,8 @@
 # ポケモン配信情報検索サイト
 
+> **このリポジトリは 2026-10-13 にアーカイブした（読み取り専用）。** 配信検索は pokebros-tools の `https://data.pokebros.net/distribution/` に一本化済み（content-hub ADR 0017）。
+> 姿名 → 画像ファイル名の対応表は pokemon-data の `mappings/form-image-suffixes.json`、画像の改名スクリプトは content-hub の `scripts/rename_to_ascii.py` へ移した（content-hub ADR 0020）。
+
 過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。Astroで構築されています。
 
 **このリポジトリは旧検索アプリで、アーカイブ待ち。** 現行の本番検索は pokebros-tools のデータサイト
