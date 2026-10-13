@@ -8,9 +8,8 @@
 [ADR 0017](../../pokebros-content-hub/docs/adr/0017-static-apps-to-cloudflare-pages.md)を参照。
 このリポジトリは旧アプリで、現行本番は pokebros-tools の `https://data.pokebros.net/distribution/`。
 
-公開実績・実施待ち・未決方針は
-[配信まわりの作業入口](../../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)。
-URLの決定と、本番反映の完了は別に確認する。
+アーカイブを含む残作業は
+[data.pokebros.net の残作業](../../pokebros-content-hub/research-notes/20260928-data-site-progress.md)（T-060）。
 
 ## ビルド先
 
@@ -77,15 +76,8 @@ PR ごとにプレビューが作られる。実行手順は
 
 ## まとめページへの導線
 
-`src/data/gen-guides.json` は、検索トップから案内するまとめページ（summary-pages・WP記事）と対応世代の表。
-ビルド時に同じ `public/pokemon.json` を数え、対応世代の配信データがあるページだけリンクする。
-データが無いページはリンクせず、リンク帯の下に「未収録」と表示する（配信が無かったという意味ではない）。
-トップには summary-pages の一覧トップへのリンクも置く。
-
-表に書くURLは公開済みのページに限る。
-未収録の世代にデータを足すと、検索側はデータ同期だけでリンクが有効になる。
-そのため summary-pages の該当ページを先に本番反映する。
-現在の収録状況はデータから数え、この文書に写さない。
+`src/data/gen-guides.json`（まとめページと対応世代の表）は残してあるが、2026-09-27 の新UI以降は
+どこからも参照していない（`git grep gen-guides -- src scripts` が0件）。扱いは `docs/features.md` の「要検討」。
 
 ## トラブルシューティング
 

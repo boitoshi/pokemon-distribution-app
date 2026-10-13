@@ -14,7 +14,7 @@ user_invocable: true
 
 ## 確認事項
 - ホットリロード有効（ファイル変更が即座に反映される）
-- ベースパス付き: `/pokemon-distribution-app/`。本番（ConoHa）向けの `/distribution/search/` は `DEPLOY_TARGET=production` 時のみ（`astro.config.mjs` 参照。dev では使わない）
+- ベースパス付き: `/pokemon-distribution-app/`。旧本番向けの `/distribution/search/` は `DEPLOY_TARGET=production` 時のみ（現行配信には使わない）
 
 ## 次のステップ
-確認完了後 → `/build` で本番ビルド
+確認完了後 → `/build` でビルド

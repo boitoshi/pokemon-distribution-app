@@ -2,9 +2,12 @@
 
 過去に配信・配布されたポケモンの情報を検索できる非公式サイトです。Astroで構築されています。
 
-ベータ・本番のURLと実行手順は [docs/deploy.md](docs/deploy.md)、
-公開状態と未決事項は [配信まわりの作業入口](../pokebros-content-hub/research-notes/20260914-distribution-placement-proposal.md)を参照してください。
-本アプリは検索・タイムライン・コレクション管理を担当します。
+**このリポジトリは旧検索アプリで、アーカイブ待ち。** 現行の本番検索は pokebros-tools のデータサイト
+`https://data.pokebros.net/distribution/`（Cloudflare Pages）に統合済み
+（[ADR 0017](../pokebros-content-hub/docs/adr/0017-static-apps-to-cloudflare-pages.md)）。
+ここで動いているのは GitHub Pages のベータだけ。アーカイブの残作業は
+[data.pokebros.net の残作業](../pokebros-content-hub/research-notes/20260928-data-site-progress.md)（T-060）。
+実行手順は [docs/deploy.md](docs/deploy.md)。
 
 ## プロジェクト構成
 
@@ -17,9 +20,9 @@ pokemon-distribution-app/
 │   │   └── timeline.astro           # 配信タイムラインページ
 │   ├── components/
 │   │   ├── SearchBox.astro          # 旧UIの検索部品（現在未使用）
-│   │   └── PokemonCard.astro        # カード表示・モーダル
+│   │   └── PokemonCard.astro        # 旧UIのカード・モーダル（現在未使用）
 │   ├── data/
-│   │   └── gen-guides.json          # まとめページへの導線（収録の有無は pokemon.json から判定）
+│   │   └── gen-guides.json          # まとめページへの導線の表（現在どこからも参照していない）
 │   └── layouts/
 │       └── Layout.astro             # 共通レイアウト・グローバルCSS
 ├── public/
