@@ -1,5 +1,8 @@
 # Pokemon Distribution App - Claude Code ガイド
 
+> **このリポジトリは 2026-10-13 にアーカイブした（読み取り専用）。** 配信検索は pokebros-tools の `https://data.pokebros.net/distribution/` に一本化済み（content-hub ADR 0017）。
+> 姿名 → 画像ファイル名の対応表は pokemon-data の `mappings/form-image-suffixes.json`、画像の改名スクリプトは content-hub の `scripts/rename_to_ascii.py` へ移した（content-hub ADR 0020）。
+
 ## ⚠️ Claude Code ワークフロー（必ず最初に読むこと）
 
 <!-- テンプレ正本: pokebros-content-hub/docs/templates/claude-common-rules-template.md（編集は正本→各コピーへ反映） -->
