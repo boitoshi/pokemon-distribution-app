@@ -96,7 +96,7 @@ CI（`.github/workflows/ci.yml`）は `npm run lint` → `npm run smoke` → `np
 
 [docs/deploy.md](docs/deploy.md) に手順を集約しています。
 正本を生成し、本アプリへ同期した後、個別HTMLを含めてビルド・反映します。
-JSONだけのFTP差し替えは、検索UIと個別ページの内容がずれるため更新手順に使いません。
+JSONだけの差し替えは、検索UIと個別ページの内容がずれるため更新手順に使いません。
 
 ## データ形式
 
