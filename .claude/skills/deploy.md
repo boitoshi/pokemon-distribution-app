@@ -12,7 +12,7 @@ pokebros-tools の main へのマージで Cloudflare Pages が反映する（�
 「本番反映して」と言われたら、作業先が `../pokebros-tools` であることを伝える。
 
 ⚠ **FTP は使わない。** 旧本番 `www.pokebros.net/distribution/search/` は data へ 301 転送済みで、
-このリポジトリの `deploy-ftp.yml` は GitHub 側で無効化、FTP の Secrets も削除済み（2026-10-12）。
+このリポジトリの FTP の `deploy-ftp.yml` は 2026-10-13 に削除、FTP の Secrets も 2026-10-12 に削除済み。
 
 ## ベータ（GitHub Pages）
 
